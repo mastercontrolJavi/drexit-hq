@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { format, subMonths } from 'date-fns'
 import { getMonthLabel, formatCurrencyShort } from '@/lib/utils'
-import { BudgetEntry, MONTHLY_INCOME, TOTAL_FIXED } from '@/types'
+import { BudgetEntry } from '@/types'
+import { useIncome } from '@/lib/hooks/use-income'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -26,6 +27,7 @@ const tooltipStyle = {
 }
 
 export function CashFlowMini() {
+  const { income } = useIncome()
   const [data, setData] = useState<{ month: string; income: number; expenses: number }[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -47,14 +49,14 @@ export function CashFlowMini() {
         .reduce((sum, e) => sum + Number(e.amount_gbp), 0)
       return {
         month: getMonthLabel(m).split(' ')[0].slice(0, 3),
-        income: MONTHLY_INCOME,
-        expenses: Math.round(TOTAL_FIXED + spent),
+        income: income,
+        expenses: Math.round(spent),
       }
     })
 
     setData(chartData)
     setLoading(false)
-  }, [])
+  }, [income])
 
   useEffect(() => {
     fetchData()

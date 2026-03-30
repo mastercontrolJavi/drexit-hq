@@ -9,9 +9,6 @@ import {
   SavingsGoal,
   SavingsTransaction,
   BUDGET_CATEGORIES,
-  MONTHLY_INCOME,
-  TOTAL_FIXED,
-  DISCRETIONARY,
 } from '@/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -36,13 +33,19 @@ import {
 import { BarChart3, TrendingUp, Calendar, Layers, PiggyBank, Scale } from 'lucide-react'
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Food: '#007AFF',
-  Transport: '#5856D6',
-  Travel: '#AF52DE',
-  'Going Out': '#FF9500',
+  Restaurants: '#007AFF',
   Shopping: '#FF3B30',
-  Subscriptions: '#34C759',
-  Other: '#8E8E93',
+  Groceries: '#34C759',
+  Transportation: '#5856D6',
+  Entertainment: '#FF9500',
+  Travel: '#AF52DE',
+  Health: '#FF2D55',
+  Subscriptions: '#5AC8FA',
+  Services: '#FFCC00',
+  Utilities: '#8E8E93',
+  Rent: '#FF6482',
+  Cash: '#30B0C7',
+  Transfer: '#A2845E',
 }
 
 const SAVINGS_COLORS = [
@@ -60,6 +63,7 @@ const tooltipStyle = {
 interface BudgetAnalyticsProps {
   entries: BudgetEntry[]
   selectedMonth: string
+  income: number
   onCategoryClick?: (category: string) => void
   onMonthClick?: (monthKey: string) => void
 }
@@ -67,6 +71,7 @@ interface BudgetAnalyticsProps {
 export function BudgetAnalytics({
   entries,
   selectedMonth,
+  income,
   onCategoryClick,
   onMonthClick,
 }: BudgetAnalyticsProps) {
@@ -123,13 +128,12 @@ export function BudgetAnalytics({
   const cashFlowData = months.map((m) => {
     const monthEntries = allEntries.filter((e) => e.month_key === m)
     const spent = monthEntries.reduce((sum, e) => sum + Number(e.amount_gbp), 0)
-    const totalExpenses = TOTAL_FIXED + spent
-    const net = MONTHLY_INCOME - totalExpenses
+    const net = income - spent
     return {
       month: getMonthLabel(m).split(' ')[0],
       monthKey: m,
-      income: MONTHLY_INCOME,
-      expenses: Math.round(totalExpenses),
+      income: income,
+      expenses: Math.round(spent),
       net: Math.round(net),
     }
   })
@@ -137,7 +141,7 @@ export function BudgetAnalytics({
   // ── Chart 3: Daily Spending Pace (current month) ──
   const [year, month] = selectedMonth.split('-').map(Number)
   const totalDays = getDaysInMonth(new Date(year, month - 1))
-  const dailyBudget = DISCRETIONARY / totalDays
+  const dailyBudget = income / totalDays
 
   const dailyPaceData: { day: number; cumulative: number; budget: number }[] = []
   let cumulative = 0
@@ -204,7 +208,6 @@ export function BudgetAnalytics({
   const netPositionData = months.map((m) => {
     const monthEntries = allEntries.filter((e) => e.month_key === m)
     const spent = monthEntries.reduce((sum, e) => sum + Number(e.amount_gbp), 0)
-    const totalExpenses = TOTAL_FIXED + spent
 
     // Savings contributions for this month
     const monthStart = `${m}-01`
@@ -218,10 +221,10 @@ export function BudgetAnalytics({
 
     return {
       month: getMonthLabel(m).split(' ')[0],
-      income: MONTHLY_INCOME,
-      expenses: Math.round(totalExpenses),
+      income: income,
+      expenses: Math.round(spent),
       savings: Math.round(savingsContributions),
-      net: Math.round(MONTHLY_INCOME - totalExpenses - savingsContributions),
+      net: Math.round(income - spent - savingsContributions),
     }
   })
 
@@ -447,11 +450,11 @@ export function BudgetAnalytics({
                     name="Budget Pace"
                   />
                   <ReferenceLine
-                    y={DISCRETIONARY}
+                    y={income}
                     stroke="#FF3B30"
                     strokeDasharray="4 4"
                     label={{
-                      value: `Budget £${DISCRETIONARY}`,
+                      value: `Budget £${income}`,
                       position: 'right',
                       fontSize: 10,
                       fill: '#FF3B30',

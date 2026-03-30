@@ -16,10 +16,8 @@ import {
   BudgetEntry,
   SavingsGoal,
   BUDGET_CATEGORIES,
-  MONTHLY_INCOME,
-  TOTAL_FIXED,
-  DISCRETIONARY,
 } from '@/types'
+import { useIncome } from '@/lib/hooks/use-income'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -42,7 +40,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Wallet,
-  Lock,
   ShoppingCart,
   PiggyBank,
   Trash2,
@@ -50,6 +47,8 @@ import {
   Link2,
   ChevronDown,
   ChevronUp,
+  Pencil,
+  Check,
 } from 'lucide-react'
 import { CsvImport } from './csv-import'
 import { SavingsTracker } from './savings-tracker'
@@ -66,6 +65,10 @@ function generateMonthOptions() {
 }
 
 export function BudgetClient() {
+  const { income, updateIncome } = useIncome()
+  const [editingIncome, setEditingIncome] = useState(false)
+  const [incomeInput, setIncomeInput] = useState('')
+
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthKey())
   const [entries, setEntries] = useState<BudgetEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -130,14 +133,22 @@ export function BudgetClient() {
   }, [fetchEntries])
 
   const totalSpent = entries.reduce((sum, e) => sum + Number(e.amount_gbp), 0)
-  const remaining = MONTHLY_INCOME - TOTAL_FIXED - totalSpent
+  const remaining = income - totalSpent
   const isCurrentMonth = selectedMonth === getCurrentMonthKey()
 
   // Burn rate projection
   const elapsed = daysElapsedInMonth()
   const dailyAvg = elapsed > 0 ? totalSpent / elapsed : 0
   const projectedSpend = dailyAvg * getDaysInMonth(new Date())
-  const showBurnWarning = isCurrentMonth && projectedSpend > DISCRETIONARY && elapsed > 3
+  const showBurnWarning = isCurrentMonth && projectedSpend > income && elapsed > 3
+
+  function handleIncomeSave() {
+    const val = parseFloat(incomeInput)
+    if (!isNaN(val) && val > 0) {
+      updateIncome(val)
+    }
+    setEditingIncome(false)
+  }
 
   async function handleAddExpense(e: React.FormEvent) {
     e.preventDefault()
@@ -207,18 +218,6 @@ export function BudgetClient() {
     setEntries(entries.filter((e) => e.id !== id))
   }
 
-  const overviewCards = [
-    { label: 'Income', value: MONTHLY_INCOME, icon: Wallet, color: 'text-ios-blue' },
-    { label: 'Fixed', value: TOTAL_FIXED, icon: Lock, color: 'text-muted-foreground' },
-    { label: 'Spent', value: totalSpent, icon: ShoppingCart, color: 'text-ios-orange' },
-    {
-      label: 'Remaining',
-      value: remaining,
-      icon: PiggyBank,
-      color: remaining >= 0 ? 'text-ios-green' : 'text-ios-red',
-    },
-  ]
-
   return (
     <div className="space-y-8">
       {/* Month Selector */}
@@ -241,28 +240,86 @@ export function BudgetClient() {
 
       {/* Monthly Overview */}
       {loading ? (
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-3 gap-5">
+          {[...Array(3)].map((_, i) => (
             <Skeleton key={i} className="h-[120px] rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-          {overviewCards.map((card) => (
-            <Card key={card.label} className="shadow-card border-none">
-              <CardContent className="pt-5">
+        <div className="grid grid-cols-3 gap-5">
+          {/* Income Card */}
+          <Card className="shadow-card border-none">
+            <CardContent className="pt-5">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <card.icon className={cn('h-4 w-4', card.color)} />
+                  <Wallet className="h-4 w-4 text-ios-blue" />
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    {card.label}
+                    Income
                   </span>
                 </div>
-                <div className={cn('mt-3 text-[40px] font-bold leading-none tracking-tight', card.color)}>
-                  {formatCurrencyShort(card.value)}
+                <button
+                  onClick={() => {
+                    if (editingIncome) {
+                      handleIncomeSave()
+                    } else {
+                      setIncomeInput(String(income))
+                      setEditingIncome(true)
+                    }
+                  }}
+                  className="text-muted-foreground hover:text-ios-blue transition-colors"
+                >
+                  {editingIncome ? <Check className="h-4 w-4" /> : <Pencil className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+              {editingIncome ? (
+                <Input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={incomeInput}
+                  onChange={(e) => setIncomeInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleIncomeSave()}
+                  onBlur={handleIncomeSave}
+                  className="mt-2 text-2xl font-bold h-12"
+                  autoFocus
+                />
+              ) : (
+                <div className="mt-3 text-[40px] font-bold leading-none tracking-tight text-ios-blue">
+                  {formatCurrencyShort(income)}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Spent Card */}
+          <Card className="shadow-card border-none">
+            <CardContent className="pt-5">
+              <div className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4 text-ios-orange" />
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Spent
+                </span>
+              </div>
+              <div className="mt-3 text-[40px] font-bold leading-none tracking-tight text-ios-orange">
+                {formatCurrencyShort(totalSpent)}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Remaining Card */}
+          <Card className="shadow-card border-none">
+            <CardContent className="pt-5">
+              <div className="flex items-center gap-2">
+                <PiggyBank className={cn('h-4 w-4', remaining >= 0 ? 'text-ios-green' : 'text-ios-red')} />
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Remaining
+                </span>
+              </div>
+              <div className={cn('mt-3 text-[40px] font-bold leading-none tracking-tight', remaining >= 0 ? 'text-ios-green' : 'text-ios-red')}>
+                {formatCurrencyShort(remaining)}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -272,7 +329,7 @@ export function BudgetClient() {
           <AlertTriangle className="h-5 w-5 shrink-0" />
           <p className="text-sm font-medium">
             Projected monthly spend of {formatCurrency(projectedSpend)} exceeds budget by{' '}
-            {formatCurrency(projectedSpend - DISCRETIONARY)}
+            {formatCurrency(projectedSpend - income)}
           </p>
         </div>
       )}
@@ -478,6 +535,7 @@ export function BudgetClient() {
       <BudgetAnalytics
         entries={entries}
         selectedMonth={selectedMonth}
+        income={income}
         onMonthClick={(monthKey) => { setSelectedMonth(monthKey); setExpensesExpanded(false) }}
       />
     </div>

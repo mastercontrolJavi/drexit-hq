@@ -18,11 +18,13 @@ export function daysUntilDrexit(): number {
 }
 
 export function formatCurrency(amount: number, currency = '\u00A3'): string {
-  return `${currency}${Math.abs(amount).toFixed(2)}`
+  if (amount < 0) return `-${currency}${Math.abs(amount).toFixed(2)}`
+  return `${currency}${amount.toFixed(2)}`
 }
 
 export function formatCurrencyShort(amount: number, currency = '\u00A3'): string {
-  return `${currency}${Math.abs(amount).toFixed(0)}`
+  if (amount < 0) return `-${currency}${Math.abs(amount).toFixed(0)}`
+  return `${currency}${amount.toFixed(0)}`
 }
 
 export function formatDate(date: string | Date): string {
