@@ -252,30 +252,30 @@ export function BudgetAnalytics({
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold">Analytics</h3>
-      <Tabs defaultValue="spending" className="w-full">
-        <TabsList className="w-full justify-start gap-1 bg-ios-gray-6 rounded-xl p-1">
-          <TabsTrigger value="spending" className="rounded-lg text-xs">
-            <BarChart3 className="mr-1.5 h-3.5 w-3.5" /> Spending
+      <Tabs defaultValue="spending" className="w-full min-w-0">
+        <TabsList className="!w-full !inline-grid grid-cols-3 sm:grid-cols-6 gap-1 bg-ios-gray-6 rounded-xl p-1 h-auto">
+          <TabsTrigger value="spending" className="rounded-lg text-xs !flex-none">
+            <BarChart3 className="mr-1 h-3.5 w-3.5 shrink-0" /> Spending
           </TabsTrigger>
-          <TabsTrigger value="cashflow" className="rounded-lg text-xs">
-            <TrendingUp className="mr-1.5 h-3.5 w-3.5" /> Cash Flow
+          <TabsTrigger value="cashflow" className="rounded-lg text-xs !flex-none">
+            <TrendingUp className="mr-1 h-3.5 w-3.5 shrink-0" /> Cash Flow
           </TabsTrigger>
-          <TabsTrigger value="pace" className="rounded-lg text-xs">
-            <Calendar className="mr-1.5 h-3.5 w-3.5" /> Pace
+          <TabsTrigger value="pace" className="rounded-lg text-xs !flex-none">
+            <Calendar className="mr-1 h-3.5 w-3.5 shrink-0" /> Pace
           </TabsTrigger>
-          <TabsTrigger value="trends" className="rounded-lg text-xs">
-            <Layers className="mr-1.5 h-3.5 w-3.5" /> Trends
+          <TabsTrigger value="trends" className="rounded-lg text-xs !flex-none">
+            <Layers className="mr-1 h-3.5 w-3.5 shrink-0" /> Trends
           </TabsTrigger>
-          <TabsTrigger value="savings" className="rounded-lg text-xs">
-            <PiggyBank className="mr-1.5 h-3.5 w-3.5" /> Savings
+          <TabsTrigger value="savings" className="rounded-lg text-xs !flex-none">
+            <PiggyBank className="mr-1 h-3.5 w-3.5 shrink-0" /> Savings
           </TabsTrigger>
-          <TabsTrigger value="net" className="rounded-lg text-xs">
-            <Scale className="mr-1.5 h-3.5 w-3.5" /> Net Position
+          <TabsTrigger value="net" className="rounded-lg text-xs !flex-none">
+            <Scale className="mr-1 h-3.5 w-3.5 shrink-0" /> Net
           </TabsTrigger>
         </TabsList>
 
         {/* Spending by Category */}
-        <TabsContent value="spending">
+        <TabsContent value="spending" className="w-full min-w-0">
           <Card className="shadow-card border-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -337,7 +337,7 @@ export function BudgetAnalytics({
         </TabsContent>
 
         {/* Monthly Cash Flow */}
-        <TabsContent value="cashflow">
+        <TabsContent value="cashflow" className="w-full min-w-0">
           <Card className="shadow-card border-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -397,7 +397,7 @@ export function BudgetAnalytics({
         </TabsContent>
 
         {/* Daily Spending Pace */}
-        <TabsContent value="pace">
+        <TabsContent value="pace" className="w-full min-w-0">
           <Card className="shadow-card border-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -464,7 +464,7 @@ export function BudgetAnalytics({
         </TabsContent>
 
         {/* Category Trends */}
-        <TabsContent value="trends">
+        <TabsContent value="trends" className="w-full min-w-0">
           <Card className="shadow-card border-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -500,7 +500,7 @@ export function BudgetAnalytics({
         </TabsContent>
 
         {/* Savings Growth */}
-        <TabsContent value="savings">
+        <TabsContent value="savings" className="w-full min-w-0">
           <Card className="shadow-card border-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
@@ -563,7 +563,7 @@ export function BudgetAnalytics({
         </TabsContent>
 
         {/* Net Position */}
-        <TabsContent value="net">
+        <TabsContent value="net" className="w-full min-w-0">
           <Card className="shadow-card border-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
