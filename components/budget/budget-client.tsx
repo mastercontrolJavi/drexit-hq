@@ -48,6 +48,8 @@ import {
   Trash2,
   AlertTriangle,
   Link2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { CsvImport } from './csv-import'
 import { SavingsTracker } from './savings-tracker'
@@ -91,6 +93,11 @@ export function BudgetClient() {
   }, [fetchSavingsGoals])
 
   const [linkedEntryIds, setLinkedEntryIds] = useState<Set<string>>(new Set())
+  const [expensesExpanded, setExpensesExpanded] = useState(false)
+
+  const VISIBLE_ROWS = 5
+  const visibleEntries = expensesExpanded ? entries : entries.slice(0, VISIBLE_ROWS)
+  const hasMore = entries.length > VISIBLE_ROWS
 
   const fetchEntries = useCallback(async () => {
     setLoading(true)
@@ -219,7 +226,7 @@ export function BudgetClient() {
         {monthOptions.map((m) => (
           <button
             key={m}
-            onClick={() => setSelectedMonth(m)}
+            onClick={() => { setSelectedMonth(m); setExpensesExpanded(false) }}
             className={cn(
               'whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98]',
               m === selectedMonth
@@ -389,7 +396,7 @@ export function BudgetClient() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {entries.map((entry) => (
+                {visibleEntries.map((entry) => (
                   <TableRow
                     key={entry.id}
                     className="hover:bg-ios-gray-6 transition-colors"
@@ -452,6 +459,18 @@ export function BudgetClient() {
               </TableBody>
             </Table>
           )}
+          {hasMore && (
+            <button
+              onClick={() => setExpensesExpanded(!expensesExpanded)}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium text-ios-blue hover:bg-ios-gray-6 transition-colors"
+            >
+              {expensesExpanded ? (
+                <>Show less <ChevronUp className="h-4 w-4" /></>
+              ) : (
+                <>Show all {entries.length} expenses <ChevronDown className="h-4 w-4" /></>
+              )}
+            </button>
+          )}
         </CardContent>
       </Card>
 
@@ -459,7 +478,7 @@ export function BudgetClient() {
       <BudgetAnalytics
         entries={entries}
         selectedMonth={selectedMonth}
-        onMonthClick={(monthKey) => setSelectedMonth(monthKey)}
+        onMonthClick={(monthKey) => { setSelectedMonth(monthKey); setExpensesExpanded(false) }}
       />
     </div>
   )
