@@ -330,8 +330,9 @@ export function SpendingOverview() {
                     dataKey="amount"
                     radius={[6, 6, 0, 0]}
                     cursor="pointer"
-                    onClick={(data: { monthKey?: string }) => {
-                      if (data?.monthKey) setPeriod(data.monthKey)
+                    onClick={(_, index) => {
+                      const mk = monthlyBarData[index]?.monthKey
+                      if (mk) setPeriod(mk)
                     }}
                   >
                     {monthlyBarData.map((entry, i) => (
