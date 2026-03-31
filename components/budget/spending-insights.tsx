@@ -110,7 +110,7 @@ export function SpendingInsights() {
     const daysRemaining = daysInMonth - daysElapsed
 
     // ── 1. Biggest category increase vs last month ─────────────────────
-    const categoryChanges = [...new Set(currentEntries.map(e => e.category))].map(cat => {
+    const categoryChanges = Array.from(new Set(currentEntries.map(e => e.category))).map(cat => {
       const curr = currentEntries.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount_gbp), 0)
       const prev = prevEntries.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount_gbp), 0)
       const changePct = prev > 0 ? ((curr - prev) / prev) * 100 : 100
@@ -131,7 +131,7 @@ export function SpendingInsights() {
     }
 
     // ── 2. Category decrease (good news) ──────────────────────────────
-    const decreases = [...new Set([...currentEntries, ...prevEntries].map(e => e.category))].map(cat => {
+    const decreases = Array.from(new Set([...currentEntries, ...prevEntries].map(e => e.category))).map(cat => {
       const curr = currentEntries.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount_gbp), 0)
       const prev = prevEntries.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount_gbp), 0)
       const changePct = prev > 0 ? ((curr - prev) / prev) * 100 : 0
@@ -152,7 +152,7 @@ export function SpendingInsights() {
     }
 
     // ── 3. Top 3 categories = X% of total ─────────────────────────────
-    const catTotals = [...new Set(currentEntries.map(e => e.category))]
+    const catTotals = Array.from(new Set(currentEntries.map(e => e.category)))
       .map(cat => ({
         cat,
         total: currentEntries.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount_gbp), 0),
