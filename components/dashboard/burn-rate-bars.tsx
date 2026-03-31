@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { supabase } from '@/lib/supabase'
 import { getCurrentMonthKey, formatCurrencyShort } from '@/lib/utils'
-import { DISCRETIONARY } from '@/types'
 import type { BudgetEntry } from '@/types'
+import { useIncome } from '@/lib/hooks/use-income'
 
 interface CategorySpend {
   category: string
@@ -20,6 +20,7 @@ function barColor(pct: number): string {
 }
 
 export function BurnRateBars() {
+  const { income } = useIncome()
   const [categories, setCategories] = useState<CategorySpend[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -73,7 +74,7 @@ export function BurnRateBars() {
         ) : (
           <div className="space-y-4">
             {categories.map(({ category, amount }) => {
-              const pct = Math.min(100, (amount / DISCRETIONARY) * 100)
+              const pct = Math.min(100, (amount / income) * 100)
               return (
                 <div key={category}>
                   <div className="flex items-center justify-between mb-1.5">

@@ -6,8 +6,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Calendar, Wallet, Scale, ListChecks } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { daysUntilDrexit, getCurrentMonthKey, formatCurrencyShort } from '@/lib/utils'
-import { MONTHLY_INCOME, TOTAL_FIXED, USER_STATS } from '@/types'
+import { USER_STATS } from '@/types'
 import type { BudgetEntry, WeighIn } from '@/types'
+import { useIncome } from '@/lib/hooks/use-income'
 
 interface StatCardProps {
   label: string
@@ -56,6 +57,7 @@ function StatCardSkeleton() {
 }
 
 export function StatCards() {
+  const { income } = useIncome()
   const [loading, setLoading] = useState(true)
   const [runway, setRunway] = useState(0)
   const [lbsToGoal, setLbsToGoal] = useState(0)
@@ -83,7 +85,7 @@ export function StatCards() {
 
       const totalSpent = (budgetRes.data as Pick<BudgetEntry, 'amount_gbp'>[] | null)
         ?.reduce((sum, e) => sum + e.amount_gbp, 0) ?? 0
-      setRunway(MONTHLY_INCOME - TOTAL_FIXED - totalSpent)
+      setRunway(income - totalSpent)
 
       const latestWeight = (weighInRes.data as Pick<WeighIn, 'weight_lbs'>[] | null)?.[0]?.weight_lbs
       const currentWeight = latestWeight ?? USER_STATS.currentWeight
@@ -94,7 +96,7 @@ export function StatCards() {
     }
 
     fetchStats()
-  }, [])
+  }, [income])
 
   if (loading) {
     return (
@@ -119,7 +121,7 @@ export function StatCards() {
       />
       <StatCard
         label="Monthly Runway"
-        value={`${runway < 0 ? '-' : ''}${formatCurrencyShort(runway)}`}
+        value={formatCurrencyShort(runway)}
         icon={<Wallet className="h-4 w-4" />}
         color={runway >= 0 ? 'text-ios-green' : 'text-ios-red'}
         dotColor={runway >= 0 ? 'bg-ios-green' : 'bg-ios-red'}

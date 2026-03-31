@@ -14,6 +14,7 @@ export interface Goal {
   description: string | null
   category: GoalCategory
   deadline: string | null
+  target_quarter: string | null
   status: GoalStatus
   progress_pct: number
   notes: string | null
@@ -86,14 +87,37 @@ export interface TodoItem {
   completed: boolean
 }
 
+export interface NonNegotiable {
+  id: string
+  title: string
+  sort_order: number
+  last_completed_date: string | null
+  active: boolean
+}
+
+export interface BudgetLimit {
+  id: string
+  category: string
+  monthly_limit: number
+  rollover: boolean
+  carryover_amount: number
+  rollover_applied_month: string | null
+}
+
 export type BudgetCategory =
-  | 'Food'
-  | 'Transport'
-  | 'Travel'
-  | 'Going Out'
+  | 'Restaurants'
   | 'Shopping'
+  | 'Groceries'
+  | 'Transportation'
+  | 'Entertainment'
+  | 'Travel'
+  | 'Health'
   | 'Subscriptions'
-  | 'Other'
+  | 'Services'
+  | 'Utilities'
+  | 'Rent'
+  | 'Cash'
+  | 'Transfer'
 
 export type GoalCategory = 'Life' | 'Career' | 'Fitness' | 'Business' | 'Creative'
 export type GoalStatus = 'not_started' | 'in_progress' | 'done'
@@ -103,7 +127,8 @@ export type IdeaPriority = 'high' | 'medium' | 'low'
 export type IdeaStatus = 'idea' | 'researching' | 'building' | 'live'
 
 export const BUDGET_CATEGORIES: BudgetCategory[] = [
-  'Food', 'Transport', 'Travel', 'Going Out', 'Shopping', 'Subscriptions', 'Other',
+  'Restaurants', 'Shopping', 'Groceries', 'Transportation', 'Entertainment',
+  'Travel', 'Health', 'Subscriptions', 'Services', 'Utilities', 'Rent', 'Cash', 'Transfer',
 ]
 
 export const GOAL_CATEGORIES: GoalCategory[] = [
@@ -129,24 +154,7 @@ export const IDEA_STATUS_LABELS: Record<IdeaStatus, string> = {
   live: 'Live',
 }
 
-export interface FixedExpense {
-  name: string
-  amount: number
-}
-
-export const FIXED_EXPENSES: FixedExpense[] = [
-  { name: 'Groceries', amount: 220 },
-  { name: 'Transportation', amount: 96 },
-  { name: 'Subscriptions', amount: 96 },
-  { name: 'Revolut Platinum', amount: 55 },
-  { name: 'Phone bill', amount: 41 },
-  { name: 'Travel pocket', amount: 150 },
-  { name: 'US bank transfer', amount: 185 },
-]
-
-export const MONTHLY_INCOME = 1600
-export const TOTAL_FIXED = FIXED_EXPENSES.reduce((sum, e) => sum + e.amount, 0)
-export const DISCRETIONARY = MONTHLY_INCOME - TOTAL_FIXED
+export const DEFAULT_MONTHLY_INCOME = 1600
 
 export const USER_STATS = {
   currentWeight: 215,

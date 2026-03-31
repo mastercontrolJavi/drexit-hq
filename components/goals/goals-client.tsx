@@ -19,12 +19,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { Plus, Target, Trash2, CalendarDays } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { daysUntil, formatDate } from '@/lib/utils'
@@ -50,6 +50,7 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Life',
     deadline: '2025-07-24',
+    target_quarter: null,
     status: 'not_started',
     progress_pct: 0,
     notes: null,
@@ -59,6 +60,7 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Life',
     deadline: '2025-07-24',
+    target_quarter: null,
     status: 'not_started',
     progress_pct: 0,
     notes: null,
@@ -68,6 +70,7 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Creative',
     deadline: '2025-07-24',
+    target_quarter: null,
     status: 'in_progress',
     progress_pct: 20,
     notes: null,
@@ -77,6 +80,7 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Career',
     deadline: '2025-12-31',
+    target_quarter: null,
     status: 'not_started',
     progress_pct: 0,
     notes: null,
@@ -86,6 +90,7 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Life',
     deadline: '2025-12-31',
+    target_quarter: null,
     status: 'not_started',
     progress_pct: 0,
     notes: null,
@@ -95,6 +100,7 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Business',
     deadline: '2025-12-31',
+    target_quarter: null,
     status: 'not_started',
     progress_pct: 0,
     notes: null,
@@ -104,6 +110,7 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Fitness',
     deadline: '2025-07-24',
+    target_quarter: null,
     status: 'in_progress',
     progress_pct: 10,
     notes: null,
@@ -113,6 +120,7 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Creative',
     deadline: '2025-07-24',
+    target_quarter: null,
     status: 'in_progress',
     progress_pct: 15,
     notes: null,
@@ -122,11 +130,26 @@ const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
     description: null,
     category: 'Business',
     deadline: '2025-07-24',
+    target_quarter: null,
     status: 'in_progress',
     progress_pct: 5,
     notes: null,
   },
 ]
+
+function generateQuarterOptions(): string[] {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const options: string[] = []
+  for (let y = currentYear; y <= currentYear + 1; y++) {
+    for (let q = 1; q <= 4; q++) {
+      options.push(`Q${q} ${y}`)
+    }
+  }
+  return options
+}
+
+const QUARTER_OPTIONS = generateQuarterOptions()
 
 function emptyGoal(): Omit<Goal, 'id' | 'created_at'> {
   return {
@@ -134,6 +157,7 @@ function emptyGoal(): Omit<Goal, 'id' | 'created_at'> {
     description: null,
     category: 'Life',
     deadline: null,
+    target_quarter: null,
     status: 'not_started',
     progress_pct: 0,
     notes: null,
@@ -171,6 +195,7 @@ export function GoalsClient() {
   const [formDescription, setFormDescription] = useState('')
   const [formCategory, setFormCategory] = useState<GoalCategory>('Life')
   const [formDeadline, setFormDeadline] = useState('')
+  const [formQuarter, setFormQuarter] = useState('')
   const [formStatus, setFormStatus] = useState<GoalStatus>('not_started')
   const [formProgress, setFormProgress] = useState(0)
   const [formNotes, setFormNotes] = useState('')
@@ -224,6 +249,7 @@ export function GoalsClient() {
     setFormDescription(goal.description ?? '')
     setFormCategory(goal.category)
     setFormDeadline(goal.deadline ?? '')
+    setFormQuarter(goal.target_quarter ?? '')
     setFormStatus(goal.status)
     setFormProgress(goal.progress_pct)
     setFormNotes(goal.notes ?? '')
@@ -238,6 +264,7 @@ export function GoalsClient() {
     setFormDescription('')
     setFormCategory(blank.category)
     setFormDeadline('')
+    setFormQuarter('')
     setFormStatus(blank.status)
     setFormProgress(blank.progress_pct)
     setFormNotes('')
@@ -257,6 +284,7 @@ export function GoalsClient() {
       description: formDescription.trim() || null,
       category: formCategory,
       deadline: formDeadline || null,
+      target_quarter: formQuarter || null,
       status: formStatus,
       progress_pct: formProgress,
       notes: formNotes.trim() || null,
@@ -414,12 +442,19 @@ export function GoalsClient() {
                             </p>
                           )}
                         </div>
-                        <Badge
-                          className={`shrink-0 ${STATUS_VARIANTS[goal.status]}`}
-                          variant="secondary"
-                        >
-                          {STATUS_LABELS[goal.status]}
-                        </Badge>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {goal.target_quarter && (
+                            <Badge variant="outline" className="text-xs">
+                              {goal.target_quarter}
+                            </Badge>
+                          )}
+                          <Badge
+                            className={STATUS_VARIANTS[goal.status]}
+                            variant="secondary"
+                          >
+                            {STATUS_LABELS[goal.status]}
+                          </Badge>
+                        </div>
                       </div>
 
                       {/* Progress */}
@@ -455,19 +490,19 @@ export function GoalsClient() {
         </div>
       )}
 
-      {/* Goal Drawer */}
-      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent side="right" className="overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{isNew ? 'New Goal' : 'Edit Goal'}</SheetTitle>
-            <SheetDescription>
+      {/* Goal Dialog */}
+      <Dialog open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isNew ? 'New Goal' : 'Edit Goal'}</DialogTitle>
+            <DialogDescription>
               {isNew
                 ? 'Create a new goal to track your progress.'
                 : 'Update this goal or track your progress.'}
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="space-y-5 px-4 pb-8">
+          <div className="space-y-5 pb-2">
             {/* Title */}
             <div className="space-y-2">
               <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -493,58 +528,83 @@ export function GoalsClient() {
               />
             </div>
 
-            {/* Category */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Category
-              </Label>
-              <Select
-                value={formCategory}
-                onValueChange={(val) => setFormCategory(val as GoalCategory)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {GOAL_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Category & Quarter */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Category
+                </Label>
+                <Select
+                  value={formCategory}
+                  onValueChange={(val) => setFormCategory(val as GoalCategory)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GOAL_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Target Quarter
+                </Label>
+                <Select
+                  value={formQuarter}
+                  onValueChange={(val) => setFormQuarter(!val || val === 'none' ? '' : val)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="No quarter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No quarter</SelectItem>
+                    {QUARTER_OPTIONS.map((q) => (
+                      <SelectItem key={q} value={q}>
+                        {q}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* Deadline */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Deadline
-              </Label>
-              <Input
-                type="date"
-                value={formDeadline}
-                onChange={(e) => setFormDeadline(e.target.value)}
-              />
-            </div>
+            {/* Deadline & Status */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Deadline
+                </Label>
+                <Input
+                  type="date"
+                  value={formDeadline}
+                  onChange={(e) => setFormDeadline(e.target.value)}
+                />
+              </div>
 
-            {/* Status */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Status
-              </Label>
-              <Select
-                value={formStatus}
-                onValueChange={(val) => setFormStatus(val as GoalStatus)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="not_started">Not Started</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  Status
+                </Label>
+                <Select
+                  value={formStatus}
+                  onValueChange={(val) => setFormStatus(val as GoalStatus)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="not_started">Not Started</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="done">Done</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Progress */}
@@ -577,18 +637,18 @@ export function GoalsClient() {
                 value={formNotes}
                 onChange={(e) => setFormNotes(e.target.value)}
                 placeholder="Additional notes..."
-                rows={5}
+                rows={3}
               />
             </div>
 
             <Separator />
 
             {/* Actions */}
-            <div className="flex flex-col gap-3">
+            <div className="flex gap-3">
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full active:scale-[0.98] transition-all duration-200"
+                className="flex-1 active:scale-[0.98] transition-all duration-200"
               >
                 {saving ? 'Saving...' : isNew ? 'Create Goal' : 'Save Changes'}
               </Button>
@@ -598,16 +658,15 @@ export function GoalsClient() {
                   variant="outline"
                   onClick={handleDelete}
                   disabled={saving}
-                  className="w-full text-ios-red hover:text-ios-red active:scale-[0.98] transition-all duration-200"
+                  className="text-ios-red hover:text-ios-red active:scale-[0.98] transition-all duration-200"
                 >
-                  <Trash2 className="h-4 w-4 mr-1.5" />
-                  Delete Goal
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               )}
             </div>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
