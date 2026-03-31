@@ -87,6 +87,14 @@ export interface TodoItem {
   completed: boolean
 }
 
+export interface NonNegotiable {
+  id: string
+  title: string
+  sort_order: number
+  last_completed_date: string | null
+  active: boolean
+}
+
 export type BudgetCategory =
   | 'Restaurants'
   | 'Shopping'
