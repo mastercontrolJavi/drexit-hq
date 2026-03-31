@@ -5,11 +5,9 @@ import { supabase } from '@/lib/supabase'
 import { format, subMonths, getDaysInMonth, getDate } from 'date-fns'
 import { formatCurrency, getCurrentMonthKey, getMonthLabel, cn } from '@/lib/utils'
 import { BudgetEntry, BudgetLimit, BUDGET_CATEGORIES } from '@/types'
-import { useIncome } from '@/lib/hooks/use-income'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -46,7 +44,6 @@ function getBarColor(pct: number): string {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function BudgetLimits() {
-  const { income } = useIncome()
   const [limits, setLimits] = useState<BudgetLimit[]>([])
   const [entries, setEntries] = useState<BudgetEntry[]>([])
   const [prevEntries, setPrevEntries] = useState<BudgetEntry[]>([])
