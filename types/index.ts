@@ -95,6 +95,15 @@ export interface NonNegotiable {
   active: boolean
 }
 
+export interface BudgetLimit {
+  id: string
+  category: string
+  monthly_limit: number
+  rollover: boolean
+  carryover_amount: number
+  rollover_applied_month: string | null
+}
+
 export type BudgetCategory =
   | 'Restaurants'
   | 'Shopping'
