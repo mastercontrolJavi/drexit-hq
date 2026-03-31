@@ -384,7 +384,7 @@ export function SpendingOverview() {
                           </Pie>
                           <Tooltip
                             contentStyle={tooltipStyle}
-                            formatter={(v: number) => [`£${v.toFixed(2)}`, '']}
+                            formatter={(v) => [`£${Number(v).toFixed(2)}`, '']}
                           />
                         </PieChart>
                       </ResponsiveContainer>
