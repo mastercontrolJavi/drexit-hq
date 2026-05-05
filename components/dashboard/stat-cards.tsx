@@ -1,67 +1,31 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Calendar, Wallet, Scale, ListChecks } from 'lucide-react'
+import { MetricStrip, type MetricStripItem } from '@/components/data/metric-strip'
 import { supabase } from '@/lib/supabase'
-import { daysUntilDrexit, getCurrentMonthKey, formatCurrencyShort } from '@/lib/utils'
+import {
+  daysUntilDrexit,
+  getCurrentMonthKey,
+  formatCurrencyShort,
+} from '@/lib/utils'
 import { USER_STATS } from '@/types'
 import type { BudgetEntry, WeighIn } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
+import { format, subDays } from 'date-fns'
 
-interface StatCardProps {
-  label: string
-  value: string
-  icon: React.ReactNode
-  color: string
-  dotColor: string
-}
-
-function StatCard({ label, value, icon, color, dotColor }: StatCardProps) {
-  return (
-    <Card className="shadow-card">
-      <CardContent className="p-5">
-        <div className="flex items-center gap-1.5 mb-4">
-          <span className={color}>{icon}</span>
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {label}
-          </span>
-        </div>
-        <div className="text-center">
-          <p className="text-[48px] font-bold leading-none tracking-tight">{value}</p>
-          <div className="flex justify-center mt-3">
-            <span className={`inline-block h-1.5 w-1.5 rounded-full ${dotColor}`} />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function StatCardSkeleton() {
-  return (
-    <Card className="shadow-card">
-      <CardContent className="p-5">
-        <div className="flex items-center gap-1.5 mb-4">
-          <Skeleton className="h-4 w-4 rounded" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-        <div className="flex flex-col items-center">
-          <Skeleton className="h-12 w-20" />
-          <Skeleton className="h-1.5 w-1.5 rounded-full mt-3" />
-        </div>
-      </CardContent>
-    </Card>
-  )
+interface SeriesData {
+  runway: number
+  weeklyBurn: number[]
+  weightSeries: number[]
+  lbsToGoal: number
+  openTodos: number
 }
 
 export function StatCards() {
   const { income } = useIncome()
   const [loading, setLoading] = useState(true)
-  const [runway, setRunway] = useState(0)
-  const [lbsToGoal, setLbsToGoal] = useState(0)
-  const [openTodos, setOpenTodos] = useState(0)
+  const [series, setSeries] = useState<SeriesData | null>(null)
 
   useEffect(() => {
     async function fetchStats() {
@@ -70,76 +34,97 @@ export function StatCards() {
       const [budgetRes, weighInRes, todoRes] = await Promise.all([
         supabase
           .from('budget_entries')
-          .select('amount_gbp')
+          .select('amount_gbp, date')
           .eq('month_key', monthKey),
         supabase
           .from('weigh_ins')
-          .select('weight_lbs')
-          .order('date', { ascending: false })
-          .limit(1),
+          .select('weight_lbs, date')
+          .order('date', { ascending: true })
+          .limit(8),
         supabase
           .from('todos')
           .select('id', { count: 'exact', head: true })
           .eq('completed', false),
       ])
 
-      const totalSpent = (budgetRes.data as Pick<BudgetEntry, 'amount_gbp'>[] | null)
-        ?.reduce((sum, e) => sum + e.amount_gbp, 0) ?? 0
-      setRunway(income - totalSpent)
+      const entries =
+        (budgetRes.data as Pick<BudgetEntry, 'amount_gbp' | 'date'>[] | null) ?? []
+      const totalSpent = entries.reduce((sum, e) => sum + Number(e.amount_gbp), 0)
 
-      const latestWeight = (weighInRes.data as Pick<WeighIn, 'weight_lbs'>[] | null)?.[0]?.weight_lbs
-      const currentWeight = latestWeight ?? USER_STATS.currentWeight
-      setLbsToGoal(Math.round(currentWeight - USER_STATS.goalWeight))
+      // 4-week burn series (this month, week-by-week)
+      const today = new Date()
+      const weeklyBurn: number[] = []
+      for (let w = 3; w >= 0; w--) {
+        const weekStart = subDays(today, w * 7 + 6)
+        const weekEnd = subDays(today, w * 7)
+        const start = format(weekStart, 'yyyy-MM-dd')
+        const end = format(weekEnd, 'yyyy-MM-dd')
+        const sum = entries
+          .filter((e) => e.date >= start && e.date <= end)
+          .reduce((s, e) => s + Number(e.amount_gbp), 0)
+        weeklyBurn.push(Math.round(sum))
+      }
 
-      setOpenTodos(todoRes.count ?? 0)
+      const weighIns = (weighInRes.data as Pick<WeighIn, 'weight_lbs' | 'date'>[] | null) ?? []
+      const weightSeries = weighIns.map((w) => Number(w.weight_lbs))
+      const latestWeight =
+        weightSeries.length > 0 ? weightSeries[weightSeries.length - 1] : USER_STATS.currentWeight
+
+      setSeries({
+        runway: income - totalSpent,
+        weeklyBurn,
+        weightSeries,
+        lbsToGoal: Math.round(latestWeight - USER_STATS.goalWeight),
+        openTodos: todoRes.count ?? 0,
+      })
       setLoading(false)
     }
 
     fetchStats()
   }, [income])
 
-  if (loading) {
+  if (loading || !series) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 border border-border bg-bg-elevated divide-x divide-border">
         {Array.from({ length: 4 }).map((_, i) => (
-          <StatCardSkeleton key={i} />
+          <div key={i} className="px-5 py-4 space-y-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-3 w-16" />
+          </div>
         ))}
       </div>
     )
   }
 
-  const drexitDays = daysUntilDrexit()
+  const items: MetricStripItem[] = [
+    {
+      label: 'DREXIT_T',
+      value: `T-${daysUntilDrexit()}`,
+      delta: '24 JUL 26',
+    },
+    {
+      label: 'RUNWAY',
+      value: formatCurrencyShort(series.runway),
+      tone: series.runway >= 0 ? 'success' : 'danger',
+      spark: series.weeklyBurn,
+      delta: `${series.weeklyBurn.length}W BURN`,
+    },
+    {
+      label: 'TO_GOAL',
+      value: `${series.lbsToGoal} LBS`,
+      spark: series.weightSeries,
+      delta: series.weightSeries.length > 1
+        ? `Δ ${(series.weightSeries[series.weightSeries.length - 1] - series.weightSeries[0]).toFixed(1)}`
+        : undefined,
+    },
+    {
+      label: 'OPEN_TODOS',
+      value: String(series.openTodos),
+      delta: series.openTodos === 0 ? 'CLEAR' : 'PENDING',
+      tone: series.openTodos === 0 ? 'success' : 'neutral',
+    },
+  ]
 
-  return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-      <StatCard
-        label="Days to DREXIT"
-        value={String(drexitDays)}
-        icon={<Calendar className="h-4 w-4" />}
-        color="text-ios-blue"
-        dotColor="bg-ios-blue"
-      />
-      <StatCard
-        label="Monthly Runway"
-        value={formatCurrencyShort(runway)}
-        icon={<Wallet className="h-4 w-4" />}
-        color={runway >= 0 ? 'text-ios-green' : 'text-ios-red'}
-        dotColor={runway >= 0 ? 'bg-ios-green' : 'bg-ios-red'}
-      />
-      <StatCard
-        label="Lbs to Goal"
-        value={String(lbsToGoal)}
-        icon={<Scale className="h-4 w-4" />}
-        color="text-ios-orange"
-        dotColor="bg-ios-orange"
-      />
-      <StatCard
-        label="Open Todos"
-        value={String(openTodos)}
-        icon={<ListChecks className="h-4 w-4" />}
-        color="text-ios-purple"
-        dotColor="bg-ios-purple"
-      />
-    </div>
-  )
+  return <MetricStrip items={items} />
 }

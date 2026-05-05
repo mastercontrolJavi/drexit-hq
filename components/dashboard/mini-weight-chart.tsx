@@ -1,11 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
-  AreaChart,
-  Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   ResponsiveContainer,
@@ -21,6 +19,22 @@ interface ChartPoint {
   date: string
   label: string
   weight: number
+}
+
+interface TooltipPayload {
+  payload: ChartPoint
+  value: number
+}
+
+function MonoTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayload[] }) {
+  if (!active || !payload || payload.length === 0) return null
+  const p = payload[0]
+  return (
+    <div className="border border-border-strong bg-bg-elevated px-2.5 py-1.5 font-mono text-[11px] tabular-nums">
+      <div className="text-text-1">{p.value} LBS</div>
+      <div className="text-text-3">{p.payload.label.toUpperCase()}</div>
+    </div>
+  )
 }
 
 export function MiniWeightChart() {
@@ -39,104 +53,88 @@ export function MiniWeightChart() {
         const points = (rows as Pick<WeighIn, 'date' | 'weight_lbs'>[]).map((r) => ({
           date: r.date,
           label: format(new Date(r.date), 'MMM d'),
-          weight: r.weight_lbs,
+          weight: Number(r.weight_lbs),
         }))
         setData(points)
       }
       setLoading(false)
     }
-
     fetchWeighIns()
   }, [])
 
-  const latestWeight = data.length > 0 ? data[data.length - 1].weight : null
+  const latest = data.length > 0 ? data[data.length - 1].weight : null
+  const first = data.length > 0 ? data[0].weight : null
+  const delta = latest !== null && first !== null ? latest - first : null
 
   return (
-    <Card className="shadow-card">
-      <CardContent className="p-5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
-          Weight Progress
-        </p>
+    <section className="border border-border bg-bg-elevated">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <span className="caption text-text-2">WEIGHT_PROGRESS</span>
+        <span className="font-mono text-[11px] tabular-nums text-text-3">
+          TARGET {USER_STATS.goalWeight} LBS
+        </span>
+      </header>
 
+      <div className="p-4">
         {loading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-[200px] w-full rounded-lg" />
-            <div className="flex justify-between">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-          </div>
+          <div className="h-[200px] w-full animate-pulse bg-bg-hover" />
         ) : data.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">
-            No weigh-ins yet.
-          </p>
+          <p className="font-mono text-xs text-text-3 py-4">&gt; no weigh-ins yet</p>
         ) : (
           <>
             <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
-                <defs>
-                  <linearGradient id="weightGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="15%" stopColor="#FF9500" stopOpacity={0.15} />
-                    <stop offset="100%" stopColor="#FF9500" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+              <LineChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
                 <XAxis
                   dataKey="label"
-                  tick={{ fontSize: 11, fill: '#8E8E93' }}
+                  tick={{ fontSize: 10, fill: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}
                   axisLine={false}
                   tickLine={false}
+                  ticks={data.length > 1 ? [data[0].label, data[data.length - 1].label] : [data[0].label]}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
-                  domain={['dataMin - 5', 'dataMax + 5']}
-                  tick={{ fontSize: 11, fill: '#8E8E93' }}
+                  domain={['dataMin - 3', 'dataMax + 3']}
+                  tick={{ fontSize: 10, fill: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}
                   axisLine={false}
                   tickLine={false}
+                  width={32}
+                  tickCount={2}
                 />
                 <Tooltip
-                  contentStyle={{
-                    background: '#ffffff',
-                    border: '1px solid #E5E5EA',
-                    borderRadius: 10,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                    fontSize: 13,
-                  }}
-                  formatter={(value) => [`${value} lbs`, 'Weight']}
+                  cursor={{ stroke: 'var(--border-strong)', strokeWidth: 1 }}
+                  content={<MonoTooltip />}
                 />
                 <ReferenceLine
                   y={USER_STATS.goalWeight}
-                  stroke="#34C759"
-                  strokeDasharray="6 4"
-                  strokeWidth={1.5}
+                  stroke="var(--success)"
+                  strokeDasharray="3 3"
+                  strokeWidth={1}
                 />
-                <Area
+                <Line
                   type="monotone"
                   dataKey="weight"
-                  stroke="#FF9500"
-                  strokeWidth={2}
-                  fill="url(#weightGradient)"
-                  dot={{ r: 3, fill: '#FF9500', strokeWidth: 0 }}
-                  activeDot={{ r: 5, fill: '#FF9500', strokeWidth: 2, stroke: '#fff' }}
+                  stroke="var(--text-1)"
+                  strokeWidth={1.5}
+                  dot={{ r: 2, fill: 'var(--text-1)', strokeWidth: 0 }}
+                  activeDot={{ r: 4, fill: 'var(--accent)', strokeWidth: 0 }}
+                  isAnimationActive={false}
                 />
-              </AreaChart>
+              </LineChart>
             </ResponsiveContainer>
 
-            <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-              <span>
-                Latest:{' '}
-                <span className="font-semibold text-foreground">
-                  {latestWeight} lbs
-                </span>
+            <div className="mt-2 flex items-baseline justify-between border-t border-border pt-2 font-mono text-[11px] tabular-nums">
+              <span className="text-text-3">
+                LATEST <span className="text-text-1">{latest} LBS</span>
               </span>
-              <span>
-                Target:{' '}
-                <span className="font-semibold text-ios-green">
-                  {USER_STATS.goalWeight} lbs
+              {delta !== null && (
+                <span className={delta < 0 ? 'text-success' : delta > 0 ? 'text-danger' : 'text-text-3'}>
+                  Δ {delta > 0 ? '+' : ''}{delta.toFixed(1)}
                 </span>
-              </span>
+              )}
             </div>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }

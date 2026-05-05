@@ -1,22 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { supabase } from '@/lib/supabase'
 import { getCurrentMonthKey, formatCurrencyShort } from '@/lib/utils'
 import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
+import { HairlineProgress } from '@/components/data/hairline-progress'
 
 interface CategorySpend {
   category: string
   amount: number
 }
 
-function barColor(pct: number): string {
-  if (pct > 40) return 'bg-ios-red'
-  if (pct > 20) return 'bg-ios-orange'
-  return 'bg-ios-green'
+function tone(pct: number): 'danger' | 'warn' | 'success' {
+  if (pct > 40) return 'danger'
+  if (pct > 20) return 'warn'
+  return 'success'
 }
 
 export function BurnRateBars() {
@@ -27,7 +26,6 @@ export function BurnRateBars() {
   useEffect(() => {
     async function fetchBudget() {
       const monthKey = getCurrentMonthKey()
-
       const { data, error } = await supabase
         .from('budget_entries')
         .select('category, amount_gbp')
@@ -36,65 +34,57 @@ export function BurnRateBars() {
       if (!error && data) {
         const grouped: Record<string, number> = {}
         for (const entry of data as Pick<BudgetEntry, 'category' | 'amount_gbp'>[]) {
-          grouped[entry.category] = (grouped[entry.category] ?? 0) + entry.amount_gbp
+          grouped[entry.category] = (grouped[entry.category] ?? 0) + Number(entry.amount_gbp)
         }
-
         const sorted = Object.entries(grouped)
           .map(([category, amount]) => ({ category, amount }))
           .sort((a, b) => b.amount - a.amount)
-
         setCategories(sorted)
       }
       setLoading(false)
     }
-
     fetchBudget()
   }, [])
 
   return (
-    <Card className="shadow-card">
-      <CardContent className="p-5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
-          Budget Burn Rate
-        </p>
+    <section className="border border-border bg-bg-elevated">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <span className="caption text-text-2">BURN_RATE</span>
+        <span className="caption text-text-3">{categories.length} CATEGORIES</span>
+      </header>
 
+      <div className="p-4">
         {loading ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="space-y-1.5">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-2 w-full rounded-full" />
+              <div key={i} className="space-y-1">
+                <div className="h-3 w-20 bg-bg-hover animate-pulse" />
+                <div className="h-0.5 w-full bg-bg-hover animate-pulse" />
               </div>
             ))}
           </div>
         ) : categories.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">
-            No spending logged this month.
-          </p>
+          <p className="font-mono text-xs text-text-3 py-4">&gt; no spending logged this month</p>
         ) : (
-          <div className="space-y-4">
+          <ul className="space-y-3">
             {categories.map(({ category, amount }) => {
               const pct = Math.min(100, (amount / income) * 100)
               return (
-                <div key={category}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium">{category}</span>
-                    <span className="text-xs text-muted-foreground">
+                <li key={category}>
+                  <div className="mb-1 flex items-baseline justify-between gap-3">
+                    <span className="caption text-text-2">{category.toUpperCase()}</span>
+                    <span className="font-mono text-[12px] tabular-nums text-text-1">
                       {formatCurrencyShort(amount)}
+                      <span className="ml-2 text-text-3">{pct.toFixed(0)}%</span>
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-ios-gray-5">
-                    <div
-                      className={`h-2 rounded-full ${barColor(pct)} transition-all duration-500`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
+                  <HairlineProgress value={pct} tone={tone(pct)} height={2} />
+                </li>
               )
             })}
-          </div>
+          </ul>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }

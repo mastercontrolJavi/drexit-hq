@@ -1,34 +1,42 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { format, subMonths } from 'date-fns'
 import { getMonthLabel, formatCurrencyShort } from '@/lib/utils'
-import { BudgetEntry } from '@/types'
+import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
-import { TrendingUp } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
-const tooltipStyle = {
-  background: '#fff',
-  border: '1px solid rgba(0,0,0,0.08)',
-  borderRadius: '12px',
-  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-  fontSize: '12px',
+interface MonthRow {
+  month: string
+  income: number
+  expenses: number
+  net: number
+}
+
+interface TooltipPayload {
+  payload: MonthRow
+}
+
+function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayload[] }) {
+  if (!active || !payload || payload.length === 0) return null
+  const p = payload[0].payload
+  return (
+    <div className="border border-border-strong bg-bg-elevated px-2.5 py-1.5 font-mono text-[11px] tabular-nums">
+      <div className="text-text-3">{p.month.toUpperCase()}</div>
+      <div className="text-success">+{formatCurrencyShort(p.income)}</div>
+      <div className="text-danger">-{formatCurrencyShort(p.expenses)}</div>
+      <div className={p.net >= 0 ? 'text-text-1' : 'text-danger'}>
+        NET {p.net >= 0 ? '+' : ''}{formatCurrencyShort(p.net)}
+      </div>
+    </div>
+  )
 }
 
 export function CashFlowMini() {
   const { income } = useIncome()
-  const [data, setData] = useState<{ month: string; income: number; expenses: number }[]>([])
+  const [data, setData] = useState<MonthRow[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchData = useCallback(async () => {
@@ -43,14 +51,16 @@ export function CashFlowMini() {
       months.push(format(subMonths(new Date(), i), 'yyyy-MM'))
     }
 
-    const chartData = months.map((m) => {
+    const chartData: MonthRow[] = months.map((m) => {
       const spent = ((entries as BudgetEntry[]) || [])
         .filter((e) => e.month_key === m)
         .reduce((sum, e) => sum + Number(e.amount_gbp), 0)
+      const expenses = Math.round(spent)
       return {
         month: getMonthLabel(m).split(' ')[0].slice(0, 3),
-        income: income,
-        expenses: Math.round(spent),
+        income,
+        expenses,
+        net: income - expenses,
       }
     })
 
@@ -62,42 +72,38 @@ export function CashFlowMini() {
     fetchData()
   }, [fetchData])
 
-  if (loading) {
-    return <Skeleton className="h-[200px] rounded-xl" />
-  }
-
-  const latestNet = data.length > 0 ? data[data.length - 1].income - data[data.length - 1].expenses : 0
+  const latestNet = data.length > 0 ? data[data.length - 1].net : 0
 
   return (
-    <Card className="shadow-card border-none">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between text-sm">
-          <span className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-ios-green" />
-            Cash Flow
-          </span>
-          <span className={`text-lg font-bold ${latestNet >= 0 ? 'text-ios-green' : 'text-ios-red'}`}>
-            {latestNet >= 0 ? '+' : ''}{formatCurrencyShort(latestNet)}
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={130}>
-          <BarChart data={data} barGap={2}>
-            <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-            <YAxis hide />
-            <Tooltip
-              contentStyle={tooltipStyle}
-              formatter={(value, name) => [
-                `£${value}`,
-                name === 'income' ? 'Income' : 'Expenses',
-              ]}
-            />
-            <Bar dataKey="income" fill="#34C759" radius={[3, 3, 0, 0]} barSize={14} />
-            <Bar dataKey="expenses" fill="#FF3B30" radius={[3, 3, 0, 0]} barSize={14} />
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
+    <section className="border border-border bg-bg-elevated">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <span className="caption text-text-2">CASH_FLOW</span>
+        <span
+          className={`font-mono text-[12px] tabular-nums ${latestNet >= 0 ? 'text-success' : 'text-danger'}`}
+        >
+          NET {latestNet >= 0 ? '+' : ''}{formatCurrencyShort(latestNet)}
+        </span>
+      </header>
+      <div className="p-4">
+        {loading ? (
+          <div className="h-[140px] w-full animate-pulse bg-bg-hover" />
+        ) : (
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={data} barGap={2}>
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 10, fill: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis hide />
+              <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<CashFlowTooltip />} />
+              <Bar dataKey="income" fill="var(--success)" barSize={12} />
+              <Bar dataKey="expenses" fill="var(--danger)" barSize={12} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    </section>
   )
 }

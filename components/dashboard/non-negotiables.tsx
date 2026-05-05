@@ -1,11 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react'
+import { X, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -106,99 +102,94 @@ export function NonNegotiables() {
   const allDone = items.length > 0 && winsCount === items.length
 
   return (
-    <Card className="shadow-card">
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Non-Negotiables
-          </p>
-          {items.length > 0 && (
-            <span
-              className={cn(
-                'text-xs font-semibold tabular-nums',
-                allDone ? 'text-ios-green' : 'text-muted-foreground'
-              )}
-            >
-              {winsCount}/{items.length} wins
-            </span>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <Skeleton className="h-4 w-4 rounded-full" />
-                <Skeleton className="h-4 flex-1" />
-              </div>
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">
-            Add your daily non-negotiables below.
-          </p>
-        ) : (
-          <ul className="space-y-2.5">
-            {items.map((item) => {
-              const done = item.last_completed_date === today
-              return (
-                <li
-                  key={item.id}
-                  className="group flex items-center gap-3 active:scale-[0.98] transition-transform duration-150"
-                >
-                  <button
-                    onClick={() => toggleItem(item)}
-                    className="shrink-0 focus:outline-none"
-                    aria-label={done ? 'Unmark as done' : 'Mark as done'}
-                  >
-                    {done ? (
-                      <CheckCircle2 className="h-[18px] w-[18px] text-ios-green" />
-                    ) : (
-                      <Circle className="h-[18px] w-[18px] text-muted-foreground/50" />
-                    )}
-                  </button>
-                  <span
-                    className={cn(
-                      'flex-1 text-sm leading-tight',
-                      done && 'line-through text-muted-foreground'
-                    )}
-                  >
-                    {item.title}
-                  </span>
-                  <button
-                    onClick={() => deleteItem(item.id)}
-                    className="invisible group-hover:visible shrink-0 text-muted-foreground/40 hover:text-ios-red transition-colors focus:outline-none"
-                    aria-label="Remove item"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-
-        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-ios-gray-5">
-          <Input
-            ref={inputRef}
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Add a non-negotiable..."
-            className="text-sm"
-            disabled={adding}
-          />
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={addItem}
-            disabled={adding || !newTitle.trim()}
-            className="shrink-0 active:scale-[0.98] transition-all duration-200"
+    <section className="border border-border bg-bg-elevated">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <span className="caption text-text-2">NON_NEGOTIABLES</span>
+        {items.length > 0 && (
+          <span
+            className={cn(
+              'font-mono text-[11px] tabular-nums',
+              allDone ? 'text-success' : 'text-text-3',
+            )}
           >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            {winsCount}/{items.length}
+          </span>
+        )}
+      </header>
+
+      {loading ? (
+        <ul>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <li key={i} className="border-b border-border px-4 py-2.5 last:border-b-0">
+              <div className="h-4 w-2/3 bg-bg-hover animate-pulse" />
+            </li>
+          ))}
+        </ul>
+      ) : items.length === 0 ? (
+        <p className="font-mono text-xs text-text-3 px-4 py-6">
+          &gt; no non-negotiables yet
+        </p>
+      ) : (
+        <ul>
+          {items.map((item) => {
+            const done = item.last_completed_date === today
+            return (
+              <li
+                key={item.id}
+                className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-200 ease-out-200"
+              >
+                <button
+                  onClick={() => toggleItem(item)}
+                  className={cn(
+                    'shrink-0 font-mono text-[13px] leading-none focus:outline-none transition-colors',
+                    done ? 'text-success' : 'text-text-3 hover:text-text-1',
+                  )}
+                  aria-label={done ? 'Unmark as done' : 'Mark as done'}
+                >
+                  {done ? '[x]' : '[ ]'}
+                </button>
+                <span
+                  className={cn(
+                    'flex-1 text-[13px] leading-tight',
+                    done ? 'line-through text-text-3' : 'text-text-1',
+                  )}
+                >
+                  {item.title}
+                </span>
+                <button
+                  onClick={() => deleteItem(item.id)}
+                  className="invisible shrink-0 text-text-3 hover:text-danger group-hover:visible focus:outline-none focus:visible:visible"
+                  aria-label="Remove item"
+                >
+                  <X className="h-3 w-3" strokeWidth={1.5} />
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+      <div className="flex items-center gap-2 border-t border-border px-3 py-2">
+        <span className="font-mono text-xs text-text-3">&gt;</span>
+        <input
+          ref={inputRef}
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="add non-negotiable..."
+          className="flex-1 bg-transparent font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:outline-none"
+          disabled={adding}
+          spellCheck={false}
+        />
+        <button
+          onClick={addItem}
+          disabled={adding || !newTitle.trim()}
+          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors"
+          aria-label="Add"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+        </button>
+      </div>
+    </section>
   )
 }

@@ -11,38 +11,49 @@ import { SavingsMini } from '@/components/dashboard/savings-mini'
 export const dynamic = 'force-dynamic'
 
 export default function DashboardPage() {
-  const today = format(new Date(), 'EEEE, MMMM d')
+  const today = format(new Date(), 'EEEE · MMM d · yyyy').toUpperCase()
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Daily HQ</h1>
-        <p className="text-sm text-muted-foreground mt-1">{today}</p>
+    <div className="space-y-4">
+      {/* Page header */}
+      <div className="flex items-baseline justify-between border-b border-border pb-4">
+        <div>
+          <h1 className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-3">
+            DAILY_HQ
+          </h1>
+          <p className="num-display mt-1 text-[28px] leading-tight text-text-1">
+            {today}
+          </p>
+        </div>
+        <div className="caption text-text-3 hidden md:block">
+          PRESS &nbsp;
+          <span className="border border-border px-1.5 py-0.5 text-text-2">⌘K</span>
+          &nbsp; FOR COMMANDS
+        </div>
       </div>
 
+      {/* Stat strip */}
       <StatCards />
 
-      {/* Daily Actions */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* Daily actions */}
+      <div className="grid gap-4 md:grid-cols-2">
         <NonNegotiables />
         <TodoList />
       </div>
 
-      {/* Dashboard Widgets */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* Trends */}
+      <div className="grid gap-4 md:grid-cols-2">
         <BurnRateBars />
         <MiniWeightChart />
       </div>
 
-      {/* Financial Overview */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Financial Overview</h3>
-        <div className="grid gap-6 md:grid-cols-2">
-          <CashFlowMini />
-          <SavingsMini />
-        </div>
+      {/* Financial overview */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <CashFlowMini />
+        <SavingsMini />
       </div>
 
+      {/* Focus */}
       <WeeklyFocus />
     </div>
   )
