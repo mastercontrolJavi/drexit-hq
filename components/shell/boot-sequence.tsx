@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useBootSequence } from '@/lib/hooks/use-boot-sequence'
 
 const LINES = [
-  '> DREXIT_HQ v1.0.0',
+  '> AXIS_OS v1.0.0',
   '> initializing modules...',
   '> [✓] finance',
   '> [✓] goals',

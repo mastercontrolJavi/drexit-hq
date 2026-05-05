@@ -21,7 +21,7 @@ const fontMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'DREXIT_HQ',
+  title: 'AXIS_OS',
   description: 'Personal command center — budget, goals, fitness, ideas.',
 }
 

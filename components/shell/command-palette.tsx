@@ -192,7 +192,7 @@ export function CommandPalette() {
         </div>
         <div className="hairline-x" />
         <div className="flex items-center justify-between px-4 py-2">
-          <span className="caption text-text-3">DREXIT_HQ</span>
+          <span className="caption text-text-3">AXIS_OS</span>
           <span className="caption text-text-3">↵ select &nbsp; ↑↓ navigate &nbsp; esc close</span>
         </div>
       </div>

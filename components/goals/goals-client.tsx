@@ -31,15 +31,15 @@ import {
 } from '@/components/data/underline-tabs'
 
 const SEED_GOALS: Omit<Goal, 'id' | 'created_at'>[] = [
-  { title: 'Save £800+ for Mexico trip',                description: null, category: 'Life',     deadline: '2025-07-24', target_quarter: null, status: 'not_started', progress_pct: 0,  notes: null },
-  { title: 'Travel to 3+ European cities',              description: null, category: 'Life',     deadline: '2025-07-24', target_quarter: null, status: 'not_started', progress_pct: 0,  notes: null },
-  { title: 'Document the UK year (photos/video)',       description: null, category: 'Creative', deadline: '2025-07-24', target_quarter: null, status: 'in_progress', progress_pct: 20, notes: null },
+  { title: 'Save £800+ for Mexico trip',                description: null, category: 'Life',     deadline: '2026-07-07', target_quarter: null, status: 'not_started', progress_pct: 0,  notes: null },
+  { title: 'Travel to 3+ European cities',              description: null, category: 'Life',     deadline: '2026-07-07', target_quarter: null, status: 'not_started', progress_pct: 0,  notes: null },
+  { title: 'Document the UK year (photos/video)',       description: null, category: 'Creative', deadline: '2026-07-07', target_quarter: null, status: 'in_progress', progress_pct: 20, notes: null },
   { title: 'Land remote job OR £2,000/mo from business', description: null, category: 'Career',   deadline: '2025-12-31', target_quarter: null, status: 'not_started', progress_pct: 0,  notes: null },
   { title: 'Move to a city (NYC, Madrid, or SF)',       description: null, category: 'Life',     deadline: '2025-12-31', target_quarter: null, status: 'not_started', progress_pct: 0,  notes: null },
   { title: 'Launch first paid digital product',         description: null, category: 'Business', deadline: '2025-12-31', target_quarter: null, status: 'not_started', progress_pct: 0,  notes: null },
-  { title: 'Reach 170 lbs',                             description: null, category: 'Fitness',  deadline: '2025-07-24', target_quarter: null, status: 'in_progress', progress_pct: 10, notes: null },
-  { title: 'Post to Still.AI YouTube',                  description: null, category: 'Creative', deadline: '2025-07-24', target_quarter: null, status: 'in_progress', progress_pct: 15, notes: null },
-  { title: 'Build 2+ business ideas to MVP',            description: null, category: 'Business', deadline: '2025-07-24', target_quarter: null, status: 'in_progress', progress_pct: 5,  notes: null },
+  { title: 'Reach 170 lbs',                             description: null, category: 'Fitness',  deadline: '2026-07-07', target_quarter: null, status: 'in_progress', progress_pct: 10, notes: null },
+  { title: 'Post to Still.AI YouTube',                  description: null, category: 'Creative', deadline: '2026-07-07', target_quarter: null, status: 'in_progress', progress_pct: 15, notes: null },
+  { title: 'Build 2+ business ideas to MVP',            description: null, category: 'Business', deadline: '2026-07-07', target_quarter: null, status: 'in_progress', progress_pct: 5,  notes: null },
 ]
 
 function generateQuarterOptions(): string[] {

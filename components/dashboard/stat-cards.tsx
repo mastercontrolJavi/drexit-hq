@@ -101,7 +101,7 @@ export function StatCards() {
     {
       label: 'DREXIT_T',
       value: `T-${daysUntilDrexit()}`,
-      delta: '24 JUL 26',
+      delta: '07 JUL 26',
     },
     {
       label: 'RUNWAY',
