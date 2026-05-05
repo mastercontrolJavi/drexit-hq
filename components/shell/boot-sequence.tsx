@@ -28,25 +28,39 @@ export function BootSequence() {
     let cancelled = false
     const timers: ReturnType<typeof setTimeout>[] = []
 
-    LINES.forEach((_, i) => {
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (reducedMotion) {
+      // Render all lines immediately, hold briefly, then dismiss without fade.
+      setVisibleLines(LINES.length)
       timers.push(
         setTimeout(() => {
-          if (!cancelled) setVisibleLines(i + 1)
-        }, i * LINE_INTERVAL_MS)
+          if (!cancelled) dismiss()
+        }, 400)
       )
-    })
+    } else {
+      LINES.forEach((_, i) => {
+        timers.push(
+          setTimeout(() => {
+            if (!cancelled) setVisibleLines(i + 1)
+          }, i * LINE_INTERVAL_MS)
+        )
+      })
 
-    timers.push(
-      setTimeout(() => {
-        if (!cancelled) setFadingOut(true)
-      }, LINES.length * LINE_INTERVAL_MS + HOLD_MS)
-    )
+      timers.push(
+        setTimeout(() => {
+          if (!cancelled) setFadingOut(true)
+        }, LINES.length * LINE_INTERVAL_MS + HOLD_MS)
+      )
 
-    timers.push(
-      setTimeout(() => {
-        if (!cancelled) dismiss()
-      }, LINES.length * LINE_INTERVAL_MS + HOLD_MS + FADE_MS)
-    )
+      timers.push(
+        setTimeout(() => {
+          if (!cancelled) dismiss()
+        }, LINES.length * LINE_INTERVAL_MS + HOLD_MS + FADE_MS)
+      )
+    }
 
     return () => {
       cancelled = true

@@ -88,6 +88,17 @@
     font-feature-settings: "ss01", "cv11";
   }
 
+  /* Keyboard-only focus ring — overrides any `focus:outline-none` set by Tailwind */
+  :focus-visible {
+    outline: 2px solid var(--accent) !important;
+    outline-offset: 1px;
+    border-radius: 1px;
+  }
+  /* But never on the mouse-click pseudo-state */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
   /* Tabular numerics on every number by default within data surfaces */
   .font-mono,
   .tabular {
