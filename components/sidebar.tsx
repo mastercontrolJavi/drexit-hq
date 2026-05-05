@@ -30,9 +30,9 @@ export function Sidebar() {
       <div className="px-4 pt-5 pb-6">
         <div
           className="font-mono text-[13px] font-semibold uppercase tracking-[0.18em] text-text-1"
-          aria-label="DREXIT HQ"
+          aria-label="AXIS_OS"
         >
-          DREXIT_HQ
+          AXIS_OS
         </div>
         <div className="caption mt-1 text-text-3">v1.0.0 · COMMAND CTR</div>
       </div>

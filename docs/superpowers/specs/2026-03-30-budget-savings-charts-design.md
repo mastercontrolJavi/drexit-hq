@@ -5,7 +5,7 @@
 
 ## Overview
 
-Enhance the DREXIT HQ budget section with: (1) a savings transaction log replacing direct amount editing, (2) budget-to-savings linking, (3) quick +/- adjustments, (4) expanded and interactive charts, and (5) key financial charts promoted to the dashboard.
+Enhance the AXIS_OS budget section with: (1) a savings transaction log replacing direct amount editing, (2) budget-to-savings linking, (3) quick +/- adjustments, (4) expanded and interactive charts, and (5) key financial charts promoted to the dashboard.
 
 ## 1. Savings Transaction Log
 

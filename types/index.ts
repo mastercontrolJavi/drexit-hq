@@ -165,5 +165,5 @@ export const USER_STATS = {
   activityLevel: 1.2, // sedentary
 }
 
-export const DREXIT_DATE = '2026-07-24'
+export const DREXIT_DATE = '2026-07-07'
 export const WEIGHT_START_DATE = '2025-01-01'
