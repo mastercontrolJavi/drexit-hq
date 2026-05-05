@@ -1,26 +1,21 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { format, subMonths, parseISO, differenceInDays } from 'date-fns'
-import { formatCurrency, getMonthLabel, cn } from '@/lib/utils'
-import { BudgetEntry } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { differenceInDays, format, parseISO, subMonths } from 'date-fns'
+import { cn, formatCurrency, getMonthLabel } from '@/lib/utils'
+import type { BudgetEntry } from '@/types'
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
 } from 'recharts'
-import { RefreshCcw, CalendarClock, TrendingUp } from 'lucide-react'
-
-// ── Types ──────────────────────────────────────────────────────────────────
+import { CalendarClock, RefreshCcw } from 'lucide-react'
 
 interface RecurringItem {
   name: string
@@ -29,44 +24,42 @@ interface RecurringItem {
   monthsDetected: number
   lastDate: string
   entries: BudgetEntry[]
-  isActive: boolean // appeared in last 2 months
+  isActive: boolean
 }
 
-// ── Constants ──────────────────────────────────────────────────────────────
-
-const tooltipStyle = {
-  background: '#fff',
-  border: '1px solid rgba(0,0,0,0.08)',
-  borderRadius: '12px',
-  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-  fontSize: '13px',
+const tickStyle = {
+  fontSize: 10,
+  fill: 'var(--text-3)',
+  fontFamily: 'var(--font-mono)',
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Restaurants: '#007AFF',
-  Shopping: '#FF3B30',
-  Groceries: '#34C759',
-  Transportation: '#5856D6',
-  Entertainment: '#FF9500',
-  Travel: '#AF52DE',
-  Health: '#FF2D55',
-  Subscriptions: '#5AC8FA',
-  Services: '#FFCC00',
-  Utilities: '#8E8E93',
-  Rent: '#FF6482',
-  Cash: '#30B0C7',
-  Transfer: '#A2845E',
+interface MonoTooltipPayload {
+  value?: number | string
+  color?: string
 }
 
-// ── Auto-detection algorithm ───────────────────────────────────────────────
+function MonoTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: MonoTooltipPayload[]
+  label?: string | number
+}) {
+  if (!active || !payload || payload.length === 0) return null
+  return (
+    <div className="border border-border-strong bg-bg-elevated px-2.5 py-1.5 font-mono text-[11px] tabular-nums">
+      {label !== undefined && <div className="caption text-text-3">{String(label).toUpperCase()}</div>}
+      <div className="text-text-1">£{Number(payload[0].value).toFixed(0)}</div>
+    </div>
+  )
+}
 
 function detectRecurring(allEntries: BudgetEntry[]): RecurringItem[] {
-  // Only entries with descriptions (merchant names) are candidates
-  const withDesc = allEntries.filter(e => (e.description || '').trim().length > 0)
-
-  // Group by normalised description
+  const withDesc = allEntries.filter((e) => (e.description || '').trim().length > 0)
   const groups: Record<string, BudgetEntry[]> = {}
-  withDesc.forEach(e => {
+  withDesc.forEach((e) => {
     const key = e.description!.trim().toLowerCase()
     if (!groups[key]) groups[key] = []
     groups[key].push(e)
@@ -76,22 +69,17 @@ function detectRecurring(allEntries: BudgetEntry[]): RecurringItem[] {
 
   return Object.entries(groups)
     .filter(([, entries]) => {
-      // Must span 2+ distinct months
-      const months = new Set(entries.map(e => e.month_key))
+      const months = new Set(entries.map((e) => e.month_key))
       if (months.size < 2) return false
-
-      // Amount variance ≤ 30%
-      const amounts = entries.map(e => Number(e.amount_gbp))
+      const amounts = entries.map((e) => Number(e.amount_gbp))
       const avg = amounts.reduce((s, a) => s + a, 0) / amounts.length
-      const maxVariance = Math.max(...amounts.map(a => Math.abs(a - avg) / avg))
-      if (maxVariance > 0.3) return false
-
-      return true
+      const maxVariance = Math.max(...amounts.map((a) => Math.abs(a - avg) / avg))
+      return maxVariance <= 0.3
     })
     .map(([, entries]) => {
-      const amounts = entries.map(e => Number(e.amount_gbp))
+      const amounts = entries.map((e) => Number(e.amount_gbp))
       const avgAmount = amounts.reduce((s, a) => s + a, 0) / amounts.length
-      const distinctMonths = new Set(entries.map(e => e.month_key))
+      const distinctMonths = new Set(entries.map((e) => e.month_key))
       const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date))
       const lastEntry = sorted[0]
       const isActive = lastEntry.month_key >= twoMonthsAgo
@@ -108,8 +96,6 @@ function detectRecurring(allEntries: BudgetEntry[]): RecurringItem[] {
     })
     .sort((a, b) => b.avgAmount - a.avgAmount)
 }
-
-// ── Component ──────────────────────────────────────────────────────────────
 
 export function RecurringTracker() {
   const [allEntries, setAllEntries] = useState<BudgetEntry[]>([])
@@ -132,18 +118,12 @@ export function RecurringTracker() {
     fetchEntries()
   }, [fetchEntries])
 
-  // ── Detected recurring items ───────────────────────────────────────────
-
   const allRecurring = useMemo(() => detectRecurring(allEntries), [allEntries])
-  const activeRecurring = allRecurring.filter(r => r.isActive)
+  const activeRecurring = allRecurring.filter((r) => r.isActive)
   const displayed = showInactive ? allRecurring : activeRecurring
-
-  // ── Totals ─────────────────────────────────────────────────────────────
 
   const monthlyTotal = activeRecurring.reduce((s, r) => s + r.avgAmount, 0)
   const yearlyTotal = monthlyTotal * 12
-
-  // ── Monthly recurring trend ────────────────────────────────────────────
 
   const months = useMemo(() => {
     const arr: string[] = []
@@ -152,29 +132,24 @@ export function RecurringTracker() {
   }, [])
 
   const trendData = useMemo(() => {
-    const recurringNames = new Set(allRecurring.map(r => r.name.toLowerCase()))
-    return months.map(m => {
+    const recurringNames = new Set(allRecurring.map((r) => r.name.toLowerCase()))
+    return months.map((m) => {
       const monthEntries = allEntries.filter(
-        e => e.month_key === m && recurringNames.has((e.description || '').toLowerCase())
+        (e) => e.month_key === m && recurringNames.has((e.description || '').toLowerCase()),
       )
       const total = Math.round(monthEntries.reduce((s, e) => s + Number(e.amount_gbp), 0))
-      return { month: getMonthLabel(m).split(' ')[0], total, monthKey: m }
+      return { month: getMonthLabel(m).split(' ')[0].slice(0, 3), total, monthKey: m }
     })
   }, [allEntries, allRecurring, months])
 
   const currentMonthKey = format(new Date(), 'yyyy-MM')
 
-  // ── Days since last charge ─────────────────────────────────────────────
-
   function daysSince(dateStr: string): number {
     return differenceInDays(new Date(), parseISO(dateStr))
   }
 
-  // ── Estimated next date ────────────────────────────────────────────────
-
   function estimatedNext(item: RecurringItem): string {
-    // Find the day-of-month it usually appears on
-    const days = item.entries.map(e => parseInt(e.date.split('-')[2]))
+    const days = item.entries.map((e) => parseInt(e.date.split('-')[2]))
     const avgDay = Math.round(days.reduce((s, d) => s + d, 0) / days.length)
     const now = new Date()
     const thisMonthDate = new Date(now.getFullYear(), now.getMonth(), avgDay)
@@ -185,182 +160,134 @@ export function RecurringTracker() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-20 rounded-xl" />
-        <Skeleton className="h-44 rounded-xl" />
-        <div className="space-y-3">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+      <div className="space-y-4">
+        <div className="h-20 animate-pulse bg-bg-hover" />
+        <div className="h-44 animate-pulse bg-bg-hover" />
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-14 animate-pulse bg-bg-hover" />
+          ))}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* ── Summary banner ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="shadow-card border-none col-span-1">
-          <CardContent className="p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Active Recurring
-            </p>
-            <p className="text-2xl font-bold mt-1">{activeRecurring.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card border-none">
-          <CardContent className="p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              /month
-            </p>
-            <p className="text-2xl font-bold text-ios-orange mt-1">{formatCurrency(monthlyTotal)}</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card border-none">
-          <CardContent className="p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              /year
-            </p>
-            <p className="text-2xl font-bold text-ios-red mt-1">{formatCurrency(yearlyTotal)}</p>
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      {/* Summary strip */}
+      <div className="grid grid-cols-3 border border-border bg-bg-elevated divide-x divide-border">
+        <div className="px-5 py-4">
+          <span className="caption text-text-2">ACTIVE_RECURRING</span>
+          <p className="num-display mt-1 text-[28px] leading-none text-text-1">
+            {activeRecurring.length}
+          </p>
+        </div>
+        <div className="px-5 py-4">
+          <span className="caption text-text-2">/ MONTH</span>
+          <p className="num-display mt-1 text-[28px] leading-none text-warn">
+            {formatCurrency(monthlyTotal)}
+          </p>
+        </div>
+        <div className="px-5 py-4">
+          <span className="caption text-text-2">/ YEAR</span>
+          <p className="num-display mt-1 text-[28px] leading-none text-danger">
+            {formatCurrency(yearlyTotal)}
+          </p>
+        </div>
       </div>
 
-      {/* ── Monthly trend ──────────────────────────────────────────────── */}
-      <Card className="shadow-card border-none">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <TrendingUp className="h-4 w-4 text-ios-blue" />
-            Recurring Spend — Last 6 Months
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={trendData} barSize={36}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#F2F2F7" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-              <YAxis
-                tick={{ fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={v => `£${v}`}
-                width={46}
-              />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                formatter={v => [`£${Number(v).toFixed(0)}`, 'Recurring']}
-              />
-              <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+      {/* Trend */}
+      <section className="border border-border bg-bg-elevated">
+        <header className="border-b border-border px-4 py-2.5">
+          <span className="caption text-text-2">RECURRING SPEND · 6 MONTHS</span>
+        </header>
+        <div className="p-4">
+          <ResponsiveContainer width="100%" height={140}>
+            <BarChart data={trendData} barSize={28}>
+              <CartesianGrid stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
+              <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={42} />
+              <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
+              <Bar dataKey="total">
                 {trendData.map((entry, i) => (
-                  <Cell
-                    key={i}
-                    fill={entry.monthKey === currentMonthKey ? '#007AFF' : '#D1D1D6'}
-                  />
+                  <Cell key={i} fill={entry.monthKey === currentMonthKey ? 'var(--accent)' : 'var(--text-3)'} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      {/* ── Item list ──────────────────────────────────────────────────── */}
+      {/* List header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">
-          {showInactive ? 'All' : 'Active'} Recurring Items
-          <span className="text-muted-foreground font-normal ml-1.5">({displayed.length})</span>
-        </h3>
+        <span className="caption text-text-2">
+          {showInactive ? 'ALL' : 'ACTIVE'} RECURRING · {displayed.length}
+        </span>
         <button
           onClick={() => setShowInactive(!showInactive)}
           className={cn(
-            'text-xs font-medium px-3 py-1.5 rounded-lg transition-all',
+            'caption border px-3 py-1.5 transition-colors',
             showInactive
-              ? 'bg-ios-blue/10 text-ios-blue'
-              : 'bg-ios-gray-6 text-muted-foreground hover:text-foreground'
+              ? 'border-accent text-accent'
+              : 'border-border text-text-3 hover:border-text-1 hover:text-text-1',
           )}
         >
-          {showInactive ? 'Active only' : 'Show inactive'}
+          {showInactive ? 'ACTIVE ONLY' : 'SHOW INACTIVE'}
         </button>
       </div>
 
       {displayed.length === 0 ? (
-        <Card className="shadow-card border-none">
-          <CardContent className="py-16 text-center">
-            <CalendarClock className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm font-medium text-muted-foreground">
-              No recurring transactions detected
-            </p>
-            <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
-              Recurring items are auto-detected when the same merchant appears in 2+ months with
-              consistent amounts. Add descriptions to your expenses to enable detection.
-            </p>
-          </CardContent>
-        </Card>
+        <section className="border border-border bg-bg-elevated px-4 py-12 text-center">
+          <CalendarClock className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
+          <p className="caption mt-3 text-text-2">NO RECURRING DETECTED</p>
+          <p className="font-mono text-[11px] text-text-3 mt-2 mx-auto max-w-xs">
+            &gt; auto-detected from descriptions appearing in 2+ months with ≤30% amount variance
+          </p>
+        </section>
       ) : (
-        <div className="space-y-3">
+        <ul className="space-y-2">
           {displayed.map((item, i) => (
-            <Card
+            <li
               key={i}
               className={cn(
-                'shadow-card border-none transition-all',
-                !item.isActive && 'opacity-60'
+                'border border-border bg-bg-elevated p-3 transition-colors hover:bg-bg-hover',
+                !item.isActive && 'opacity-60',
               )}
             >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  {/* Category color dot */}
-                  <div
-                    className="h-9 w-9 rounded-full flex items-center justify-center shrink-0 text-white text-xs font-bold"
-                    style={{ background: CATEGORY_COLORS[item.category] || '#8E8E93' }}
-                  >
-                    {item.name.slice(0, 1).toUpperCase()}
+              <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-[13px] text-text-1 truncate">{item.name}</p>
+                    <span className="caption border border-border px-1.5 py-0.5 text-text-3">
+                      {item.category.toUpperCase()}
+                    </span>
+                    {!item.isActive && <span className="caption text-text-3">· INACTIVE</span>}
                   </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold truncate">{item.name}</p>
-                      <Badge variant="outline" className="text-[10px] h-4 shrink-0">
-                        {item.category}
-                      </Badge>
-                      {!item.isActive && (
-                        <Badge variant="outline" className="text-[10px] h-4 text-muted-foreground shrink-0">
-                          inactive
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <RefreshCcw className="h-2.5 w-2.5" />
-                        {item.monthsDetected} months
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Last: {format(parseISO(item.lastDate), 'MMM d')} ({daysSince(item.lastDate)}d ago)
-                      </span>
-                      {item.isActive && (
-                        <span className="text-xs text-ios-blue font-medium">
-                          Next ≈ {estimatedNext(item)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Amount */}
-                  <div className="text-right shrink-0">
-                    <p className="text-base font-bold tabular-nums">
-                      {formatCurrency(item.avgAmount)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatCurrency(item.avgAmount * 12)}/yr
-                    </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-3 caption text-text-3">
+                    <span className="flex items-center gap-1">
+                      <RefreshCcw className="h-2.5 w-2.5" strokeWidth={1.5} />
+                      {item.monthsDetected}MO
+                    </span>
+                    <span>
+                      LAST {format(parseISO(item.lastDate), 'MMM d').toUpperCase()} ({daysSince(item.lastDate)}D AGO)
+                    </span>
+                    {item.isActive && (
+                      <span className="text-accent">NEXT ≈ {estimatedNext(item).toUpperCase()}</span>
+                    )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="text-right shrink-0 font-mono tabular-nums">
+                  <p className="text-[14px] text-text-1">{formatCurrency(item.avgAmount)}</p>
+                  <p className="caption text-text-3">{formatCurrency(item.avgAmount * 12)}/YR</p>
+                </div>
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
 
-      <p className="text-xs text-muted-foreground text-center">
-        Auto-detected from transactions with matching descriptions in 2+ months within 30% amount variance
+      <p className="caption text-center text-text-3">
+        AUTO-DETECTED · 2+ MONTHS · 30% AMOUNT VARIANCE
       </p>
     </div>
   )

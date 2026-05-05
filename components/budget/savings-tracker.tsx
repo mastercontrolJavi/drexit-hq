@@ -1,17 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { formatCurrency, formatCurrencyShort } from '@/lib/utils'
-import { SavingsGoal, SavingsTransaction } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
+import { cn, formatCurrency, formatCurrencyShort } from '@/lib/utils'
+import type { SavingsGoal, SavingsTransaction } from '@/types'
 import {
   Dialog,
   DialogContent,
@@ -19,17 +13,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  Plus,
+  ArrowDownRight,
+  ArrowUpRight,
+  Check,
+  History,
+  Link2,
   Minus,
   Pencil,
-  Check,
+  Plus,
   Trash2,
-  PiggyBank,
-  History,
-  ArrowUpRight,
-  ArrowDownRight,
-  Link2,
+  X,
 } from 'lucide-react'
+import { HairlineProgress } from '@/components/data/hairline-progress'
 
 const DEFAULT_GOALS = [
   { name: 'Mexico Trip Fund', target_amount: 800, current_amount: 0 },
@@ -39,21 +34,21 @@ const DEFAULT_GOALS = [
 export function SavingsTracker() {
   const [goals, setGoals] = useState<SavingsGoal[]>([])
   const [loading, setLoading] = useState(true)
+
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editTarget, setEditTarget] = useState('')
+
   const [addingNew, setAddingNew] = useState(false)
   const [newName, setNewName] = useState('')
   const [newTarget, setNewTarget] = useState('')
   const [newCurrent, setNewCurrent] = useState('')
 
-  // Quick adjust state
   const [adjustingId, setAdjustingId] = useState<string | null>(null)
   const [adjustMode, setAdjustMode] = useState<'add' | 'subtract'>('add')
   const [adjustAmount, setAdjustAmount] = useState('')
   const [adjustNote, setAdjustNote] = useState('')
 
-  // History state
   const [historyGoalId, setHistoryGoalId] = useState<string | null>(null)
   const [historyGoalName, setHistoryGoalName] = useState('')
   const [transactions, setTransactions] = useState<SavingsTransaction[]>([])
@@ -87,15 +82,10 @@ export function SavingsTracker() {
       .from('savings_transactions')
       .select('amount')
       .eq('goal_id', goalId)
-
     const total = (data || []).reduce((sum, t) => sum + Number(t.amount), 0)
-    await supabase
-      .from('savings_goals')
-      .update({ current_amount: total })
-      .eq('id', goalId)
+    await supabase.from('savings_goals').update({ current_amount: total }).eq('id', goalId)
   }
 
-  // Quick adjust: add or subtract from a goal
   async function handleQuickAdjust() {
     if (!adjustingId || !adjustAmount) return
     const amount = parseFloat(adjustAmount)
@@ -103,7 +93,6 @@ export function SavingsTracker() {
       toast.error('Enter a valid amount')
       return
     }
-
     const finalAmount = adjustMode === 'subtract' ? -amount : amount
     const { error } = await supabase.from('savings_transactions').insert({
       goal_id: adjustingId,
@@ -126,34 +115,26 @@ export function SavingsTracker() {
     fetchGoals()
   }
 
-  // History: view transactions for a goal
   async function openHistory(goal: SavingsGoal) {
     setHistoryGoalId(goal.id)
     setHistoryGoalName(goal.name)
     setHistoryLoading(true)
-
     const { data } = await supabase
       .from('savings_transactions')
       .select('*')
       .eq('goal_id', goal.id)
       .order('date', { ascending: false })
       .order('created_at', { ascending: false })
-
     setTransactions((data as SavingsTransaction[]) || [])
     setHistoryLoading(false)
   }
 
   async function deleteTransaction(txId: string, goalId: string) {
-    const { error } = await supabase
-      .from('savings_transactions')
-      .delete()
-      .eq('id', txId)
-
+    const { error } = await supabase.from('savings_transactions').delete().eq('id', txId)
     if (error) {
       toast.error('Failed to delete transaction')
       return
     }
-
     await recalcGoalAmount(goalId)
     setTransactions(transactions.filter((t) => t.id !== txId))
     toast.success('Transaction deleted')
@@ -170,12 +151,8 @@ export function SavingsTracker() {
     if (!editingId || !editName.trim() || !editTarget) return
     const { error } = await supabase
       .from('savings_goals')
-      .update({
-        name: editName.trim(),
-        target_amount: parseFloat(editTarget),
-      })
+      .update({ name: editName.trim(), target_amount: parseFloat(editTarget) })
       .eq('id', editingId)
-
     if (error) {
       toast.error('Failed to update goal')
       return
@@ -206,7 +183,6 @@ export function SavingsTracker() {
       return
     }
 
-    // Create opening balance transaction if initial amount > 0
     if (initialAmount > 0) {
       await supabase.from('savings_transactions').insert({
         goal_id: data.id,
@@ -235,361 +211,319 @@ export function SavingsTracker() {
     setGoals(goals.filter((g) => g.id !== id))
   }
 
-  if (loading) {
-    return (
-      <Card className="shadow-card border-none">
-        <CardHeader>
-          <CardTitle>Savings Tracker</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {[...Array(2)].map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-          ))}
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <>
-      <Card className="shadow-card border-none">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <PiggyBank className="h-5 w-5 text-ios-green" />
-              Savings Tracker
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAddingNew(true)}
-              className="active:scale-[0.98] transition-all duration-200"
-            >
-              <Plus className="mr-1 h-4 w-4" /> Add Goal
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-5">
-          {goals.map((goal, i) => (
-            <div key={goal.id}>
-              {i > 0 && <Separator className="mb-5" />}
-              {editingId === goal.id ? (
-                /* Edit Mode — name and target only, current_amount is derived */
-                <div className="space-y-3">
-                  <Input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    placeholder="Goal name"
-                    className="text-sm"
-                    autoFocus
-                  />
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-muted-foreground">Target (£)</label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={editTarget}
-                      onChange={(e) => setEditTarget(e.target.value)}
-                      className="text-sm"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={saveEdit}
-                      className="bg-ios-green text-white hover:bg-ios-green/90 active:scale-[0.98] transition-all duration-200"
-                    >
-                      <Check className="mr-1 h-3.5 w-3.5" /> Save
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setEditingId(null)}
-                      className="active:scale-[0.98] transition-all duration-200"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        handleDelete(goal.id)
-                        setEditingId(null)
-                      }}
-                      className="ml-auto text-ios-red hover:text-ios-red active:scale-[0.98] transition-all duration-200"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              ) : adjustingId === goal.id ? (
-                /* Quick Adjust Mode */
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium">{goal.name}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-ios-gray-6">
-                      {adjustMode === 'add' ? 'Deposit' : 'Withdraw'}
-                    </span>
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={adjustAmount}
-                      onChange={(e) => setAdjustAmount(e.target.value)}
-                      placeholder="Amount"
-                      className="text-sm"
-                      autoFocus
-                    />
-                    <Input
-                      value={adjustNote}
-                      onChange={(e) => setAdjustNote(e.target.value)}
-                      placeholder="Note (optional)"
-                      className="text-sm"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={handleQuickAdjust}
-                      className={
-                        adjustMode === 'add'
-                          ? 'bg-ios-green text-white hover:bg-ios-green/90 active:scale-[0.98] transition-all duration-200'
-                          : 'bg-ios-orange text-white hover:bg-ios-orange/90 active:scale-[0.98] transition-all duration-200'
-                      }
-                    >
-                      {adjustMode === 'add' ? (
-                        <><Plus className="mr-1 h-3.5 w-3.5" /> Deposit</>
-                      ) : (
-                        <><Minus className="mr-1 h-3.5 w-3.5" /> Withdraw</>
-                      )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setAdjustingId(null)
-                        setAdjustAmount('')
-                        setAdjustNote('')
-                      }}
-                      className="active:scale-[0.98] transition-all duration-200"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                /* Display Mode */
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{goal.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {formatCurrencyShort(Number(goal.current_amount))} /{' '}
-                      {formatCurrencyShort(Number(goal.target_amount))}
-                    </span>
-                  </div>
-                  <Progress
-                    value={Math.min(
-                      100,
-                      Number(goal.target_amount) > 0
-                        ? (Number(goal.current_amount) / Number(goal.target_amount)) * 100
-                        : 0
-                    )}
-                    className="h-2"
-                  />
-                  {Number(goal.current_amount) >= Number(goal.target_amount) &&
-                    Number(goal.target_amount) > 0 && (
-                      <p className="mt-1 text-xs text-ios-green font-medium">Goal reached!</p>
-                    )}
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-1 mt-2">
-                    <button
-                      onClick={() => {
-                        setAdjustingId(goal.id)
-                        setAdjustMode('add')
-                      }}
-                      className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-ios-green/10 text-ios-green hover:bg-ios-green/20 transition-colors"
-                      title="Add deposit"
-                    >
-                      <Plus className="h-3 w-3" /> Add
-                    </button>
-                    <button
-                      onClick={() => {
-                        setAdjustingId(goal.id)
-                        setAdjustMode('subtract')
-                      }}
-                      className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-ios-orange/10 text-ios-orange hover:bg-ios-orange/20 transition-colors"
-                      title="Withdraw"
-                    >
-                      <Minus className="h-3 w-3" /> Withdraw
-                    </button>
-                    <button
-                      onClick={() => openHistory(goal)}
-                      className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium bg-ios-blue/10 text-ios-blue hover:bg-ios-blue/20 transition-colors"
-                      title="View history"
-                    >
-                      <History className="h-3 w-3" /> History
-                    </button>
-                    <button
-                      onClick={() => startEdit(goal)}
-                      className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
-                      title="Edit goal"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+      <section className="border border-border bg-bg-elevated">
+        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
+          <span className="caption text-text-2">SAVINGS</span>
+          <button
+            onClick={() => setAddingNew(true)}
+            className="caption flex items-center gap-1 text-text-2 transition-colors hover:text-text-1"
+          >
+            <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD GOAL
+          </button>
+        </header>
 
-          {/* Add New Goal Form */}
+        <div className="p-4 space-y-4">
+          {loading ? (
+            Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-3 w-1/2 animate-pulse bg-bg-hover" />
+                <div className="h-0.5 w-full animate-pulse bg-bg-hover" />
+              </div>
+            ))
+          ) : (
+            goals.map((goal) => (
+              <div key={goal.id}>
+                {editingId === goal.id ? (
+                  <div className="space-y-2 border border-border-strong p-3">
+                    <input
+                      autoFocus
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Goal name"
+                      className="block w-full bg-transparent font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:outline-none"
+                    />
+                    <div>
+                      <span className="caption text-text-2">TARGET (£)</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editTarget}
+                        onChange={(e) => setEditTarget(e.target.value)}
+                        className="mt-1 block w-full border border-border bg-transparent px-2 py-1 font-mono text-[13px] tabular-nums text-text-1 focus:border-text-2 focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={saveEdit}
+                        className="caption flex items-center gap-1 border border-success px-2 py-1 text-success hover:bg-success hover:text-bg-base"
+                      >
+                        <Check className="h-3 w-3" strokeWidth={1.5} /> SAVE
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="caption border border-border px-2 py-1 text-text-2 hover:border-text-1 hover:text-text-1"
+                      >
+                        CANCEL
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleDelete(goal.id)
+                          setEditingId(null)
+                        }}
+                        className="caption ml-auto border border-border px-2 py-1 text-text-3 hover:border-danger hover:text-danger"
+                      >
+                        <Trash2 className="h-3 w-3" strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </div>
+                ) : adjustingId === goal.id ? (
+                  <div className="space-y-2 border border-border-strong p-3">
+                    <div className="flex items-center gap-2 caption">
+                      <span className="text-text-1">{goal.name.toUpperCase()}</span>
+                      <span className={adjustMode === 'add' ? 'text-success' : 'text-warn'}>
+                        · {adjustMode === 'add' ? 'DEPOSIT' : 'WITHDRAW'}
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        autoFocus
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={adjustAmount}
+                        onChange={(e) => setAdjustAmount(e.target.value)}
+                        placeholder="amount"
+                        className="block w-32 border border-border bg-transparent px-2 py-1 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
+                      />
+                      <input
+                        value={adjustNote}
+                        onChange={(e) => setAdjustNote(e.target.value)}
+                        placeholder="note (optional)"
+                        className="block flex-1 border border-border bg-transparent px-2 py-1 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleQuickAdjust}
+                        className={cn(
+                          'caption flex items-center gap-1 border px-2 py-1',
+                          adjustMode === 'add'
+                            ? 'border-success text-success hover:bg-success hover:text-bg-base'
+                            : 'border-warn text-warn hover:bg-warn hover:text-bg-base',
+                        )}
+                      >
+                        {adjustMode === 'add' ? (
+                          <><Plus className="h-3 w-3" strokeWidth={1.5} /> DEPOSIT</>
+                        ) : (
+                          <><Minus className="h-3 w-3" strokeWidth={1.5} /> WITHDRAW</>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAdjustingId(null)
+                          setAdjustAmount('')
+                          setAdjustNote('')
+                        }}
+                        className="caption border border-border px-2 py-1 text-text-2 hover:border-text-1 hover:text-text-1"
+                      >
+                        CANCEL
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="group">
+                    <div className="mb-1 flex items-baseline justify-between gap-3">
+                      <span className="text-[13px] text-text-1">{goal.name}</span>
+                      <span className="font-mono text-[12px] tabular-nums text-text-3">
+                        <span className="text-text-1">{formatCurrencyShort(Number(goal.current_amount))}</span>
+                        /{formatCurrencyShort(Number(goal.target_amount))}
+                      </span>
+                    </div>
+                    <HairlineProgress
+                      value={
+                        Number(goal.target_amount) > 0
+                          ? (Number(goal.current_amount) / Number(goal.target_amount)) * 100
+                          : 0
+                      }
+                      tone={
+                        Number(goal.current_amount) >= Number(goal.target_amount) && Number(goal.target_amount) > 0
+                          ? 'success'
+                          : 'accent'
+                      }
+                      height={2}
+                    />
+                    <div className="mt-2 flex items-center gap-3">
+                      <button
+                        onClick={() => {
+                          setAdjustingId(goal.id)
+                          setAdjustMode('add')
+                        }}
+                        className="caption flex items-center gap-1 text-text-3 hover:text-success"
+                      >
+                        <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAdjustingId(goal.id)
+                          setAdjustMode('subtract')
+                        }}
+                        className="caption flex items-center gap-1 text-text-3 hover:text-warn"
+                      >
+                        <Minus className="h-3 w-3" strokeWidth={1.5} /> WITHDRAW
+                      </button>
+                      <button
+                        onClick={() => openHistory(goal)}
+                        className="caption flex items-center gap-1 text-text-3 hover:text-text-1"
+                      >
+                        <History className="h-3 w-3" strokeWidth={1.5} /> HISTORY
+                      </button>
+                      <button
+                        onClick={() => startEdit(goal)}
+                        className="ml-auto text-text-3 transition-colors hover:text-text-1"
+                        aria-label="Edit"
+                      >
+                        <Pencil className="h-3 w-3" strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+
           {addingNew && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <Input
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="Goal name"
-                  className="text-sm"
-                  autoFocus
-                />
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className="text-[11px] text-muted-foreground">Starting (£)</label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={newCurrent}
-                      onChange={(e) => setNewCurrent(e.target.value)}
-                      placeholder="0"
-                      className="text-sm"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-[11px] text-muted-foreground">Target (£)</label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={newTarget}
-                      onChange={(e) => setNewTarget(e.target.value)}
-                      placeholder="0"
-                      className="text-sm"
-                    />
-                  </div>
+            <div className="space-y-2 border-t border-border pt-4">
+              <input
+                autoFocus
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="goal name"
+                className="block w-full bg-transparent font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:outline-none"
+              />
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <span className="caption text-text-2">STARTING (£)</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newCurrent}
+                    onChange={(e) => setNewCurrent(e.target.value)}
+                    placeholder="0"
+                    className="mt-1 block w-full border border-border bg-transparent px-2 py-1 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
+                  />
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={handleAdd}
-                    className="bg-ios-blue text-white hover:bg-ios-blue/90 active:scale-[0.98] transition-all duration-200"
-                  >
-                    <Plus className="mr-1 h-3.5 w-3.5" /> Add
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setAddingNew(false)}
-                    className="active:scale-[0.98] transition-all duration-200"
-                  >
-                    Cancel
-                  </Button>
+                <div className="flex-1">
+                  <span className="caption text-text-2">TARGET (£)</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={newTarget}
+                    onChange={(e) => setNewTarget(e.target.value)}
+                    placeholder="0"
+                    className="mt-1 block w-full border border-border bg-transparent px-2 py-1 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
+                  />
                 </div>
               </div>
-            </>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAdd}
+                  className="caption flex items-center gap-1 border border-text-1 bg-text-1 px-2 py-1 text-bg-base hover:bg-bg-base hover:text-text-1"
+                >
+                  <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD
+                </button>
+                <button
+                  onClick={() => setAddingNew(false)}
+                  className="caption border border-border px-2 py-1 text-text-2 hover:border-text-1 hover:text-text-1"
+                >
+                  CANCEL
+                </button>
+              </div>
+            </div>
           )}
 
           {goals.length === 0 && !addingNew && (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No savings goals yet
-            </p>
+            <p className="font-mono text-xs text-text-3">&gt; no savings goals</p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      {/* Transaction History Dialog */}
+      {/* Transaction history dialog */}
       <Dialog
         open={historyGoalId !== null}
         onOpenChange={(open) => {
           if (!open) setHistoryGoalId(null)
         }}
       >
-        <DialogContent className="max-w-md max-h-[70vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <History className="h-4 w-4 text-ios-blue" />
-              {historyGoalName} — History
+        <DialogContent
+          className="!max-w-md !rounded-none !border !border-border-strong !bg-bg-elevated !p-0 !ring-0"
+          showCloseButton={false}
+        >
+          <DialogHeader className="border-b border-border px-4 py-2.5">
+            <DialogTitle className="flex items-center justify-between">
+              <span className="caption text-text-2">{historyGoalName.toUpperCase()} · HISTORY</span>
+              <button
+                onClick={() => setHistoryGoalId(null)}
+                className="text-text-3 hover:text-text-1"
+                aria-label="Close"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </button>
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto -mx-6 px-6">
+
+          <div className="max-h-[60vh] overflow-y-auto">
             {historyLoading ? (
-              <div className="space-y-3 py-4">
-                {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+              <div className="space-y-2 p-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-9 animate-pulse bg-bg-hover" />
                 ))}
               </div>
             ) : transactions.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                No transactions yet
-              </p>
+              <p className="px-4 py-8 font-mono text-xs text-text-3">&gt; no transactions</p>
             ) : (
-              <div className="space-y-2 py-2">
+              <ul>
                 {transactions.map((tx) => {
                   const isPositive = Number(tx.amount) >= 0
+                  const isLink = tx.type === 'budget_link'
                   return (
-                    <div
+                    <li
                       key={tx.id}
-                      className="flex items-center gap-3 rounded-lg p-2.5 hover:bg-ios-gray-6 transition-colors group"
+                      className="group grid grid-cols-[20px_1fr_auto_24px] items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover"
                     >
-                      <div
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                          tx.type === 'budget_link'
-                            ? 'bg-ios-purple/10'
-                            : isPositive
-                            ? 'bg-ios-green/10'
-                            : 'bg-ios-orange/10'
-                        }`}
-                      >
-                        {tx.type === 'budget_link' ? (
-                          <Link2 className="h-3.5 w-3.5 text-ios-purple" />
-                        ) : isPositive ? (
-                          <ArrowUpRight className="h-3.5 w-3.5 text-ios-green" />
-                        ) : (
-                          <ArrowDownRight className="h-3.5 w-3.5 text-ios-orange" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate">
+                      <span className={isLink ? 'text-accent' : isPositive ? 'text-success' : 'text-warn'}>
+                        {isLink ? <Link2 className="h-3 w-3" strokeWidth={1.5} /> : isPositive ? <ArrowUpRight className="h-3 w-3" strokeWidth={1.5} /> : <ArrowDownRight className="h-3 w-3" strokeWidth={1.5} />}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] text-text-1">
                           {tx.note || (isPositive ? 'Deposit' : 'Withdrawal')}
                         </p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="caption text-text-3">
                           {format(new Date(tx.date), 'MMM d, yyyy')}
-                          {tx.type === 'budget_link' && ' · Budget linked'}
+                          {isLink && ' · BUDGET'}
                         </p>
                       </div>
                       <span
-                        className={`text-sm font-medium ${
-                          isPositive ? 'text-ios-green' : 'text-ios-orange'
-                        }`}
+                        className={cn(
+                          'font-mono text-[13px] tabular-nums',
+                          isPositive ? 'text-success' : 'text-warn',
+                        )}
                       >
                         {isPositive ? '+' : ''}
                         {formatCurrency(Number(tx.amount))}
                       </span>
                       <button
-                        onClick={() =>
-                          historyGoalId && deleteTransaction(tx.id, historyGoalId)
-                        }
-                        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-ios-red transition-all"
-                        title="Delete transaction"
+                        onClick={() => historyGoalId && deleteTransaction(tx.id, historyGoalId)}
+                        className="invisible justify-self-end text-text-3 hover:text-danger group-hover:visible"
+                        aria-label="Delete"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3 w-3" strokeWidth={1.5} />
                       </button>
-                    </div>
+                    </li>
                   )
                 })}
-              </div>
+              </ul>
             )}
           </div>
         </DialogContent>

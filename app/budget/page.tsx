@@ -1,59 +1,22 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { BudgetClient } from '@/components/budget/budget-client'
-import { SpendingOverview } from '@/components/budget/spending-overview'
-import { BudgetLimits } from '@/components/budget/budget-limits'
-import { RecurringTracker } from '@/components/budget/recurring-tracker'
-import { SpendingInsights } from '@/components/budget/spending-insights'
+import { BudgetTabs } from '@/components/budget/budget-tabs'
 
 export const dynamic = 'force-dynamic'
 
 export default function BudgetPage() {
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-[28px] font-bold tracking-tight">Budget & Finance</h2>
-        <p className="text-sm text-muted-foreground">Track spending, limits, and financial patterns</p>
+    <div className="space-y-6">
+      <div className="flex items-baseline justify-between border-b border-border pb-4">
+        <div>
+          <h1 className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-3">
+            BUDGET &amp; FINANCE
+          </h1>
+          <p className="num-display mt-1 text-[28px] leading-tight text-text-1">
+            CASH FLOW
+          </p>
+        </div>
       </div>
 
-      <Tabs defaultValue="overview">
-        <TabsList className="flex-wrap gap-1 bg-ios-gray-6 rounded-xl p-1 mb-8 h-auto">
-          <TabsTrigger value="overview" className="rounded-lg text-xs data-[state=active]:shadow-sm">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="spending" className="rounded-lg text-xs data-[state=active]:shadow-sm">
-            Spending
-          </TabsTrigger>
-          <TabsTrigger value="budgets" className="rounded-lg text-xs data-[state=active]:shadow-sm">
-            Budgets
-          </TabsTrigger>
-          <TabsTrigger value="recurring" className="rounded-lg text-xs data-[state=active]:shadow-sm">
-            Recurring
-          </TabsTrigger>
-          <TabsTrigger value="insights" className="rounded-lg text-xs data-[state=active]:shadow-sm">
-            Insights
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview">
-          <BudgetClient />
-        </TabsContent>
-
-        <TabsContent value="spending">
-          <SpendingOverview />
-        </TabsContent>
-
-        <TabsContent value="budgets">
-          <BudgetLimits />
-        </TabsContent>
-
-        <TabsContent value="recurring">
-          <RecurringTracker />
-        </TabsContent>
-
-        <TabsContent value="insights">
-          <SpendingInsights />
-        </TabsContent>
-      </Tabs>
+      <BudgetTabs />
     </div>
   )
 }
