@@ -1,6 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
+import { createMockClient } from './supabase-mock'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// In demo mode the mock client serves fixture data and toasts on writes.
+// No Supabase credentials are needed.
+export const supabase = isDemoMode
+  ? (createMockClient() as unknown as ReturnType<typeof createClient>)
+  : createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    )

@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { DemoBanner } from '@/components/demo-banner'
 import { StatCards } from '@/components/dashboard/stat-cards'
 import { TodoList } from '@/components/dashboard/todo-list'
 import { NonNegotiables } from '@/components/dashboard/non-negotiables'
@@ -15,6 +16,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4">
+      <DemoBanner />
       {/* Page header */}
       <div className="flex items-baseline justify-between border-b border-border pb-4">
         <div>
