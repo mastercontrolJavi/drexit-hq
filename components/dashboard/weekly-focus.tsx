@@ -1,9 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
@@ -26,7 +23,6 @@ export function WeeklyFocus() {
       }
       setLoading(false)
     }
-
     fetchFocus()
   }, [])
 
@@ -34,16 +30,14 @@ export function WeeklyFocus() {
     const trimmed = text.trim()
     if (trimmed === lastSaved.current) return
 
-    const { error } = await supabase
-      .from('app_settings')
-      .upsert(
-        {
-          key: 'weekly_focus',
-          value: trimmed,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'key' }
-      )
+    const { error } = await supabase.from('app_settings').upsert(
+      {
+        key: 'weekly_focus',
+        value: trimmed,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'key' },
+    )
 
     if (error) {
       toast.error('Failed to save focus')
@@ -54,25 +48,26 @@ export function WeeklyFocus() {
   }
 
   return (
-    <Card className="shadow-card">
-      <CardContent className="p-5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
-          This Week&apos;s Focus
-        </p>
-
+    <section className="border border-border bg-bg-elevated">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <span className="caption text-text-2">WEEKLY_FOCUS</span>
+        <span className="caption text-text-3">AUTO_SAVE</span>
+      </header>
+      <div className="p-4">
         {loading ? (
-          <Skeleton className="h-20 w-full rounded-lg" />
+          <div className="h-16 w-full animate-pulse bg-bg-hover" />
         ) : (
-          <Textarea
+          <textarea
             rows={3}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onBlur={handleBlur}
-            placeholder="What are you focused on this week?"
-            className="resize-none text-sm"
+            placeholder="> what is the single most important thing this week?"
+            className="block w-full resize-none bg-transparent font-mono text-[13px] leading-5 text-text-1 placeholder:text-text-3 focus:outline-none"
+            spellCheck={false}
           />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }

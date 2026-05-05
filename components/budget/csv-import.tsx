@@ -1,12 +1,11 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -17,13 +16,12 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet'
-import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Upload, FileSpreadsheet, Check, X } from 'lucide-react'
+import { Check, Upload, X } from 'lucide-react'
 
 type ColumnMapping = 'date' | 'description' | 'amount' | 'skip'
 
@@ -50,35 +48,29 @@ function parseAmount(raw: unknown): number | null {
 function parseDate(raw: unknown): string | null {
   if (!raw) return null
   if (typeof raw === 'number') {
-    // Excel serial date
     const d = XLSX.SSF.parse_date_code(raw)
     if (d) return `${d.y}-${String(d.m).padStart(2, '0')}-${String(d.d).padStart(2, '0')}`
     return null
   }
   const str = String(raw).trim()
-  // Try common date formats
   const patterns = [
-    /^(\d{4})-(\d{2})-(\d{2})/, // yyyy-MM-dd
-    /^(\d{2})\/(\d{2})\/(\d{4})/, // dd/MM/yyyy or MM/dd/yyyy
-    /^(\d{2})-(\d{2})-(\d{4})/, // dd-MM-yyyy
+    /^(\d{4})-(\d{2})-(\d{2})/,
+    /^(\d{2})\/(\d{2})\/(\d{4})/,
+    /^(\d{2})-(\d{2})-(\d{4})/,
   ]
   for (const p of patterns) {
     const m = str.match(p)
     if (m) {
-      // For dd/MM/yyyy format
       if (p === patterns[1] || p === patterns[2]) {
         const day = parseInt(m[1])
         const month = parseInt(m[2])
         const year = parseInt(m[3])
-        // If first number > 12, it's definitely the day
         if (day > 12) return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-        // Default to dd/MM/yyyy (UK format)
         return `${year}-${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}`
       }
       return `${m[1]}-${m[2]}-${m[3]}`
     }
   }
-  // Fallback: try Date.parse
   const d = new Date(str)
   if (!isNaN(d.getTime())) return format(d, 'yyyy-MM-dd')
   return null
@@ -125,7 +117,6 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
       setOpen(true)
     }
     reader.readAsArrayBuffer(file)
-    // Reset input so same file can be re-selected
     e.target.value = ''
   }
 
@@ -153,15 +144,12 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
     for (const row of rows) {
       const date = parseDate(row[dateCol])
       const amount = parseAmount(row[amountCol])
-
       if (!date || amount === null || amount === 0) {
         skipped++
         continue
       }
-
       const description = descCol !== -1 ? String(row[descCol] || '').trim() : null
-      const monthKey = date.substring(0, 7) // yyyy-MM
-
+      const monthKey = date.substring(0, 7)
       entries.push({
         date,
         category: 'Other',
@@ -177,7 +165,6 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
       return
     }
 
-    // Batch insert (Supabase supports up to 1000 at a time)
     const batchSize = 500
     for (let i = 0; i < entries.length; i += batchSize) {
       const batch = entries.slice(i, i + batchSize)
@@ -189,7 +176,7 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
       }
     }
 
-    toast.success(`Imported ${entries.length} entries${skipped > 0 ? ` (${skipped} skipped)` : ''}`)
+    toast.success(`Imported ${entries.length}${skipped > 0 ? ` (${skipped} skipped)` : ''}`)
     setImporting(false)
     setOpen(false)
     onImportComplete()
@@ -204,45 +191,40 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
         className="hidden"
         onChange={handleFileSelect}
       />
-      <Button
-        variant="outline"
-        size="sm"
+      <button
         onClick={() => fileRef.current?.click()}
-        className="active:scale-[0.98] transition-all duration-200"
+        className="caption flex items-center gap-2 border border-border px-3 py-2 text-text-2 transition-colors duration-200 ease-out-200 hover:border-text-1 hover:text-text-1"
       >
-        <Upload className="mr-1.5 h-4 w-4" />
-        Import CSV/XLSX
-      </Button>
+        <Upload className="h-3 w-3" strokeWidth={1.5} />
+        &gt; IMPORT FILE...
+      </button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-[600px] sm:max-w-[600px]">
-          <SheetHeader>
-            <SheetTitle>Import Expenses</SheetTitle>
-            <SheetDescription>
-              <span className="flex items-center gap-2">
-                <FileSpreadsheet className="h-4 w-4" />
-                {fileName} — {rows.length} rows found
-              </span>
+        <SheetContent
+          side="right"
+          className="!w-[640px] !max-w-[640px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0"
+        >
+          <SheetHeader className="border-b border-border px-5 py-3">
+            <SheetTitle className="caption !font-mono text-text-2 !text-[11px] !uppercase !tracking-[0.08em]">
+              IMPORT_EXPENSES
+            </SheetTitle>
+            <SheetDescription className="font-mono text-[12px] text-text-3">
+              &gt; {fileName} · {rows.length} rows detected
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6 space-y-6">
-            {/* Column Mapping */}
+          <div className="space-y-5 p-5">
+            {/* Column mapping */}
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
-                Map Columns
-              </p>
+              <p className="caption text-text-2 mb-2">MAP_COLUMNS</p>
               <div className="flex flex-wrap gap-3">
                 {headers.map((header, i) => (
                   <div key={i} className="space-y-1">
-                    <span className="text-xs text-muted-foreground truncate block max-w-[120px]">
+                    <span className="caption block max-w-[140px] truncate text-text-3">
                       {header}
                     </span>
-                    <Select
-                      value={mappings[i]}
-                      onValueChange={(v) => updateMapping(i, v ?? 'skip')}
-                    >
-                      <SelectTrigger className="h-8 w-[120px] text-xs">
+                    <Select value={mappings[i]} onValueChange={(v) => updateMapping(i, v ?? 'skip')}>
+                      <SelectTrigger className="h-7 w-[120px] rounded-none border-border bg-transparent font-mono text-[11px] uppercase">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -257,87 +239,102 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
               </div>
             </div>
 
-            {/* Validation */}
-            <div className="flex gap-2">
-              <Badge className={cn('text-xs', dateCol !== -1 ? 'bg-ios-green/10 text-ios-green' : 'bg-ios-red/10 text-ios-red')}>
-                {dateCol !== -1 ? <Check className="mr-1 h-3 w-3" /> : <X className="mr-1 h-3 w-3" />}
-                Date
-              </Badge>
-              <Badge className={cn('text-xs', descCol !== -1 ? 'bg-ios-green/10 text-ios-green' : 'bg-ios-gray-6 text-muted-foreground')}>
-                {descCol !== -1 ? <Check className="mr-1 h-3 w-3" /> : null}
-                Description {descCol === -1 && '(optional)'}
-              </Badge>
-              <Badge className={cn('text-xs', amountCol !== -1 ? 'bg-ios-green/10 text-ios-green' : 'bg-ios-red/10 text-ios-red')}>
-                {amountCol !== -1 ? <Check className="mr-1 h-3 w-3" /> : <X className="mr-1 h-3 w-3" />}
-                Amount
-              </Badge>
+            {/* Validation chips */}
+            <div className="flex gap-2 caption">
+              <span
+                className={cn(
+                  'flex items-center gap-1 border px-2 py-1',
+                  dateCol !== -1
+                    ? 'border-success text-success'
+                    : 'border-danger text-danger',
+                )}
+              >
+                {dateCol !== -1 ? <Check className="h-3 w-3" strokeWidth={1.5} /> : <X className="h-3 w-3" strokeWidth={1.5} />}
+                DATE
+              </span>
+              <span
+                className={cn(
+                  'flex items-center gap-1 border px-2 py-1',
+                  descCol !== -1
+                    ? 'border-success text-success'
+                    : 'border-border text-text-3',
+                )}
+              >
+                {descCol !== -1 && <Check className="h-3 w-3" strokeWidth={1.5} />}
+                DESC{descCol === -1 && ' · OPTIONAL'}
+              </span>
+              <span
+                className={cn(
+                  'flex items-center gap-1 border px-2 py-1',
+                  amountCol !== -1
+                    ? 'border-success text-success'
+                    : 'border-danger text-danger',
+                )}
+              >
+                {amountCol !== -1 ? <Check className="h-3 w-3" strokeWidth={1.5} /> : <X className="h-3 w-3" strokeWidth={1.5} />}
+                AMOUNT
+              </span>
             </div>
 
             {/* Preview */}
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
-                Preview (first 5 rows)
-              </p>
-              <ScrollArea className="h-[240px]">
-                <div className="rounded-xl border overflow-hidden">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="bg-ios-gray-6">
-                        {headers.map((h, i) => (
-                          <th
-                            key={i}
+              <p className="caption text-text-2 mb-2">PREVIEW · FIRST 5 ROWS</p>
+              <ScrollArea className="h-[220px] border border-border">
+                <table className="w-full font-mono text-[11px] tabular-nums">
+                  <thead>
+                    <tr className="border-b border-border bg-bg-base">
+                      {headers.map((h, i) => (
+                        <th
+                          key={i}
+                          className={cn(
+                            'px-3 py-1.5 text-left caption text-text-2',
+                            mappings[i] === 'skip' && 'opacity-40',
+                          )}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.slice(0, 5).map((row, ri) => (
+                      <tr key={ri} className="border-b border-border last:border-b-0">
+                        {headers.map((_, ci) => (
+                          <td
+                            key={ci}
                             className={cn(
-                              'px-3 py-2 text-left font-medium',
-                              mappings[i] === 'skip' && 'opacity-40'
+                              'px-3 py-1.5 text-text-1',
+                              mappings[ci] === 'skip' && 'opacity-40',
                             )}
                           >
-                            {h}
-                          </th>
+                            {row[ci] != null ? String(row[ci]) : ''}
+                          </td>
                         ))}
                       </tr>
-                    </thead>
-                    <tbody>
-                      {rows.slice(0, 5).map((row, ri) => (
-                        <tr key={ri} className="border-t border-ios-gray-6">
-                          {headers.map((_, ci) => (
-                            <td
-                              key={ci}
-                              className={cn(
-                                'px-3 py-2',
-                                mappings[ci] === 'skip' && 'opacity-40'
-                              )}
-                            >
-                              {row[ci] != null ? String(row[ci]) : ''}
-                            </td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </ScrollArea>
             </div>
 
-            <p className="text-xs text-muted-foreground">
-              All imported entries will be categorized as &quot;Other&quot;. You can change categories in the expense table after import.
+            <p className="font-mono text-[11px] text-text-3">
+              &gt; imported entries default to category &quot;Other&quot; — re-categorize after import
             </p>
 
-            {/* Actions */}
-            <div className="flex gap-3">
-              <Button
+            <div className="flex gap-2">
+              <button
                 onClick={handleImport}
                 disabled={!isValid || importing}
-                className="flex-1 bg-ios-blue text-white hover:bg-ios-blue/90 active:scale-[0.98] transition-all duration-200"
+                className="caption flex-1 border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors disabled:opacity-50 hover:bg-bg-base hover:text-text-1 disabled:hover:bg-text-1 disabled:hover:text-bg-base"
               >
-                {importing ? 'Importing...' : `Import ${rows.length} Entries`}
-              </Button>
-              <Button
-                variant="outline"
+                {importing ? 'IMPORTING...' : `IMPORT ${rows.length} ROWS`}
+              </button>
+              <button
                 onClick={() => setOpen(false)}
-                className="active:scale-[0.98] transition-all duration-200"
+                className="caption border border-border px-3 py-2 text-text-2 hover:border-text-1 hover:text-text-1"
               >
-                Cancel
-              </Button>
+                CANCEL
+              </button>
             </div>
           </div>
         </SheetContent>

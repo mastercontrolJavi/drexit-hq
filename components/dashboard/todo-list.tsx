@@ -1,14 +1,10 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import type { TodoItem } from '@/types'
 
 export function TodoList() {
@@ -30,9 +26,7 @@ export function TodoList() {
       .order('created_at', { ascending: false })
       .limit(5)
 
-    if (!error && data) {
-      setTodos(data)
-    }
+    if (!error && data) setTodos(data)
     setLoading(false)
   }
 
@@ -57,9 +51,7 @@ export function TodoList() {
     if (!title) return
 
     setAdding(true)
-    const { error } = await supabase
-      .from('todos')
-      .insert({ title })
+    const { error } = await supabase.from('todos').insert({ title })
 
     if (error) {
       toast.error('Failed to add todo')
@@ -80,63 +72,67 @@ export function TodoList() {
   }
 
   return (
-    <Card className="shadow-card">
-      <CardContent className="p-5">
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-4">
-          Today&apos;s Todos
+    <section className="border border-border bg-bg-elevated">
+      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
+        <span className="caption text-text-2">TODOS</span>
+        <span className="font-mono text-[11px] text-text-3 tabular-nums">{todos.length}</span>
+      </header>
+
+      {loading ? (
+        <ul>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <li key={i} className="border-b border-border px-4 py-2.5 last:border-b-0">
+              <div className="h-4 w-3/4 bg-bg-hover animate-pulse" />
+            </li>
+          ))}
+        </ul>
+      ) : todos.length === 0 ? (
+        <p className="font-mono text-xs text-text-3 px-4 py-6">
+          &gt; all clear
         </p>
-
-        {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <Skeleton className="h-4 w-4 rounded" />
-                <Skeleton className="h-4 flex-1" />
-              </div>
-            ))}
-          </div>
-        ) : todos.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">
-            All clear. Add a todo below.
-          </p>
-        ) : (
-          <ul className="space-y-3">
-            {todos.map((todo) => (
-              <li
-                key={todo.id}
-                className="flex items-center gap-3 group active:scale-[0.98] transition-all duration-200"
+      ) : (
+        <ul>
+          {todos.map((todo) => (
+            <li
+              key={todo.id}
+              className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-200 ease-out-200"
+            >
+              <button
+                onClick={() => completeTodo(todo.id)}
+                className={cn(
+                  'shrink-0 font-mono text-[13px] leading-none text-text-3 hover:text-text-1 focus:outline-none transition-colors',
+                )}
+                aria-label="Complete todo"
               >
-                <Checkbox
-                  checked={false}
-                  onCheckedChange={() => completeTodo(todo.id)}
-                />
-                <span className="text-sm leading-tight">{todo.title}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+                [ ]
+              </button>
+              <span className="flex-1 text-[13px] leading-tight text-text-1">{todo.title}</span>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-ios-gray-5">
-          <Input
-            ref={inputRef}
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Add a todo..."
-            className="text-sm"
-            disabled={adding}
-          />
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={addTodo}
-            disabled={adding || !newTitle.trim()}
-            className="shrink-0 active:scale-[0.98] transition-all duration-200"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="flex items-center gap-2 border-t border-border px-3 py-2">
+        <span className="font-mono text-xs text-text-3">&gt;</span>
+        <input
+          ref={inputRef}
+          value={newTitle}
+          onChange={(e) => setNewTitle(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="add todo..."
+          className="flex-1 bg-transparent font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:outline-none"
+          disabled={adding}
+          spellCheck={false}
+        />
+        <button
+          onClick={addTodo}
+          disabled={adding || !newTitle.trim()}
+          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors"
+          aria-label="Add"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+        </button>
+      </div>
+    </section>
   )
 }

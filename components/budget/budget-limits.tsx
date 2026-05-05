@@ -1,14 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { format, subMonths, getDaysInMonth, getDate } from 'date-fns'
-import { formatCurrency, getCurrentMonthKey, getMonthLabel, cn } from '@/lib/utils'
-import { BudgetEntry, BudgetLimit, BUDGET_CATEGORIES } from '@/types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+import { format, getDate, getDaysInMonth, subMonths } from 'date-fns'
+import { cn, formatCurrency, getCurrentMonthKey, getMonthLabel } from '@/lib/utils'
+import { BUDGET_CATEGORIES, type BudgetEntry, type BudgetLimit } from '@/types'
 import {
   Select,
   SelectContent,
@@ -16,32 +12,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Plus,
-  Pencil,
-  Check,
-  X,
-  RefreshCcw,
-  TrendingUp,
-} from 'lucide-react'
+import { Check, Pencil, Plus, RefreshCcw, TrendingUp, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { HairlineProgress } from '@/components/data/hairline-progress'
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function getPaceColor(pct: number): string {
-  if (pct >= 90) return 'text-ios-red'
-  if (pct >= 70) return 'text-ios-orange'
-  return 'text-ios-green'
+function getPaceTone(pct: number): 'success' | 'warn' | 'danger' {
+  if (pct >= 90) return 'danger'
+  if (pct >= 70) return 'warn'
+  return 'success'
 }
 
-function getBarColor(pct: number): string {
-  if (pct >= 90) return '#FF3B30'
-  if (pct >= 70) return '#FF9500'
-  return '#34C759'
-}
-
-// ── Component ──────────────────────────────────────────────────────────────
+const TONE_TEXT = {
+  success: 'text-success',
+  warn: 'text-warn',
+  danger: 'text-danger',
+} as const
 
 export function BudgetLimits() {
   const [limits, setLimits] = useState<BudgetLimit[]>([])
@@ -74,19 +59,17 @@ export function BudgetLimits() {
     fetchData()
   }, [fetchData])
 
-  // ── Per-category stats ─────────────────────────────────────────────────
-
   const daysElapsed = getDate(new Date())
   const daysInMonth = getDaysInMonth(new Date())
   const daysRemaining = daysInMonth - daysElapsed
 
   const categoryStats = useMemo(() => {
-    return limits.map(lim => {
+    return limits.map((lim) => {
       const spent = entries
-        .filter(e => e.category === lim.category)
+        .filter((e) => e.category === lim.category)
         .reduce((s, e) => s + Number(e.amount_gbp), 0)
       const prevSpent = prevEntries
-        .filter(e => e.category === lim.category)
+        .filter((e) => e.category === lim.category)
         .reduce((s, e) => s + Number(e.amount_gbp), 0)
 
       const effectiveLimit = lim.monthly_limit + lim.carryover_amount
@@ -94,9 +77,7 @@ export function BudgetLimits() {
       const dailyRate = daysElapsed > 0 ? spent / daysElapsed : 0
       const projected = Math.round(dailyRate * daysInMonth * 100) / 100
       const overBudget = effectiveLimit > 0 && projected > effectiveLimit
-      const vsLastMonth = prevSpent > 0
-        ? Math.round(((spent - prevSpent) / prevSpent) * 100)
-        : null
+      const vsLastMonth = prevSpent > 0 ? Math.round(((spent - prevSpent) / prevSpent) * 100) : null
 
       return {
         ...lim,
@@ -111,31 +92,38 @@ export function BudgetLimits() {
     })
   }, [limits, entries, prevEntries, daysElapsed, daysInMonth])
 
-  // Categories that have limits set
-  const usedCategories = new Set(limits.map(l => l.category))
-  const availableCategories = BUDGET_CATEGORIES.filter(c => !usedCategories.has(c))
-
-  // ── Mutations ──────────────────────────────────────────────────────────
+  const usedCategories = new Set(limits.map((l) => l.category))
+  const availableCategories = BUDGET_CATEGORIES.filter((c) => !usedCategories.has(c))
 
   async function saveLimit(category: string, amount: number) {
     setSaving(true)
-    const existing = limits.find(l => l.category === category)
+    const existing = limits.find((l) => l.category === category)
 
     if (existing) {
       const { error } = await supabase
         .from('budget_limits')
         .update({ monthly_limit: amount, updated_at: new Date().toISOString() })
         .eq('id', existing.id)
-      if (error) { toast.error('Failed to update limit'); setSaving(false); return }
-      setLimits(prev => prev.map(l => l.category === category ? { ...l, monthly_limit: amount } : l))
+      if (error) {
+        toast.error('Failed to update limit')
+        setSaving(false)
+        return
+      }
+      setLimits((prev) =>
+        prev.map((l) => (l.category === category ? { ...l, monthly_limit: amount } : l)),
+      )
     } else {
       const { data, error } = await supabase
         .from('budget_limits')
         .insert({ category, monthly_limit: amount, rollover: false, carryover_amount: 0 })
         .select()
         .single()
-      if (error || !data) { toast.error('Failed to add limit'); setSaving(false); return }
-      setLimits(prev => [...prev, data as BudgetLimit])
+      if (error || !data) {
+        toast.error('Failed to add limit')
+        setSaving(false)
+        return
+      }
+      setLimits((prev) => [...prev, data as BudgetLimit])
     }
 
     toast.success('Budget limit saved')
@@ -148,19 +136,27 @@ export function BudgetLimits() {
       .from('budget_limits')
       .update({ rollover: !current, updated_at: new Date().toISOString() })
       .eq('id', limitId)
-    if (error) { toast.error('Failed to update rollover'); return }
-    setLimits(prev => prev.map(l => l.id === limitId ? { ...l, rollover: !current } : l))
+    if (error) {
+      toast.error('Failed to update rollover')
+      return
+    }
+    setLimits((prev) =>
+      prev.map((l) => (l.id === limitId ? { ...l, rollover: !current } : l)),
+    )
   }
 
   async function removeLimit(limitId: string) {
     const { error } = await supabase.from('budget_limits').delete().eq('id', limitId)
-    if (error) { toast.error('Failed to remove'); return }
-    setLimits(prev => prev.filter(l => l.id !== limitId))
+    if (error) {
+      toast.error('Failed to remove')
+      return
+    }
+    setLimits((prev) => prev.filter((l) => l.id !== limitId))
     toast.success('Budget limit removed')
   }
 
   async function applyRollover() {
-    const rolloverLimits = limits.filter(l => l.rollover)
+    const rolloverLimits = limits.filter((l) => l.rollover)
     if (rolloverLimits.length === 0) {
       toast('No categories have rollover enabled')
       return
@@ -169,7 +165,7 @@ export function BudgetLimits() {
     let updated = 0
     for (const lim of rolloverLimits) {
       const prevSpent = prevEntries
-        .filter(e => e.category === lim.category)
+        .filter((e) => e.category === lim.category)
         .reduce((s, e) => s + Number(e.amount_gbp), 0)
       const unspent = Math.max(0, lim.monthly_limit - prevSpent)
       if (unspent <= 0) continue
@@ -183,291 +179,286 @@ export function BudgetLimits() {
         })
         .eq('id', lim.id)
       if (!error) {
-        setLimits(prev =>
-          prev.map(l => l.id === lim.id ? { ...l, carryover_amount: unspent, rollover_applied_month: currentMonth } : l)
+        setLimits((prev) =>
+          prev.map((l) =>
+            l.id === lim.id
+              ? { ...l, carryover_amount: unspent, rollover_applied_month: currentMonth }
+              : l,
+          ),
         )
         updated++
       }
     }
 
-    toast.success(updated > 0
-      ? `Rollover applied to ${updated} categor${updated === 1 ? 'y' : 'ies'}`
-      : 'Nothing to roll over — all categories were over budget last month'
+    toast.success(
+      updated > 0
+        ? `Rollover applied to ${updated} categor${updated === 1 ? 'y' : 'ies'}`
+        : 'Nothing to roll over — all categories were over budget last month',
     )
   }
 
   async function handleAddLimit() {
     if (!addCategory || !addAmount) return
     const amount = parseFloat(addAmount)
-    if (isNaN(amount) || amount <= 0) { toast.error('Enter a valid amount'); return }
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Enter a valid amount')
+      return
+    }
     await saveLimit(addCategory, amount)
     setAddCategory('')
     setAddAmount('')
   }
 
-  // ── Total budget utilisation ───────────────────────────────────────────
-
   const totalBudgeted = limits.reduce((s, l) => s + l.monthly_limit + l.carryover_amount, 0)
   const totalSpent = categoryStats.reduce((s, c) => s + c.spent, 0)
-  const hasRolloverReady = limits.some(l => l.rollover && l.rollover_applied_month !== currentMonth)
+  const hasRolloverReady = limits.some(
+    (l) => l.rollover && l.rollover_applied_month !== currentMonth,
+  )
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-16 w-full rounded-xl" />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-40 rounded-xl" />)}
+      <div className="space-y-4">
+        <div className="h-16 animate-pulse bg-bg-hover" />
+        <div className="grid gap-3 sm:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 animate-pulse bg-bg-hover" />
+          ))}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* ── Header summary ─────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="shadow-card border-none">
-          <CardContent className="p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Budgeted</p>
-            <p className="text-2xl font-bold text-foreground mt-1">{formatCurrency(totalBudgeted)}</p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card border-none">
-          <CardContent className="p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Spent</p>
-            <p className={cn('text-2xl font-bold mt-1', totalSpent > totalBudgeted ? 'text-ios-red' : 'text-ios-orange')}>
-              {formatCurrency(totalSpent)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="shadow-card border-none">
-          <CardContent className="p-4">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Remaining</p>
-            <p className={cn('text-2xl font-bold mt-1', totalBudgeted - totalSpent >= 0 ? 'text-ios-green' : 'text-ios-red')}>
-              {formatCurrency(totalBudgeted - totalSpent)}
-            </p>
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      {/* Summary strip */}
+      <div className="grid grid-cols-3 border border-border bg-bg-elevated divide-x divide-border">
+        <div className="px-5 py-4">
+          <span className="caption text-text-2">BUDGETED</span>
+          <p className="num-display mt-1 text-[28px] leading-none text-text-1">
+            {formatCurrency(totalBudgeted)}
+          </p>
+        </div>
+        <div className="px-5 py-4">
+          <span className="caption text-text-2">SPENT</span>
+          <p
+            className={cn(
+              'num-display mt-1 text-[28px] leading-none',
+              totalSpent > totalBudgeted ? 'text-danger' : 'text-warn',
+            )}
+          >
+            {formatCurrency(totalSpent)}
+          </p>
+        </div>
+        <div className="px-5 py-4">
+          <span className="caption text-text-2">REMAINING</span>
+          <p
+            className={cn(
+              'num-display mt-1 text-[28px] leading-none',
+              totalBudgeted - totalSpent >= 0 ? 'text-success' : 'text-danger',
+            )}
+          >
+            {formatCurrency(totalBudgeted - totalSpent)}
+          </p>
+        </div>
       </div>
 
-      {/* ── Rollover banner ────────────────────────────────────────────── */}
+      {/* Rollover banner */}
       {hasRolloverReady && (
-        <div className="flex items-center justify-between rounded-xl bg-ios-blue/8 border border-ios-blue/20 p-4">
+        <div className="flex items-center justify-between border border-accent/40 bg-bg-elevated px-4 py-3">
           <div className="flex items-center gap-3">
-            <RefreshCcw className="h-4 w-4 text-ios-blue shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-ios-blue">Rollover available</p>
-              <p className="text-xs text-muted-foreground">
-                Some categories have rollover enabled — apply last month&apos;s unspent budget
-              </p>
-            </div>
+            <RefreshCcw className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.5} />
+            <p className="font-mono text-[12px] text-text-2">
+              <span className="text-accent">ROLLOVER AVAILABLE</span> · apply unspent budget from {getMonthLabel(prevMonth).toUpperCase()}
+            </p>
           </div>
-          <Button
-            size="sm"
-            variant="ghost"
+          <button
             onClick={applyRollover}
-            className="text-ios-blue hover:bg-ios-blue/10 shrink-0"
+            className="caption border border-accent px-3 py-1.5 text-accent hover:bg-accent hover:text-bg-base"
           >
-            Apply
-          </Button>
+            APPLY
+          </button>
         </div>
       )}
 
-      {/* ── Category cards ─────────────────────────────────────────────── */}
+      {/* Category cards */}
       {categoryStats.length === 0 ? (
-        <Card className="shadow-card border-none">
-          <CardContent className="py-16 text-center">
-            <TrendingUp className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm font-medium text-muted-foreground">No budget limits set yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Add a category budget below to start tracking</p>
-          </CardContent>
-        </Card>
+        <section className="border border-border bg-bg-elevated px-4 py-12 text-center">
+          <TrendingUp className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
+          <p className="caption mt-3 text-text-2">NO BUDGET LIMITS SET</p>
+          <p className="caption mt-1 text-text-3">ADD A CATEGORY BUDGET BELOW</p>
+        </section>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {categoryStats.map(cat => (
-            <Card key={cat.category} className="shadow-card border-none">
-              <CardContent className="p-5">
-                {/* Header row */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="text-sm font-semibold">{cat.category}</p>
-                    {cat.carryover_amount > 0 && (
-                      <p className="text-xs text-ios-blue mt-0.5">
-                        +{formatCurrency(cat.carryover_amount)} rollover
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    {cat.vsLastMonth !== null && (
-                      <Badge
-                        variant="outline"
-                        className={cn(
-                          'text-[10px] h-5',
-                          cat.vsLastMonth > 0 ? 'border-ios-red/30 text-ios-red bg-ios-red/5'
-                          : 'border-ios-green/30 text-ios-green bg-ios-green/5'
-                        )}
-                      >
-                        {cat.vsLastMonth > 0 ? '+' : ''}{cat.vsLastMonth}% vs last
-                      </Badge>
-                    )}
-                    <button
-                      onClick={() => {
-                        setEditingCategory(cat.category)
-                        setEditValue(String(cat.monthly_limit))
-                      }}
-                      className="text-muted-foreground hover:text-ios-blue transition-colors"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => removeLimit(cat.id)}
-                      className="text-muted-foreground hover:text-ios-red transition-colors"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Edit mode */}
-                {editingCategory === cat.category ? (
-                  <div className="flex gap-2 mb-3">
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      value={editValue}
-                      onChange={e => setEditValue(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') saveLimit(cat.category, parseFloat(editValue))
-                        if (e.key === 'Escape') setEditingCategory(null)
-                      }}
-                      className="h-8 text-sm"
-                      autoFocus
-                    />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8 text-ios-green"
-                      onClick={() => saveLimit(cat.category, parseFloat(editValue))}
-                      disabled={saving}
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8"
-                      onClick={() => setEditingCategory(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  /* Spent vs limit */
-                  <div className="flex items-end justify-between mb-2">
-                    <span className={cn('text-lg font-bold tabular-nums', getPaceColor(cat.pct))}>
-                      {formatCurrency(cat.spent)}
-                    </span>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      / {formatCurrency(cat.effectiveLimit)}
-                    </span>
-                  </div>
-                )}
-
-                {/* Progress bar */}
-                {editingCategory !== cat.category && (
-                  <>
-                    <div className="relative h-2 rounded-full bg-ios-gray-5 overflow-hidden mb-3">
-                      <div
-                        className="absolute left-0 top-0 h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${Math.min(cat.pct, 100)}%`,
-                          background: getBarColor(cat.pct),
-                        }}
-                      />
-                    </div>
-
-                    {/* Footer stats */}
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{cat.pct.toFixed(0)}% used</span>
-                      <span>{daysRemaining}d left</span>
-                    </div>
-
-                    {/* Projected */}
-                    <div className={cn(
-                      'mt-2 rounded-lg px-2.5 py-1.5 text-xs',
-                      cat.overBudget ? 'bg-ios-red/8 text-ios-red' : 'bg-ios-gray-6 text-muted-foreground'
-                    )}>
-                      Projected: {formatCurrency(cat.projected)} {cat.overBudget && '⚠︎ over budget'}
-                    </div>
-                  </>
-                )}
-
-                {/* Rollover toggle */}
-                <button
-                  onClick={() => toggleRollover(cat.id, cat.rollover)}
-                  className={cn(
-                    'mt-3 w-full rounded-lg py-1.5 text-xs font-medium transition-all',
-                    cat.rollover
-                      ? 'bg-ios-blue/8 text-ios-blue'
-                      : 'bg-ios-gray-6 text-muted-foreground hover:text-foreground'
+        <div className="grid gap-3 sm:grid-cols-2">
+          {categoryStats.map((cat) => (
+            <section key={cat.category} className="border border-border bg-bg-elevated p-4">
+              <header className="mb-3 flex items-start justify-between">
+                <div>
+                  <span className="caption text-text-1">{cat.category.toUpperCase()}</span>
+                  {cat.carryover_amount > 0 && (
+                    <p className="caption mt-0.5 text-accent">
+                      +{formatCurrency(cat.carryover_amount)} ROLLOVER
+                    </p>
                   )}
-                >
-                  {cat.rollover ? '↩ Rollover on' : 'Rollover off'}
-                </button>
-              </CardContent>
-            </Card>
+                </div>
+                <div className="flex items-center gap-2">
+                  {cat.vsLastMonth !== null && (
+                    <span
+                      className={cn(
+                        'caption border px-1.5 py-0.5',
+                        cat.vsLastMonth > 0 ? 'border-danger/40 text-danger' : 'border-success/40 text-success',
+                      )}
+                    >
+                      {cat.vsLastMonth > 0 ? '+' : ''}
+                      {cat.vsLastMonth}% PREV
+                    </span>
+                  )}
+                  <button
+                    onClick={() => {
+                      setEditingCategory(cat.category)
+                      setEditValue(String(cat.monthly_limit))
+                    }}
+                    className="text-text-3 transition-colors hover:text-text-1"
+                    aria-label="Edit"
+                  >
+                    <Pencil className="h-3 w-3" strokeWidth={1.5} />
+                  </button>
+                  <button
+                    onClick={() => removeLimit(cat.id)}
+                    className="text-text-3 transition-colors hover:text-danger"
+                    aria-label="Remove"
+                  >
+                    <X className="h-3 w-3" strokeWidth={1.5} />
+                  </button>
+                </div>
+              </header>
+
+              {editingCategory === cat.category ? (
+                <div className="mb-3 flex items-center gap-2">
+                  <input
+                    autoFocus
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveLimit(cat.category, parseFloat(editValue))
+                      if (e.key === 'Escape') setEditingCategory(null)
+                    }}
+                    className="flex-1 border border-border bg-transparent px-2 py-1 font-mono text-[13px] tabular-nums text-text-1 focus:border-text-2 focus:outline-none"
+                  />
+                  <button
+                    onClick={() => saveLimit(cat.category, parseFloat(editValue))}
+                    disabled={saving}
+                    className="text-success transition-colors hover:opacity-80"
+                  >
+                    <Check className="h-4 w-4" strokeWidth={1.5} />
+                  </button>
+                  <button
+                    onClick={() => setEditingCategory(null)}
+                    className="text-text-3 transition-colors hover:text-text-1"
+                  >
+                    <X className="h-4 w-4" strokeWidth={1.5} />
+                  </button>
+                </div>
+              ) : (
+                <div className="mb-2 flex items-baseline justify-between">
+                  <span
+                    className={cn(
+                      'num-display text-[20px] leading-none',
+                      TONE_TEXT[getPaceTone(cat.pct)],
+                    )}
+                  >
+                    {formatCurrency(cat.spent)}
+                  </span>
+                  <span className="font-mono text-[11px] tabular-nums text-text-3">
+                    / {formatCurrency(cat.effectiveLimit)}
+                  </span>
+                </div>
+              )}
+
+              {editingCategory !== cat.category && (
+                <>
+                  <HairlineProgress value={cat.pct} tone={getPaceTone(cat.pct)} height={2} className="mb-2" />
+                  <div className="flex items-center justify-between caption text-text-3">
+                    <span>{cat.pct.toFixed(0)}% USED</span>
+                    <span>{daysRemaining}D LEFT</span>
+                  </div>
+                  <div
+                    className={cn(
+                      'mt-2 border px-2 py-1 caption',
+                      cat.overBudget
+                        ? 'border-danger/40 text-danger'
+                        : 'border-border text-text-3',
+                    )}
+                  >
+                    PROJECTED · {formatCurrency(cat.projected)}
+                    {cat.overBudget && ' · OVER BUDGET'}
+                  </div>
+                </>
+              )}
+
+              <button
+                onClick={() => toggleRollover(cat.id, cat.rollover)}
+                className={cn(
+                  'caption mt-3 block w-full border py-1.5 transition-colors',
+                  cat.rollover
+                    ? 'border-accent text-accent'
+                    : 'border-border text-text-3 hover:border-text-1 hover:text-text-1',
+                )}
+              >
+                {cat.rollover ? '↩ ROLLOVER ON' : 'ROLLOVER OFF'}
+              </button>
+            </section>
           ))}
         </div>
       )}
 
-      {/* ── Add new category budget ────────────────────────────────────── */}
-      <Card className="shadow-card border-none">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Plus className="h-4 w-4 text-ios-blue" />
-            Add Category Budget
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      {/* Add category */}
+      <section className="border border-border bg-bg-elevated">
+        <header className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+          <Plus className="h-3 w-3 text-text-2" strokeWidth={1.5} />
+          <span className="caption text-text-2">ADD CATEGORY BUDGET</span>
+        </header>
+        <div className="p-4">
           {availableCategories.length === 0 ? (
-            <p className="text-sm text-muted-foreground">All categories have limits set.</p>
+            <p className="font-mono text-xs text-text-3">&gt; all categories have limits set</p>
           ) : (
-            <div className="flex gap-3">
-              <Select value={addCategory} onValueChange={v => setAddCategory(v ?? '')}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Category..." />
+            <div className="flex gap-2">
+              <Select value={addCategory} onValueChange={(v) => setAddCategory(v ?? '')}>
+                <SelectTrigger className="h-8 flex-1 rounded-none border-border bg-transparent font-mono text-[13px]">
+                  <SelectValue placeholder="select category..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableCategories.map(c => (
+                  {availableCategories.map((c) => (
                     <SelectItem key={c} value={c}>{c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Input
+              <input
                 type="number"
                 step="1"
                 min="0"
                 value={addAmount}
-                onChange={e => setAddAmount(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddLimit()}
+                onChange={(e) => setAddAmount(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddLimit()}
                 placeholder="£ limit"
-                className="w-28"
+                className="w-28 border border-border bg-transparent px-2 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
-              <Button
+              <button
                 onClick={handleAddLimit}
                 disabled={!addCategory || !addAmount || saving}
-                className="bg-ios-blue text-white hover:bg-ios-blue/90 shrink-0"
+                className="caption border border-text-1 bg-text-1 px-3 py-1.5 text-bg-base disabled:opacity-50 hover:bg-bg-base hover:text-text-1 disabled:hover:bg-text-1 disabled:hover:text-bg-base"
               >
-                Add
-              </Button>
+                ADD
+              </button>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <p className="text-xs text-muted-foreground text-center">
-        {getMonthLabel(currentMonth)} · {daysRemaining} days remaining
+      <p className="caption text-center text-text-3">
+        {getMonthLabel(currentMonth).toUpperCase()} · {daysRemaining} DAYS REMAINING
       </p>
     </div>
   )

@@ -4,10 +4,16 @@ export const dynamic = 'force-dynamic'
 
 export default function FitnessPage() {
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-[28px] font-bold tracking-tight">Fitness Tracker</h2>
-        <p className="text-sm text-muted-foreground">Weight, nutrition, and progress</p>
+    <div className="space-y-6">
+      <div className="flex items-baseline justify-between border-b border-border pb-4">
+        <div>
+          <h1 className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-3">
+            FITNESS TRACKER
+          </h1>
+          <p className="num-display mt-1 text-[28px] leading-tight text-text-1">
+            BODY COMPOSITION
+          </p>
+        </div>
       </div>
       <FitnessClient />
     </div>
