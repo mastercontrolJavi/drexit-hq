@@ -11,11 +11,11 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core'
-import type { DragStartEvent, DragEndEvent } from '@dnd-kit/core'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { toast } from 'sonner'
-import { Plus, Archive, Trash2 } from 'lucide-react'
+import { Archive, Plus, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { formatDateShort } from '@/lib/utils'
+import { cn, formatDateShort } from '@/lib/utils'
 import {
   IDEA_DIRECTIONS,
   IDEA_STATUSES,
@@ -27,13 +27,6 @@ import type {
   IdeaPriority,
   IdeaStatus,
 } from '@/types'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -44,68 +37,83 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet'
-
-// ── Seed data ──
+import {
+  UnderlineTabs,
+  type UnderlineTabOption,
+} from '@/components/data/underline-tabs'
 
 const SEED_IDEAS: Omit<BusinessIdea, 'id' | 'updated_at' | 'created_at' | 'archived'>[] = [
-  {
-    title: 'AI SaaS tool',
-    description: 'An AI-powered tool for a specific niche',
-    direction: 'SaaS',
-    priority: 'high',
-    status: 'researching',
-    next_action: 'Research market niches',
-    notes: null,
-  },
-  {
-    title: 'Digital product',
-    description: 'Templates or courses for sale on Gumroad/Whop',
-    direction: 'Digital Products',
-    priority: 'medium',
-    status: 'idea',
-    next_action: 'List product ideas',
-    notes: null,
-  },
-  {
-    title: 'YouTube monetization',
-    description: 'Still.AI channel growth and monetization strategy',
-    direction: 'Content',
-    priority: 'high',
-    status: 'researching',
-    next_action: 'Plan content calendar',
-    notes: null,
-  },
-  {
-    title: 'Micro SaaS',
-    description: 'A small focused web app solving one problem',
-    direction: 'SaaS',
-    priority: 'medium',
-    status: 'idea',
-    next_action: 'Brainstorm problems to solve',
-    notes: null,
-  },
+  { title: 'AI SaaS tool',          description: 'An AI-powered tool for a specific niche',         direction: 'SaaS',             priority: 'high',   status: 'researching', next_action: 'Research market niches',  notes: null },
+  { title: 'Digital product',       description: 'Templates or courses for sale on Gumroad/Whop',  direction: 'Digital Products', priority: 'medium', status: 'idea',        next_action: 'List product ideas',      notes: null },
+  { title: 'YouTube monetization',  description: 'Still.AI channel growth and monetization',      direction: 'Content',          priority: 'high',   status: 'researching', next_action: 'Plan content calendar',   notes: null },
+  { title: 'Micro SaaS',            description: 'A small focused web app solving one problem',   direction: 'SaaS',             priority: 'medium', status: 'idea',        next_action: 'Brainstorm problems',     notes: null },
 ]
 
-// ── Direction badge color mapping ──
-
-const DIRECTION_COLORS: Record<IdeaDirection, string> = {
-  SaaS: 'bg-[rgba(0,122,255,0.1)] text-ios-blue',
-  'AI Tools': 'bg-[rgba(175,82,222,0.1)] text-ios-purple',
-  Content: 'bg-[rgba(255,149,0,0.1)] text-ios-orange',
-  'Digital Products': 'bg-[rgba(52,199,89,0.1)] text-ios-green',
+// Single-letter mono badges for direction
+const DIRECTION_BADGE: Record<IdeaDirection, string> = {
+  SaaS: 'S',
+  'AI Tools': 'A',
+  Content: 'C',
+  'Digital Products': 'D',
 }
 
-const PRIORITY_COLORS: Record<IdeaPriority, string> = {
-  high: 'border-red-300 text-ios-red',
-  medium: 'border-orange-300 text-ios-orange',
-  low: 'border-gray-300 text-muted-foreground',
+const PRIORITY_BORDER: Record<IdeaPriority, string> = {
+  high:   'before:bg-danger',
+  medium: 'before:bg-warn',
+  low:    'before:bg-success',
 }
 
-// ── Draggable Idea Card ──
+const PRIORITY_LABEL_TONE: Record<IdeaPriority, string> = {
+  high:   'text-danger',
+  medium: 'text-warn',
+  low:    'text-success',
+}
+
+type FilterValue = 'all' | IdeaDirection
+
+// ── Card content (shared by draggable + overlay) ──
+
+function CardBody({ idea }: { idea: BusinessIdea }) {
+  return (
+    <div
+      className={cn(
+        'relative border border-border bg-bg-elevated p-3 pl-3.5 transition-colors duration-200 ease-out-200',
+        // Priority hairline as a ::before so we can keep the card itself rectangular
+        'before:absolute before:inset-y-0 before:left-0 before:w-[3px]',
+        PRIORITY_BORDER[idea.priority],
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[13px] font-medium leading-tight text-text-1">{idea.title}</p>
+        <span
+          className="shrink-0 border border-border px-1 caption text-text-2"
+          title={idea.direction}
+        >
+          {DIRECTION_BADGE[idea.direction]}
+        </span>
+      </div>
+
+      {idea.description && (
+        <p className="mt-1.5 line-clamp-2 text-[12px] text-text-2">{idea.description}</p>
+      )}
+
+      <div className="mt-2 flex items-center justify-between caption">
+        <span className={PRIORITY_LABEL_TONE[idea.priority]}>{idea.priority.toUpperCase()}</span>
+        <span className="text-text-3">{formatDateShort(idea.updated_at).toUpperCase()}</span>
+      </div>
+
+      {idea.next_action && (
+        <p className="mt-2 border-t border-border pt-2 caption text-text-3">
+          NEXT · <span className="text-text-2 normal-case tracking-normal">{idea.next_action}</span>
+        </p>
+      )}
+    </div>
+  )
+}
 
 function IdeaCard({
   idea,
@@ -114,15 +122,11 @@ function IdeaCard({
   idea: BusinessIdea
   onOpen: (idea: BusinessIdea) => void
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: idea.id })
-
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: idea.id })
   const pointerDownPos = useRef<{ x: number; y: number } | null>(null)
 
   const style: React.CSSProperties = {
-    transform: transform
-      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-      : undefined,
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     opacity: isDragging ? 0.5 : 1,
   }
 
@@ -140,92 +144,16 @@ function IdeaCard({
         if (pointerDownPos.current) {
           const dx = Math.abs(e.clientX - pointerDownPos.current.x)
           const dy = Math.abs(e.clientY - pointerDownPos.current.y)
-          if (dx < 5 && dy < 5) {
-            onOpen(idea)
-          }
+          if (dx < 5 && dy < 5) onOpen(idea)
         }
         pointerDownPos.current = null
       }}
       className="cursor-grab active:cursor-grabbing"
     >
-      <Card className="shadow-card rounded-xl p-4 active:scale-[0.98] transition-all duration-200">
-        <div className="space-y-2">
-          <p className="font-semibold text-sm leading-tight">{idea.title}</p>
-
-          {idea.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
-              {idea.description}
-            </p>
-          )}
-
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${DIRECTION_COLORS[idea.direction]}`}
-            >
-              {idea.direction}
-            </span>
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${PRIORITY_COLORS[idea.priority]}`}
-            >
-              {idea.priority}
-            </span>
-          </div>
-
-          {idea.next_action && (
-            <p className="text-xs text-muted-foreground">
-              Next: {idea.next_action}
-            </p>
-          )}
-
-          <p className="text-xs text-muted-foreground text-right">
-            {formatDateShort(idea.updated_at)}
-          </p>
-        </div>
-      </Card>
+      <CardBody idea={idea} />
     </div>
   )
 }
-
-// ── Static card for DragOverlay (no hooks) ──
-
-function IdeaCardOverlay({ idea }: { idea: BusinessIdea }) {
-  return (
-    <div className="w-[260px]">
-      <Card className="shadow-card rounded-xl p-4 rotate-2 scale-105">
-        <div className="space-y-2">
-          <p className="font-semibold text-sm leading-tight">{idea.title}</p>
-
-          {idea.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
-              {idea.description}
-            </p>
-          )}
-
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${DIRECTION_COLORS[idea.direction]}`}
-            >
-              {idea.direction}
-            </span>
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${PRIORITY_COLORS[idea.priority]}`}
-            >
-              {idea.priority}
-            </span>
-          </div>
-
-          {idea.next_action && (
-            <p className="text-xs text-muted-foreground">
-              Next: {idea.next_action}
-            </p>
-          )}
-        </div>
-      </Card>
-    </div>
-  )
-}
-
-// ── Droppable Column ──
 
 function KanbanColumn({
   status,
@@ -241,39 +169,38 @@ function KanbanColumn({
   const { isOver, setNodeRef } = useDroppable({ id: status })
 
   return (
-    <div className="min-w-[260px] flex-1">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold">{IDEA_STATUS_LABELS[status]}</h3>
-          <span className="inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-ios-gray-6 px-1.5 text-xs font-medium text-muted-foreground">
-            {ideas.length}
-          </span>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-7 p-0"
+    <section className="min-w-[260px] flex-1 border border-border bg-bg-elevated">
+      <header className="flex items-center justify-between border-b border-border px-3 py-2">
+        <span className="caption text-text-1">
+          {IDEA_STATUS_LABELS[status].toUpperCase().replace(' ', '_')}
+          <span className="ml-1.5 text-text-3">({ideas.length})</span>
+        </span>
+        <button
           onClick={() => onAddIdea(status)}
+          className="text-text-3 transition-colors hover:text-text-1"
+          aria-label="Add idea"
         >
-          <Plus className="h-4 w-4" />
-        </Button>
-      </div>
+          <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
+        </button>
+      </header>
 
       <div
         ref={setNodeRef}
-        className={`bg-ios-gray-6/50 rounded-xl p-3 min-h-[400px] space-y-3 transition-colors duration-200 ${
-          isOver ? 'bg-[rgba(0,122,255,0.06)] ring-2 ring-ios-blue/20' : ''
-        }`}
+        className={cn(
+          'min-h-[420px] space-y-2 p-3 transition-colors duration-200 ease-out-200',
+          isOver && 'bg-bg-hover',
+        )}
       >
         {ideas.map((idea) => (
           <IdeaCard key={idea.id} idea={idea} onOpen={onOpenIdea} />
         ))}
+        {ideas.length === 0 && (
+          <p className="font-mono text-xs text-text-3 py-2">&gt; empty</p>
+        )}
       </div>
-    </div>
+    </section>
   )
 }
-
-// ── Main Kanban Board ──
 
 export function KanbanBoard() {
   const [ideas, setIdeas] = useState<BusinessIdea[]>([])
@@ -282,9 +209,8 @@ export function KanbanBoard() {
   const [selectedIdea, setSelectedIdea] = useState<BusinessIdea | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [isNew, setIsNew] = useState(false)
-  const [filterDirection, setFilterDirection] = useState<'all' | IdeaDirection>('all')
+  const [filterDirection, setFilterDirection] = useState<FilterValue>('all')
 
-  // Drawer form state
   const [formTitle, setFormTitle] = useState('')
   const [formDescription, setFormDescription] = useState('')
   const [formDirection, setFormDirection] = useState<IdeaDirection>('SaaS')
@@ -293,13 +219,7 @@ export function KanbanBoard() {
   const [formNextAction, setFormNextAction] = useState('')
   const [formNotes, setFormNotes] = useState('')
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
-    })
-  )
-
-  // ── Fetch ideas ──
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   const fetchIdeas = useCallback(async () => {
     const { data, error } = await supabase
@@ -315,34 +235,23 @@ export function KanbanBoard() {
     }
 
     if (data && data.length === 0) {
-      // Seed defaults
-      const { error: seedError } = await supabase
-        .from('business_ideas')
-        .insert(
-          SEED_IDEAS.map((idea) => ({
-            ...idea,
-            archived: false,
-          }))
-        )
-
+      const { error: seedError } = await supabase.from('business_ideas').insert(
+        SEED_IDEAS.map((idea) => ({ ...idea, archived: false })),
+      )
       if (seedError) {
         toast.error('Failed to seed ideas')
         setLoading(false)
         return
       }
-
-      // Refetch after seeding
       const { data: seeded } = await supabase
         .from('business_ideas')
         .select('*')
         .eq('archived', false)
         .order('updated_at', { ascending: false })
-
       setIdeas(seeded ?? [])
     } else {
       setIdeas(data ?? [])
     }
-
     setLoading(false)
   }, [])
 
@@ -350,32 +259,24 @@ export function KanbanBoard() {
     fetchIdeas()
   }, [fetchIdeas])
 
-  // ── Drag handlers ──
-
   function handleDragStart(event: DragStartEvent) {
     setActiveId(String(event.active.id))
   }
 
   async function handleDragEnd(event: DragEndEvent) {
     setActiveId(null)
-
     const { active, over } = event
     if (!over) return
 
     const draggedId = String(active.id)
     const targetStatus = String(over.id) as IdeaStatus
-
-    // Only handle drops onto columns (status IDs)
     if (!IDEA_STATUSES.includes(targetStatus)) return
 
     const idea = ideas.find((i) => i.id === draggedId)
     if (!idea || idea.status === targetStatus) return
 
-    // Optimistic update
     setIdeas((prev) =>
-      prev.map((i) =>
-        i.id === draggedId ? { ...i, status: targetStatus } : i
-      )
+      prev.map((i) => (i.id === draggedId ? { ...i, status: targetStatus } : i)),
     )
 
     const { error } = await supabase
@@ -385,19 +286,13 @@ export function KanbanBoard() {
 
     if (error) {
       toast.error('Failed to move idea')
-      // Revert
       setIdeas((prev) =>
-        prev.map((i) =>
-          i.id === draggedId ? { ...i, status: idea.status } : i
-        )
+        prev.map((i) => (i.id === draggedId ? { ...i, status: idea.status } : i)),
       )
       return
     }
-
     toast.success(`Moved to ${IDEA_STATUS_LABELS[targetStatus]}`)
   }
-
-  // ── Drawer helpers ──
 
   function openNewIdea(status: IdeaStatus) {
     setIsNew(true)
@@ -427,7 +322,6 @@ export function KanbanBoard() {
 
   async function handleSave() {
     if (!selectedIdea) return
-
     const { error } = await supabase
       .from('business_ideas')
       .update({
@@ -445,7 +339,6 @@ export function KanbanBoard() {
       toast.error('Failed to save idea')
       return
     }
-
     toast.success('Idea updated')
     setDrawerOpen(false)
     fetchIdeas()
@@ -456,7 +349,6 @@ export function KanbanBoard() {
       toast.error('Title is required')
       return
     }
-
     const { error } = await supabase.from('business_ideas').insert({
       title: formTitle,
       description: formDescription || null,
@@ -467,12 +359,10 @@ export function KanbanBoard() {
       notes: formNotes || null,
       archived: false,
     })
-
     if (error) {
       toast.error('Failed to create idea')
       return
     }
-
     toast.success('Idea created')
     setDrawerOpen(false)
     fetchIdeas()
@@ -480,17 +370,14 @@ export function KanbanBoard() {
 
   async function handleArchive() {
     if (!selectedIdea) return
-
     const { error } = await supabase
       .from('business_ideas')
       .update({ archived: true })
       .eq('id', selectedIdea.id)
-
     if (error) {
       toast.error('Failed to archive idea')
       return
     }
-
     toast.success('Idea archived')
     setDrawerOpen(false)
     fetchIdeas()
@@ -498,47 +385,33 @@ export function KanbanBoard() {
 
   async function handleDelete() {
     if (!selectedIdea) return
-
-    const { error } = await supabase
-      .from('business_ideas')
-      .delete()
-      .eq('id', selectedIdea.id)
-
+    const { error } = await supabase.from('business_ideas').delete().eq('id', selectedIdea.id)
     if (error) {
       toast.error('Failed to delete idea')
       return
     }
-
     toast.success('Idea deleted')
     setDrawerOpen(false)
     fetchIdeas()
   }
 
-  // ── Filter ideas ──
-
   const filteredIdeas =
-    filterDirection === 'all'
-      ? ideas
-      : ideas.filter((i) => i.direction === filterDirection)
+    filterDirection === 'all' ? ideas : ideas.filter((i) => i.direction === filterDirection)
 
   const activeIdea = activeId ? ideas.find((i) => i.id === activeId) ?? null : null
 
-  // ── Render ──
+  const filterTabs: UnderlineTabOption<FilterValue>[] = [
+    { value: 'all', label: 'ALL', hint: String(ideas.length) },
+    ...IDEA_DIRECTIONS.map((d) => ({ value: d as FilterValue, label: d.toUpperCase() })),
+  ]
 
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="flex gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-8 w-24 rounded-full" />
-          ))}
-        </div>
-        <div className="grid grid-cols-4 gap-4">
+        <div className="h-8 w-72 animate-pulse bg-bg-hover" />
+        <div className="grid grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-[400px] rounded-xl" />
-            </div>
+            <div key={i} className="h-[420px] animate-pulse bg-bg-hover" />
           ))}
         </div>
       </div>
@@ -546,43 +419,23 @@ export function KanbanBoard() {
   }
 
   return (
-    <>
-      {/* Filter bar */}
-      <div className="flex items-center gap-2 flex-wrap mb-6">
-        <button
-          onClick={() => setFilterDirection('all')}
-          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
-            filterDirection === 'all'
-              ? 'bg-[rgba(0,122,255,0.1)] text-ios-blue'
-              : 'text-muted-foreground hover:bg-ios-gray-6'
-          }`}
-        >
-          All
-        </button>
-        {IDEA_DIRECTIONS.map((dir) => (
-          <button
-            key={dir}
-            onClick={() => setFilterDirection(dir)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
-              filterDirection === dir
-                ? 'bg-[rgba(0,122,255,0.1)] text-ios-blue'
-                : 'text-muted-foreground hover:bg-ios-gray-6'
-            }`}
-          >
-            {dir}
-          </button>
-        ))}
-      </div>
+    <div className="space-y-5">
+      {/* Filter */}
+      <UnderlineTabs<FilterValue>
+        options={filterTabs}
+        value={filterDirection}
+        onChange={setFilterDirection}
+      />
 
-      {/* Kanban board */}
-      <div className="overflow-x-auto -mx-6 px-6 pb-4">
+      {/* Kanban */}
+      <div className="overflow-x-auto -mx-8 px-8 pb-2">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-4 gap-4 min-w-[1040px]">
+          <div className="grid grid-cols-4 gap-3 min-w-[1080px]">
             {IDEA_STATUSES.map((status) => (
               <KanbanColumn
                 key={status}
@@ -595,84 +448,94 @@ export function KanbanBoard() {
           </div>
 
           <DragOverlay>
-            {activeIdea ? <IdeaCardOverlay idea={activeIdea} /> : null}
+            {activeIdea ? (
+              <div className="w-[260px] rotate-1">
+                <CardBody idea={activeIdea} />
+              </div>
+            ) : null}
           </DragOverlay>
         </DndContext>
       </div>
 
       {/* Idea drawer */}
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent side="right" className="overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{isNew ? 'New Idea' : 'Edit Idea'}</SheetTitle>
-            <SheetDescription>
-              {isNew
-                ? 'Add a new business idea to the board.'
-                : 'Update or manage this idea.'}
+        <SheetContent
+          side="right"
+          className="!w-[420px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0 overflow-y-auto"
+        >
+          <SheetHeader className="border-b border-border px-5 py-3">
+            <SheetTitle className="caption !font-mono !text-[11px] !uppercase !tracking-[0.08em] !text-text-2 flex items-center justify-between">
+              <span>{isNew ? 'NEW_IDEA' : 'EDIT_IDEA'}</span>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                className="text-text-3 hover:text-text-1"
+                aria-label="Close"
+              >
+                <X className="h-3.5 w-3.5" strokeWidth={1.5} />
+              </button>
+            </SheetTitle>
+            <SheetDescription className="font-mono text-[11px] text-text-3">
+              &gt; {isNew ? 'add a new idea to the board' : 'update or manage'}
             </SheetDescription>
           </SheetHeader>
 
-          <div className="space-y-5 px-4 pb-8">
-            {/* Title */}
-            <div className="space-y-1.5">
-              <Label htmlFor="idea-title">Title</Label>
-              <Input
-                id="idea-title"
+          <div className="space-y-3 p-5">
+            <label className="block space-y-1">
+              <span className="caption text-text-2">TITLE</span>
+              <input
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="Idea title..."
+                placeholder="idea title..."
+                className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
-            </div>
+            </label>
 
-            {/* Description */}
-            <div className="space-y-1.5">
-              <Label htmlFor="idea-desc">Description</Label>
-              <Textarea
-                id="idea-desc"
+            <label className="block space-y-1">
+              <span className="caption text-text-2">DESCRIPTION</span>
+              <textarea
                 rows={3}
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
-                placeholder="Brief description..."
+                placeholder="brief description"
+                className="block w-full resize-none border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
+            </label>
+
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block space-y-1">
+                <span className="caption text-text-2">DIRECTION</span>
+                <Select value={formDirection} onValueChange={(v) => setFormDirection(v as IdeaDirection)}>
+                  <SelectTrigger className="h-8 rounded-none border-border bg-transparent font-mono text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {IDEA_DIRECTIONS.map((dir) => (
+                      <SelectItem key={dir} value={dir}>
+                        {dir}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </label>
+              <label className="block space-y-1">
+                <span className="caption text-text-2">PRIORITY</span>
+                <Select value={formPriority} onValueChange={(v) => setFormPriority(v as IdeaPriority)}>
+                  <SelectTrigger className="h-8 rounded-none border-border bg-transparent font-mono text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </label>
             </div>
 
-            {/* Direction */}
-            <div className="space-y-1.5">
-              <Label>Direction</Label>
-              <Select value={formDirection} onValueChange={(val) => setFormDirection(val as IdeaDirection)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {IDEA_DIRECTIONS.map((dir) => (
-                    <SelectItem key={dir} value={dir}>
-                      {dir}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Priority */}
-            <div className="space-y-1.5">
-              <Label>Priority</Label>
-              <Select value={formPriority} onValueChange={(val) => setFormPriority(val as IdeaPriority)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Status */}
-            <div className="space-y-1.5">
-              <Label>Status</Label>
-              <Select value={formStatus} onValueChange={(val) => setFormStatus(val as IdeaStatus)}>
-                <SelectTrigger className="w-full">
+            <label className="block space-y-1">
+              <span className="caption text-text-2">STATUS</span>
+              <Select value={formStatus} onValueChange={(v) => setFormStatus(v as IdeaStatus)}>
+                <SelectTrigger className="h-8 rounded-none border-border bg-transparent font-mono text-[13px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -683,72 +546,67 @@ export function KanbanBoard() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </label>
 
-            {/* Next action */}
-            <div className="space-y-1.5">
-              <Label htmlFor="idea-next">Next Action</Label>
-              <Input
-                id="idea-next"
+            <label className="block space-y-1">
+              <span className="caption text-text-2">NEXT ACTION</span>
+              <input
                 value={formNextAction}
                 onChange={(e) => setFormNextAction(e.target.value)}
-                placeholder="What's the next step?"
+                placeholder="what's the next step?"
+                className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
-            </div>
+            </label>
 
-            {/* Notes */}
-            <div className="space-y-1.5">
-              <Label htmlFor="idea-notes">Notes</Label>
-              <Textarea
-                id="idea-notes"
-                rows={6}
+            <label className="block space-y-1">
+              <span className="caption text-text-2">NOTES</span>
+              <textarea
+                rows={5}
                 value={formNotes}
                 onChange={(e) => setFormNotes(e.target.value)}
-                placeholder="Freeform notes, links, markdown..."
+                placeholder="freeform notes, links, markdown..."
+                className="block w-full resize-none border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
-            </div>
+            </label>
 
-            <Separator />
-
-            {/* Actions */}
-            {isNew ? (
-              <Button
-                className="w-full active:scale-[0.98] transition-all duration-200"
-                onClick={handleCreate}
-              >
-                Create Idea
-              </Button>
-            ) : (
-              <div className="space-y-2">
-                <Button
-                  className="w-full active:scale-[0.98] transition-all duration-200"
-                  onClick={handleSave}
+            <div className="border-t border-border pt-3">
+              {isNew ? (
+                <button
+                  onClick={handleCreate}
+                  className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base hover:bg-bg-base hover:text-text-1"
                 >
-                  Save Changes
-                </Button>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 active:scale-[0.98] transition-all duration-200"
-                    onClick={handleArchive}
+                  CREATE IDEA
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  <button
+                    onClick={handleSave}
+                    className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base hover:bg-bg-base hover:text-text-1"
                   >
-                    <Archive className="h-4 w-4 mr-1.5" />
-                    Archive
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="flex-1 active:scale-[0.98] transition-all duration-200"
-                    onClick={handleDelete}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1.5" />
-                    Delete
-                  </Button>
+                    SAVE CHANGES
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleArchive}
+                      className="caption flex flex-1 items-center justify-center gap-1.5 border border-border px-3 py-2 text-text-2 hover:border-text-1 hover:text-text-1"
+                    >
+                      <Archive className="h-3 w-3" strokeWidth={1.5} />
+                      ARCHIVE
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="caption flex flex-1 items-center justify-center gap-1.5 border border-border px-3 py-2 text-text-2 hover:border-danger hover:text-danger"
+                    >
+                      <Trash2 className="h-3 w-3" strokeWidth={1.5} />
+                      DELETE
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </SheetContent>
       </Sheet>
-    </>
+    </div>
   )
 }
