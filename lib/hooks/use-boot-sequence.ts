@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 const STORAGE_KEY = 'drexit-boot-shown'
 
@@ -16,10 +16,12 @@ export function useBootSequence() {
     setHydrated(true)
   }, [])
 
-  function dismiss() {
+  // Stable reference — consumers put `dismiss` in effect deps, and recreating
+  // it every render would tear down their timers on each tick.
+  const dismiss = useCallback(() => {
     sessionStorage.setItem(STORAGE_KEY, '1')
     setShouldShow(false)
-  }
+  }, [])
 
   return { shouldShow: hydrated && shouldShow, dismiss }
 }
