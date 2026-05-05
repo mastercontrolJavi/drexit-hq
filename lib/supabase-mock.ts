@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { toast } from 'sonner'
 import * as fixtures from './fixtures'
 
