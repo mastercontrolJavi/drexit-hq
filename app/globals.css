@@ -5,54 +5,150 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: #f2f2f7;
-    --foreground: #1c1c1e;
-    --card: #ffffff;
-    --card-foreground: #1c1c1e;
-    --popover: #ffffff;
-    --popover-foreground: #1c1c1e;
-    --primary: #007AFF;
-    --primary-foreground: #ffffff;
-    --secondary: #f2f2f7;
-    --secondary-foreground: #3a3a3c;
-    --muted: #e5e5ea;
-    --muted-foreground: #8e8e93;
-    --accent: rgba(0, 122, 255, 0.1);
-    --accent-foreground: #007AFF;
-    --destructive: #FF3B30;
-    --destructive-foreground: #ffffff;
-    --border: rgba(0, 0, 0, 0.08);
-    --input: #e5e5ea;
-    --ring: #007AFF;
-    --radius: 1rem;
-    --sidebar: #ffffff;
-    --sidebar-foreground: #1c1c1e;
-    --sidebar-primary: #007AFF;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: rgba(0, 122, 255, 0.1);
-    --sidebar-accent-foreground: #007AFF;
-    --sidebar-border: #f2f2f7;
-    --sidebar-ring: #007AFF;
-    --chart-1: #007AFF;
-    --chart-2: #34C759;
-    --chart-3: #FF9500;
-    --chart-4: #FF3B30;
-    --chart-5: #AF52DE;
+  /* Dark = default (no flash if html has no data-theme yet) */
+  :root,
+  :root[data-theme='dark'] {
+    --bg-base:        #0A0A0A;
+    --bg-elevated:    #111111;
+    --bg-hover:       #161616;
+    --border-hairline:#1F1F1F;
+    --border-strong:  #2A2A2A;
+    --text-1:         #FAFAFA;
+    --text-2:         #A1A1A1;
+    --text-3:         #525252;
+    --accent:         #3B82F6;
+    --success:        #10B981;
+    --warn:           #F59E0B;
+    --danger:         #EF4444;
+    --grid:           rgba(255,255,255,0.02);
+
+    /* shadcn-compat aliases — keep existing primitives working */
+    --background:           var(--bg-base);
+    --foreground:           var(--text-1);
+    --card:                 var(--bg-elevated);
+    --card-foreground:      var(--text-1);
+    --popover:              var(--bg-elevated);
+    --popover-foreground:   var(--text-1);
+    --primary:              var(--accent);
+    --primary-foreground:   #FAFAFA;
+    --secondary:            var(--bg-elevated);
+    --secondary-foreground: var(--text-1);
+    --muted:                var(--bg-hover);
+    --muted-foreground:     var(--text-2);
+    --accent-foreground:    var(--text-1);
+    --destructive:          var(--danger);
+    --destructive-foreground:#FAFAFA;
+    --border:               var(--border-hairline);
+    --input:                var(--border-strong);
+    --ring:                 var(--accent);
+    --radius:               4px;
+    --sidebar:              var(--bg-base);
+    --sidebar-foreground:   var(--text-1);
+    --sidebar-primary:      var(--accent);
+    --sidebar-primary-foreground:#FAFAFA;
+    --sidebar-accent:       var(--bg-hover);
+    --sidebar-accent-foreground: var(--text-1);
+    --sidebar-border:       var(--border-hairline);
+    --sidebar-ring:         var(--accent);
+    --chart-1:              var(--accent);
+    --chart-2:              var(--success);
+    --chart-3:              var(--warn);
+    --chart-4:              var(--danger);
+    --chart-5:              #8B5CF6;
+  }
+
+  :root[data-theme='light'] {
+    --bg-base:        #FAFAFA;
+    --bg-elevated:    #FFFFFF;
+    --bg-hover:       #F5F5F5;
+    --border-hairline:#E5E5E5;
+    --border-strong:  #D4D4D4;
+    --text-1:         #0A0A0A;
+    --text-2:         #525252;
+    --text-3:         #A1A1A1;
+    --accent:         #2563EB;
+    --success:        #059669;
+    --warn:           #D97706;
+    --danger:         #DC2626;
+    --grid:           rgba(0,0,0,0.03);
   }
 
   * {
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  html, body {
+    background: var(--bg-base);
+    color: var(--text-1);
   }
+
+  body {
+    @apply antialiased;
+    font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  /* Tabular numerics on every number by default within data surfaces */
+  .font-mono,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Native scrollbar tuning to match the dense aesthetic */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg-base); }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 0; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .text-balance { text-wrap: balance; }
+
+  /* SVG dot-grid background, 24px spacing */
+  .bg-grid-dots {
+    background-image: radial-gradient(circle at 1px 1px, var(--grid) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
+  /* Hairline divider */
+  .hairline-x { border-bottom: 1px solid var(--border-hairline); }
+  .hairline-y { border-right: 1px solid var(--border-hairline); }
+
+  /* Caption: 11px MONO uppercase tracked */
+  .caption {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-2);
+  }
+
+  .num-display {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  /* Ticker scroll keyframes */
+  @keyframes ticker-scroll {
+    0%   { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-50%, 0, 0); }
+  }
+  .animate-ticker { animation: ticker-scroll 90s linear infinite; }
+  .animate-ticker:hover { animation-play-state: paused; }
+
+  /* Boot sequence cursor blink */
+  @keyframes boot-cursor { 50% { opacity: 0; } }
+  .boot-cursor::after {
+    content: '_';
+    animation: boot-cursor 800ms steps(2) infinite;
+    margin-left: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-ticker { animation: none; }
+    .boot-cursor::after { animation: none; }
   }
 }
