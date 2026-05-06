@@ -4,7 +4,7 @@ export function DemoBanner() {
   if (!isDemoMode) return null
   return (
     <div className="border-b border-border py-1 text-center font-mono text-[11px] text-text-3">
-      DEMO MODE · Sample data only · axis-os.com
+      DEMO MODE · Sample data only · Read-only fixture data
     </div>
   )
 }
