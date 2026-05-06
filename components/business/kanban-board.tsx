@@ -463,7 +463,7 @@ export function KanbanBoard() {
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
         <SheetContent
           side="right"
-          className="!w-[420px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0 overflow-y-auto"
+          className="!w-full md:!w-[420px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0 overflow-y-auto"
         >
           <SheetHeader className="border-b border-border px-5 py-3">
             <SheetTitle className="caption !font-mono !text-[11px] !uppercase !tracking-[0.08em] !text-text-2 flex items-center justify-between">

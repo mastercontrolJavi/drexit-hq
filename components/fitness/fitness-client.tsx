@@ -711,7 +711,7 @@ export function FitnessClient() {
             <span className="caption text-text-2">HISTORY · {weighIns.length} ENTRIES</span>
           </header>
           <div className="overflow-x-auto">
-          <div className="grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3 min-w-[500px]">
+          <div className="grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3 min-w-[620px]">
             <span>DATE</span>
             <span>WEIGHT</span>
             <span>BMI</span>
@@ -720,7 +720,7 @@ export function FitnessClient() {
             <span>NOTE</span>
             <span />
           </div>
-          <ul className="min-w-[500px]">
+          <ul className="min-w-[620px]">
             {[...weighIns].reverse().map((w, i, arr) => {
               const prev = arr[i + 1]
               const delta = prev ? Number(w.weight_lbs) - Number(prev.weight_lbs) : null
@@ -843,7 +843,7 @@ export function FitnessClient() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="!w-[400px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0"
+              className="!w-full md:!w-[400px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0"
             >
               <SheetHeader className="border-b border-border px-5 py-3">
                 <SheetTitle className="caption !font-mono !text-[11px] !uppercase !tracking-[0.08em] !text-text-2">

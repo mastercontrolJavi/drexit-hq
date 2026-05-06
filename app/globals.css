@@ -190,4 +190,11 @@
       cursor: default;
     }
   }
+
+  /* Lift sonner toasts above the mobile bottom nav */
+  @media (max-width: 767px) {
+    [data-sonner-toaster] {
+      bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 8px) !important;
+    }
+  }
 }

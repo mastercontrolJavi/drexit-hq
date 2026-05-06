@@ -392,7 +392,7 @@ export function BudgetClient() {
           />
           <button
             type="submit"
-            className="caption shrink-0 border border-border px-3 py-1.5 text-text-2 transition-colors duration-200 ease-out-200 hover:border-text-1 hover:text-text-1"
+            className="caption shrink-0 border border-border px-3 py-3 md:py-1.5 text-text-2 transition-colors duration-200 ease-out-200 hover:border-text-1 hover:text-text-1"
           >
             LOG
           </button>
@@ -524,7 +524,7 @@ export function BudgetClient() {
         ) : (
           <div className="overflow-x-auto">
             {/* Header row */}
-            <div className="grid grid-cols-[80px_140px_1fr_100px_32px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3 min-w-[440px]">
+            <div className="grid grid-cols-[80px_140px_1fr_100px_32px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3 min-w-[520px]">
               <span>DATE</span>
               <span>CATEGORY</span>
               <span>DESCRIPTION</span>
@@ -535,7 +535,7 @@ export function BudgetClient() {
               {visibleEntries.map((entry) => (
                 <li
                   key={entry.id}
-                  className="group grid grid-cols-[80px_140px_1fr_100px_32px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-200 ease-out-200 hover:bg-bg-hover min-w-[440px]"
+                  className="group grid grid-cols-[80px_140px_1fr_100px_32px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-200 ease-out-200 hover:bg-bg-hover min-w-[520px]"
                 >
                   <span className="font-mono text-[12px] tabular-nums text-text-2">
                     {format(new Date(entry.date), 'MMM dd').toUpperCase()}
