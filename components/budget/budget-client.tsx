@@ -306,10 +306,10 @@ export function BudgetClient() {
               onChange={(e) => setIncomeInput(e.target.value)}
               onBlur={handleIncomeSave}
               onKeyDown={(e) => e.key === 'Enter' && handleIncomeSave()}
-              className="mt-2 block w-full bg-transparent num-display text-[48px] leading-none text-text-1 focus:outline-none"
+              className="mt-2 block w-full bg-transparent num-display text-[32px] md:text-[48px] leading-none text-text-1 focus:outline-none"
             />
           ) : (
-            <div className="num-display mt-2 text-[48px] leading-none text-text-1">
+            <div className="num-display mt-2 text-[32px] md:text-[48px] leading-none text-text-1">
               {formatCurrencyShort(income)}
             </div>
           )}
@@ -324,7 +324,7 @@ export function BudgetClient() {
             <span className="caption text-text-2">SPENT</span>
             <span className="caption text-text-3">{entries.length} ENTRIES</span>
           </div>
-          <div className="num-display mt-2 text-[48px] leading-none text-text-1">
+          <div className="num-display mt-2 text-[32px] md:text-[48px] leading-none text-text-1">
             {formatCurrencyShort(totalSpent)}
           </div>
           <div className="mt-3 text-text-2">
@@ -342,7 +342,7 @@ export function BudgetClient() {
           </div>
           <div
             className={cn(
-              'num-display mt-2 text-[48px] leading-none',
+              'num-display mt-2 text-[32px] md:text-[48px] leading-none',
               remaining >= 0 ? 'text-success' : 'text-danger',
             )}
           >
@@ -377,7 +377,7 @@ export function BudgetClient() {
           <span className="caption text-text-2">QUICK_LOG</span>
           <span className="caption text-text-3">{COMMAND_HINT}</span>
         </header>
-        <form onSubmit={handleCommand} className="flex items-center gap-2 px-3 py-2.5">
+        <form onSubmit={handleCommand} className="flex items-center gap-2 px-3 py-3 md:py-2.5 min-h-[48px] md:min-h-0">
           <span className="font-mono text-sm text-text-3">&gt;</span>
           <input
             value={commandInput}
@@ -522,9 +522,9 @@ export function BudgetClient() {
         ) : entries.length === 0 ? (
           <p className="font-mono text-xs text-text-3 px-4 py-6">&gt; no expenses logged</p>
         ) : (
-          <>
+          <div className="overflow-x-auto">
             {/* Header row */}
-            <div className="grid grid-cols-[80px_140px_1fr_100px_32px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3">
+            <div className="grid grid-cols-[80px_140px_1fr_100px_32px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3 min-w-[440px]">
               <span>DATE</span>
               <span>CATEGORY</span>
               <span>DESCRIPTION</span>
@@ -535,7 +535,7 @@ export function BudgetClient() {
               {visibleEntries.map((entry) => (
                 <li
                   key={entry.id}
-                  className="group grid grid-cols-[80px_140px_1fr_100px_32px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-200 ease-out-200 hover:bg-bg-hover"
+                  className="group grid grid-cols-[80px_140px_1fr_100px_32px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-200 ease-out-200 hover:bg-bg-hover min-w-[440px]"
                 >
                   <span className="font-mono text-[12px] tabular-nums text-text-2">
                     {format(new Date(entry.date), 'MMM dd').toUpperCase()}
@@ -587,7 +587,7 @@ export function BudgetClient() {
                 </li>
               ))}
             </ul>
-          </>
+          </div>
         )}
         {hasMore && (
           <button

@@ -77,12 +77,13 @@ export function MiniWeightChart() {
 
       <div className="p-4">
         {loading ? (
-          <div className="h-[200px] w-full animate-pulse bg-bg-hover" />
+          <div className="h-[180px] md:h-[200px] w-full animate-pulse bg-bg-hover" />
         ) : data.length === 0 ? (
           <p className="font-mono text-xs text-text-3 py-4">&gt; no weigh-ins yet</p>
         ) : (
           <>
-            <ResponsiveContainer width="100%" height={200}>
+            <div className="h-[180px] md:h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
                 <XAxis
                   dataKey="label"
@@ -121,6 +122,7 @@ export function MiniWeightChart() {
                 />
               </LineChart>
             </ResponsiveContainer>
+            </div>
 
             <div className="mt-2 flex items-baseline justify-between border-t border-border pt-2 font-mono text-[11px] tabular-nums">
               <span className="text-text-3">
