@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/sidebar'
@@ -7,6 +7,7 @@ import { Providers } from '@/components/shell/providers'
 import { Ticker } from '@/components/shell/ticker'
 import { BootSequence } from '@/components/shell/boot-sequence'
 import { CommandPalette } from '@/components/shell/command-palette'
+import { MobileNav } from '@/components/shell/mobile-nav'
 
 const fontSans = Inter({
   subsets: ['latin'],
@@ -20,9 +21,25 @@ const fontMono = JetBrains_Mono({
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  themeColor: '#0A0A0A',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
+
 export const metadata: Metadata = {
   title: 'AXIS_OS',
   description: 'Personal command center — budget, goals, fitness, ideas.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'AXIS_OS',
+  },
+  icons: {
+    apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+  },
 }
 
 export default function RootLayout({
@@ -43,10 +60,11 @@ export default function RootLayout({
             <div className="flex flex-1 flex-col overflow-hidden">
               <Ticker />
               <main className="flex-1 overflow-y-auto bg-grid-dots">
-                <div className="px-8 py-8">{children}</div>
+                <div className="px-4 py-4 pb-32 md:px-8 md:py-8 md:pb-8">{children}</div>
               </main>
             </div>
           </div>
+          <MobileNav />
           <CommandPalette />
           <Toaster
             position="bottom-right"

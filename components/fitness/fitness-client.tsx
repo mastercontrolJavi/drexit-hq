@@ -513,13 +513,14 @@ export function FitnessClient() {
           </header>
           <div className="p-4">
             {loading ? (
-              <div className="h-[280px] w-full animate-pulse bg-bg-hover" />
+              <div className="h-[180px] md:h-[280px] w-full animate-pulse bg-bg-hover" />
             ) : chartData.length === 0 ? (
               <p className="font-mono text-xs text-text-3 py-12 text-center">
                 &gt; no weigh-ins yet — log your first entry
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
+            <div className="h-[180px] md:h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 8, left: 8 }}>
                   <CartesianGrid stroke="var(--border)" vertical={false} />
                   <XAxis
@@ -570,6 +571,7 @@ export function FitnessClient() {
                   />
                 </LineChart>
               </ResponsiveContainer>
+            </div>
             )}
             {latestWeight && (
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-2 font-mono text-[11px] tabular-nums">
@@ -612,7 +614,8 @@ export function FitnessClient() {
           </div>
           <div className="p-4">
             {compTab === 'bmi' && bmiChartData.length > 0 && (
-              <ResponsiveContainer width="100%" height={280}>
+            <div className="h-[180px] md:h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={bmiChartData} margin={{ top: 8, right: 12, bottom: 8, left: 8 }}>
                   <CartesianGrid stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="date" tick={tickStyle} tickLine={false} axisLine={false} />
@@ -644,9 +647,11 @@ export function FitnessClient() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
             )}
             {compTab === 'bodyfat' && bodyFatChartData.length > 0 && (
-              <ResponsiveContainer width="100%" height={280}>
+            <div className="h-[180px] md:h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={bodyFatChartData} margin={{ top: 8, right: 12, bottom: 8, left: 8 }}>
                   <CartesianGrid stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="date" tick={tickStyle} tickLine={false} axisLine={false} />
@@ -676,9 +681,11 @@ export function FitnessClient() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
             )}
             {compTab === 'overview' && compositionData.length > 0 && (
-              <ResponsiveContainer width="100%" height={280}>
+            <div className="h-[180px] md:h-[280px]">
+              <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={compositionData} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
                   <CartesianGrid stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="date" tick={tickStyle} tickLine={false} axisLine={false} />
@@ -691,6 +698,7 @@ export function FitnessClient() {
                   <Line yAxisId="pct" type="monotone" dataKey="bodyFat" stroke="var(--warn)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--warn)' }} name="Body Fat" />
                 </ComposedChart>
               </ResponsiveContainer>
+            </div>
             )}
           </div>
         </section>
@@ -702,7 +710,8 @@ export function FitnessClient() {
           <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
             <span className="caption text-text-2">HISTORY · {weighIns.length} ENTRIES</span>
           </header>
-          <div className="grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3">
+          <div className="overflow-x-auto">
+          <div className="grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3 min-w-[620px]">
             <span>DATE</span>
             <span>WEIGHT</span>
             <span>BMI</span>
@@ -711,7 +720,7 @@ export function FitnessClient() {
             <span>NOTE</span>
             <span />
           </div>
-          <ul>
+          <ul className="min-w-[620px]">
             {[...weighIns].reverse().map((w, i, arr) => {
               const prev = arr[i + 1]
               const delta = prev ? Number(w.weight_lbs) - Number(prev.weight_lbs) : null
@@ -816,6 +825,7 @@ export function FitnessClient() {
               )
             })}
           </ul>
+          </div>
         </section>
       )}
 
@@ -833,7 +843,7 @@ export function FitnessClient() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="!w-[400px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0"
+              className="!w-full md:!w-[400px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0"
             >
               <SheetHeader className="border-b border-border px-5 py-3">
                 <SheetTitle className="caption !font-mono !text-[11px] !uppercase !tracking-[0.08em] !text-text-2">

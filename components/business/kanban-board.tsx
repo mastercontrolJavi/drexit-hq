@@ -148,7 +148,7 @@ function IdeaCard({
         }
         pointerDownPos.current = null
       }}
-      className="cursor-grab active:cursor-grabbing"
+      className="cursor-grab active:cursor-grabbing kanban-card"
     >
       <CardBody idea={idea} />
     </div>
@@ -169,7 +169,7 @@ function KanbanColumn({
   const { isOver, setNodeRef } = useDroppable({ id: status })
 
   return (
-    <section className="min-w-[260px] flex-1 border border-border bg-bg-elevated">
+    <section className="w-[85vw] shrink-0 snap-start md:w-auto md:min-w-[260px] md:flex-1 border border-border bg-bg-elevated">
       <header className="flex items-center justify-between border-b border-border px-3 py-2">
         <span className="caption text-text-1">
           {IDEA_STATUS_LABELS[status].toUpperCase().replace(' ', '_')}
@@ -409,10 +409,12 @@ export function KanbanBoard() {
     return (
       <div className="space-y-4">
         <div className="h-8 w-72 animate-pulse bg-bg-hover" />
-        <div className="grid grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-[420px] animate-pulse bg-bg-hover" />
-          ))}
+        <div className="overflow-x-auto -mx-4 px-4 md:-mx-8 md:px-8 snap-x snap-mandatory md:snap-none">
+          <div className="flex gap-3 md:grid md:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="w-[85vw] shrink-0 snap-start md:w-auto h-[420px] animate-pulse bg-bg-hover" />
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -428,14 +430,14 @@ export function KanbanBoard() {
       />
 
       {/* Kanban */}
-      <div className="overflow-x-auto -mx-8 px-8 pb-2">
+      <div className="overflow-x-auto -mx-4 px-4 md:-mx-8 md:px-8 pb-2 snap-x snap-mandatory md:snap-none">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid grid-cols-4 gap-3 min-w-[1080px]">
+          <div className="flex gap-3 md:grid md:grid-cols-4">
             {IDEA_STATUSES.map((status) => (
               <KanbanColumn
                 key={status}
@@ -461,7 +463,7 @@ export function KanbanBoard() {
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
         <SheetContent
           side="right"
-          className="!w-[420px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0 overflow-y-auto"
+          className="!w-full md:!w-[420px] !rounded-none !border-l !border-border-strong !bg-bg-elevated !p-0 overflow-y-auto"
         >
           <SheetHeader className="border-b border-border px-5 py-3">
             <SheetTitle className="caption !font-mono !text-[11px] !uppercase !tracking-[0.08em] !text-text-2 flex items-center justify-between">

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import {
   ArrowRight,
+  Command,
   Dumbbell,
   LayoutDashboard,
   Lightbulb,
@@ -116,20 +117,29 @@ export function CommandPalette() {
     }
   }
 
-  if (!open) return null
-
   let runningIdx = -1
 
   return (
-    <div
-      className="fixed inset-0 z-[90] flex items-start justify-center pt-[14vh]"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) setOpen(false)
-      }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Command palette"
-    >
+    <>
+      {/* Mobile FAB — opens command palette on touch */}
+      <button
+        className="mobile-fab fixed right-4 z-30 flex h-11 w-11 items-center justify-center border border-border bg-bg-elevated md:hidden"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Open command palette"
+      >
+        <Command className="h-[18px] w-[18px] text-text-2" strokeWidth={1.5} />
+      </button>
+
+      {open && (
+      <div
+        className="fixed inset-0 z-[90] flex items-start justify-center pt-[14vh]"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) setOpen(false)
+        }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
+      >
       <div
         aria-hidden
         className="absolute inset-0 bg-black/40 supports-[backdrop-filter]:bg-black/30 supports-[backdrop-filter]:backdrop-blur-md"
@@ -197,5 +207,7 @@ export function CommandPalette() {
         </div>
       </div>
     </div>
+      )}
+    </>
   )
 }

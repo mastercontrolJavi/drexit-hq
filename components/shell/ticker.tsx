@@ -17,7 +17,7 @@ export function Ticker() {
 
   return (
     <div
-      className="hairline-x flex h-8 items-center overflow-hidden bg-bg-base"
+      className="ticker hairline-x flex h-6 md:h-8 items-center overflow-hidden bg-bg-base"
       role="marquee"
       aria-label="Live system ticker"
     >

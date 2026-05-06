@@ -162,4 +162,39 @@
     .animate-ticker { animation: none; }
     .boot-cursor::after { animation: none; }
   }
+
+  /* iOS PWA safe areas */
+  .ticker {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* FAB positioned above bottom nav, accounting for iOS home indicator */
+  .mobile-fab {
+    bottom: calc(56px + 12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Ticker font reduced on mobile */
+  @media (max-width: 767px) {
+    .ticker span {
+      font-size: 10px;
+      line-height: 14px;
+    }
+  }
+
+  /* Disable kanban drag on touch devices — let scroll-snap take over */
+  @media (pointer: coarse) {
+    .kanban-card {
+      touch-action: pan-y;
+      cursor: default;
+    }
+  }
+
+  /* Lift sonner toasts above the mobile bottom nav */
+  @media (max-width: 767px) {
+    [data-sonner-toaster] {
+      bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 8px) !important;
+    }
+  }
 }

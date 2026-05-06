@@ -295,10 +295,11 @@ export function GoalsClient() {
           value={filter}
           onChange={setFilter}
           className="flex-1"
+          scroll
         />
         <button
           onClick={openNewGoalDrawer}
-          className="caption flex items-center gap-1.5 border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors duration-200 ease-out-200 hover:bg-bg-base hover:text-text-1"
+          className="caption flex items-center gap-1.5 border border-text-1 bg-text-1 px-3 py-3 md:py-2 text-bg-base transition-colors duration-200 ease-out-200 hover:bg-bg-base hover:text-text-1"
         >
           <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD GOAL
         </button>
@@ -337,7 +338,7 @@ export function GoalsClient() {
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 shrink-0 max-w-[45%] sm:max-w-none">
                       {goal.target_quarter && (
                         <span className="caption border border-border px-1.5 py-0.5 text-text-3">
                           {goal.target_quarter.toUpperCase()}
