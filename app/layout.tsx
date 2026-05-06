@@ -7,6 +7,7 @@ import { Providers } from '@/components/shell/providers'
 import { Ticker } from '@/components/shell/ticker'
 import { BootSequence } from '@/components/shell/boot-sequence'
 import { CommandPalette } from '@/components/shell/command-palette'
+import { MobileNav } from '@/components/shell/mobile-nav'
 
 const fontSans = Inter({
   subsets: ['latin'],
@@ -43,10 +44,11 @@ export default function RootLayout({
             <div className="flex flex-1 flex-col overflow-hidden">
               <Ticker />
               <main className="flex-1 overflow-y-auto bg-grid-dots">
-                <div className="px-8 py-8">{children}</div>
+                <div className="px-4 py-4 pb-32 md:px-8 md:py-8 md:pb-8">{children}</div>
               </main>
             </div>
           </div>
+          <MobileNav />
           <CommandPalette />
           <Toaster
             position="bottom-right"

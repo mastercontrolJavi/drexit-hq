@@ -25,7 +25,7 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="flex h-screen w-[200px] shrink-0 flex-col border-r border-border bg-bg-base">
+    <aside className="hidden md:flex h-screen w-[200px] shrink-0 flex-col border-r border-border bg-bg-base">
       {/* Wordmark */}
       <div className="px-4 pt-5 pb-6">
         <div className="flex items-center gap-2" aria-label="AXIS_OS">
