@@ -295,6 +295,7 @@ export function GoalsClient() {
           value={filter}
           onChange={setFilter}
           className="flex-1"
+          scroll
         />
         <button
           onClick={openNewGoalDrawer}
@@ -337,7 +338,7 @@ export function GoalsClient() {
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1 shrink-0 max-w-[45%] sm:max-w-none">
                       {goal.target_quarter && (
                         <span className="caption border border-border px-1.5 py-0.5 text-text-3">
                           {goal.target_quarter.toUpperCase()}

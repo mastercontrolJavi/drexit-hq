@@ -10,7 +10,7 @@ export default function FitnessPage() {
           <h1 className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-3">
             FITNESS TRACKER
           </h1>
-          <p className="num-display mt-1 text-[28px] leading-tight text-text-1">
+          <p className="num-display mt-1 text-[18px] md:text-[28px] leading-tight text-text-1">
             BODY COMPOSITION
           </p>
         </div>
