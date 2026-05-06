@@ -166,4 +166,4 @@ export const USER_STATS = {
 }
 
 export const DREXIT_DATE = '2026-07-07'
-export const WEIGHT_START_DATE = '2025-01-01'
+export const WEIGHT_START_DATE = '2026-03-11'
