@@ -1,26 +1,27 @@
-# AXIS_OS
+# Axis OS
 
-Personal command center - budget, fitness, goals, and business ideas in one terminal-aesthetic dashboard
+Personal command center for budget, fitness, goals, and business ideas — terminal-aesthetic dashboard with demo mode, no account required.
 
-## Built With
+[Live Demo →](https://axis.javiertpadilla.com) | [Portfolio →](https://javiertpadilla.com)
 
-- **Next.js 14** + **TypeScript**
-- **Tailwind CSS** + **shadcn/ui** (Base UI)
-- **Supabase** (PostgreSQL)
-- **Recharts**, **date-fns**, **dnd-kit**
+![Axis OS screenshot](public/screenshot.png)
 
-## Features
+## What it does
 
-- **Budget tracker** — CSV import, savings goals, analytics
-- **Fitness tracker** — weight, BMI, body composition
-- **Goal timeline** — progress tracking across life areas
-- **Business idea kanban** — direction, priority, status board
-- **Command palette** — ⌘K or Windows K quick navigation
-- **PWA support** — installable on mobile/desktop via add to home screen
-- **Dark/light mode**
-- **Demo mode** — read-only fixture data, no account required
+- **Budget tracker:** CSV import, savings goals, spending analytics
+- **Fitness tracker:** Weight, BMI, and body composition over time
+- **Goal timeline:** Progress tracking across life areas
+- **Business idea kanban:** Direction, priority, and status board
+- **Command palette:** Ctrl+K quick navigation across all modules
+- **Demo mode:** Read-only fixture data, no account or signup required
+- **PWA support:** Installable on mobile and desktop via add to home screen
+- **Dark and light mode**
 
-## Getting Started
+## Stack
+
+Next.js 14 · TypeScript · Tailwind CSS · shadcn/ui · Supabase (PostgreSQL) · Recharts · date-fns · dnd-kit
+
+## Run locally
 
 ```bash
 npm install
@@ -28,4 +29,8 @@ cp .env.local.example .env.local
 # Fill in your Supabase credentials in .env.local
 npm run dev
 ```
+
+## Deploy
+
+Deploys to Vercel. Requires a Supabase project for auth and data persistence. Demo mode works without any credentials.
 
