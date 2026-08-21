@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { Shimmer } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
 
 export function WeeklyFocus() {
   const [text, setText] = useState('')
@@ -49,11 +50,11 @@ export function WeeklyFocus() {
   }
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">WEEKLY_FOCUS</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>WEEKLY_FOCUS</Panel.Title>
         <span className="caption text-text-3">AUTO_SAVE</span>
-      </header>
+      </Panel.Header>
       <div className="p-4">
         {loading ? (
           <div className="space-y-2" aria-hidden>
@@ -73,6 +74,6 @@ export function WeeklyFocus() {
           />
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

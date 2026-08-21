@@ -8,7 +8,9 @@ import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { TodoItem } from '@/types'
 import { SkeletonRows } from '@/components/data/skeleton'
+import { EmptyState } from '@/components/data/empty-state'
 import { DUR, EASE_OUT, listContainer, listItem } from '@/lib/motion'
+import { Panel } from '@/components/data/panel'
 
 export function TodoList() {
   const [todos, setTodos] = useState<TodoItem[]>([])
@@ -75,18 +77,16 @@ export function TodoList() {
   }
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">TODOS</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>TODOS</Panel.Title>
         <span className="font-mono text-[11px] text-text-3 tabular-nums">{todos.length}</span>
-      </header>
+      </Panel.Header>
 
       {loading ? (
         <SkeletonRows count={3} />
       ) : todos.length === 0 ? (
-        <p className="font-mono text-xs text-text-3 px-4 py-6">
-          &gt; all clear
-        </p>
+        <EmptyState variant="flush">all clear</EmptyState>
       ) : (
         <motion.ul variants={listContainer} initial="hidden" animate="show">
           <AnimatePresence initial={false}>
@@ -140,6 +140,6 @@ export function TodoList() {
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
         </button>
       </div>
-    </section>
+    </Panel>
   )
 }

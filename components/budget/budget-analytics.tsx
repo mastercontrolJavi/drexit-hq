@@ -30,6 +30,8 @@ import {
   YAxis,
 } from 'recharts'
 import { UnderlineTabs } from '@/components/data/underline-tabs'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 // Restrained palette — one accent + monochromatic grays
 const PALETTE = [
@@ -261,23 +263,23 @@ export function BudgetAnalytics({
 
   if (loading) {
     return (
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">ANALYTICS</span>
-        </header>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>ANALYTICS</Panel.Title>
+        </Panel.Header>
         <div className="space-y-4 p-4">
           <SkeletonBarChart height={220} bars={8} />
           <SkeletonLineChart height={160} />
         </div>
-      </section>
+      </Panel>
     )
   }
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <span className="caption text-text-2">ANALYTICS</span>
-      </header>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>ANALYTICS</Panel.Title>
+      </Panel.Header>
 
       <div className="px-4 pt-3">
         <UnderlineTabs<Tab> options={TABS} value={tab} onChange={setTab} />
@@ -297,7 +299,7 @@ export function BudgetAnalytics({
               )}
             </div>
             {categoryData.length === 0 ? (
-              <p className="font-mono text-xs text-text-3 py-8">&gt; no spending data</p>
+              <EmptyState variant="flush">no spending data</EmptyState>
             ) : (
               <ResponsiveContainer width="100%" height={Math.max(220, categoryData.length * 28 + 40)}>
                 <BarChart data={categoryData} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 4 }}>
@@ -451,7 +453,7 @@ export function BudgetAnalytics({
           <>
             <span className="caption text-text-2">SAVINGS GROWTH</span>
             {savingsGrowthData.length === 0 ? (
-              <p className="font-mono text-xs text-text-3 py-8">&gt; no savings transactions yet</p>
+              <EmptyState variant="flush">no savings transactions yet</EmptyState>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={savingsGrowthData} margin={{ top: 16, right: 24, bottom: 4, left: 4 }}>
@@ -512,6 +514,6 @@ export function BudgetAnalytics({
           </>
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

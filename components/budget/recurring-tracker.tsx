@@ -18,6 +18,8 @@ import {
   YAxis,
 } from 'recharts'
 import { CalendarClock, RefreshCcw } from 'lucide-react'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 interface RecurringItem {
   name: string
@@ -205,10 +207,10 @@ export function RecurringTracker() {
       </div>
 
       {/* Trend */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">RECURRING SPEND · 6 MONTHS</span>
-        </header>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>RECURRING SPEND · 6 MONTHS</Panel.Title>
+        </Panel.Header>
         <div className="p-4">
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={trendData} barSize={28}>
@@ -224,7 +226,7 @@ export function RecurringTracker() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </section>
+      </Panel>
 
       {/* List header */}
       <div className="flex items-center justify-between">
@@ -245,13 +247,13 @@ export function RecurringTracker() {
       </div>
 
       {displayed.length === 0 ? (
-        <section className="border border-border bg-bg-elevated px-4 py-12 text-center">
-          <CalendarClock className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
-          <p className="caption mt-3 text-text-2">NO RECURRING DETECTED</p>
-          <p className="font-mono text-[11px] text-text-3 mt-2 mx-auto max-w-xs">
-            &gt; auto-detected from descriptions appearing in 2+ months with ≤30% amount variance
-          </p>
-        </section>
+        <EmptyState
+          variant="block"
+          icon={CalendarClock}
+          hint="auto-detected from descriptions appearing in 2+ months with ≤30% amount variance"
+        >
+          NO RECURRING DETECTED
+        </EmptyState>
       ) : (
         <ul className="space-y-2">
           {displayed.map((item, i) => (

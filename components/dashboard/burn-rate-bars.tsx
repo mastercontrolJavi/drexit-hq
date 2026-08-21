@@ -10,6 +10,8 @@ import { HairlineProgress } from '@/components/data/hairline-progress'
 import { LoadError } from '@/components/data/load-error'
 import { SkeletonBarRows } from '@/components/data/skeleton'
 import { listContainer, listItem } from '@/lib/motion'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 interface CategorySpend {
   category: string
@@ -59,11 +61,11 @@ export function BurnRateBars() {
   }, [fetchBudget])
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">BURN_RATE</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>BURN_RATE</Panel.Title>
         <span className="caption text-text-3">{categories.length} CATEGORIES</span>
-      </header>
+      </Panel.Header>
 
       <div className="p-4">
         {loading ? (
@@ -71,7 +73,7 @@ export function BurnRateBars() {
         ) : failed ? (
           <LoadError onRetry={fetchBudget} />
         ) : categories.length === 0 ? (
-          <p className="font-mono text-xs text-text-3 py-4">&gt; no spending logged this month</p>
+          <EmptyState>no spending logged this month</EmptyState>
         ) : (
           <motion.ul
             className="space-y-3"
@@ -97,6 +99,6 @@ export function BurnRateBars() {
           </motion.ul>
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

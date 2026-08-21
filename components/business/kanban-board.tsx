@@ -19,6 +19,8 @@ import { Archive, Plus, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn, formatDateShort } from '@/lib/utils'
 import { DUR, EASE_OUT, staggerDelay } from '@/lib/motion'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 import { Shimmer, SkeletonCard, SkeletonPanel } from '@/components/data/skeleton'
 import {
   IDEA_DIRECTIONS,
@@ -116,9 +118,12 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
       </div>
 
       {idea.next_action && (
-        <p className="mt-2 border-t border-border pt-2 caption text-text-3">
+        <p
+          className="caption mt-2 line-clamp-2 border-t border-border pt-2 text-text-3"
+          title={idea.next_action}
+        >
           NEXT ·{' '}
-          <span className="line-clamp-1 inline text-text-2 normal-case tracking-normal" title={idea.next_action}>
+          <span className="text-text-2 normal-case tracking-normal">
             {idea.next_action}
           </span>
         </p>
@@ -198,12 +203,13 @@ function KanbanColumn({
   const { isOver, setNodeRef } = useDroppable({ id: status })
 
   return (
-    <section className="w-[85vw] shrink-0 snap-start md:w-auto md:min-w-[260px] md:flex-1 border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between border-b border-border px-3 py-2">
-        <span className="caption text-text-1">
+    <Panel className="w-[85vw] shrink-0 snap-start md:w-auto md:min-w-[260px] md:flex-1">
+      {/* px-3 for the narrower column; py-2.5 keeps the app's header rhythm */}
+      <Panel.Header className="px-3">
+        <Panel.Title className="text-text-1">
           {IDEA_STATUS_LABELS[status].toUpperCase().replace(' ', '_')}
           <span className="ml-1.5 text-text-3">({ideas.length})</span>
-        </span>
+        </Panel.Title>
         <button
           onClick={() => onAddIdea(status)}
           className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
@@ -211,7 +217,7 @@ function KanbanColumn({
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
         </button>
-      </header>
+      </Panel.Header>
 
       <div
         ref={setNodeRef}
@@ -223,11 +229,9 @@ function KanbanColumn({
         {ideas.map((idea, i) => (
           <IdeaCard key={idea.id} idea={idea} index={i} onOpen={onOpenIdea} />
         ))}
-        {ideas.length === 0 && (
-          <p className="font-mono text-xs text-text-3 py-2">&gt; empty</p>
-        )}
+        {ideas.length === 0 && <EmptyState variant="compact">empty</EmptyState>}
       </div>
-    </section>
+    </Panel>
   )
 }
 

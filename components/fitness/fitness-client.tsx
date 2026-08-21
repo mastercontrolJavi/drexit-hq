@@ -59,6 +59,8 @@ import { RingProgress } from '@/components/data/ring-progress'
 import { TerminalButton } from '@/components/ui/terminal-button'
 import { CHART_ANIMATION } from '@/lib/motion'
 import { SkeletonCard, SkeletonLineChart } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 import {
   UnderlineTabs,
   type UnderlineTabOption,
@@ -439,10 +441,10 @@ export function FitnessClient() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Log entry form */}
-        <section className="border border-border bg-bg-elevated">
-          <header className="border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">LOG_ENTRY</span>
-          </header>
+        <Panel>
+          <Panel.Header>
+            <Panel.Title>LOG_ENTRY</Panel.Title>
+          </Panel.Header>
           <form onSubmit={handleLogWeight} className="space-y-3 p-4">
             <label className="block space-y-1">
               <span className="caption text-text-2">DATE</span>
@@ -501,23 +503,21 @@ export function FitnessClient() {
               LOG ENTRY
             </TerminalButton>
           </form>
-        </section>
+        </Panel>
 
         {/* Weight chart */}
-        <section className="border border-border bg-bg-elevated lg:col-span-2">
-          <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">WEIGHT_PROGRESS</span>
+        <Panel className="lg:col-span-2">
+          <Panel.Header>
+            <Panel.Title>WEIGHT_PROGRESS</Panel.Title>
             <span className="caption text-text-3">
               TARGET {USER_STATS.goalWeight} LBS
             </span>
-          </header>
+          </Panel.Header>
           <div className="p-4">
             {loading ? (
               <SkeletonLineChart className="h-[180px] md:h-[280px]" />
             ) : chartData.length === 0 ? (
-              <p className="font-mono text-xs text-text-3 py-12 text-center">
-                &gt; no weigh-ins yet — log your first entry
-              </p>
+              <EmptyState>no weigh-ins yet — log your first entry</EmptyState>
             ) : (
             <div className="h-[180px] md:h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -595,15 +595,15 @@ export function FitnessClient() {
               </div>
             )}
           </div>
-        </section>
+        </Panel>
       </div>
 
       {/* Body composition */}
       {compTabs.length > 0 && (
-        <section className="border border-border bg-bg-elevated">
-          <header className="border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">BODY_COMPOSITION</span>
-          </header>
+        <Panel>
+          <Panel.Header>
+            <Panel.Title>BODY_COMPOSITION</Panel.Title>
+          </Panel.Header>
           <div className="px-4 pt-3">
             <UnderlineTabs<CompTab>
               options={compTabs}
@@ -700,15 +700,15 @@ export function FitnessClient() {
             </div>
             )}
           </div>
-        </section>
+        </Panel>
       )}
 
       {/* Weigh-in history */}
       {weighIns.length > 0 && (
-        <section className="border border-border bg-bg-elevated">
-          <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">HISTORY · {weighIns.length} ENTRIES</span>
-          </header>
+        <Panel>
+          <Panel.Header>
+            <Panel.Title>HISTORY · {weighIns.length} ENTRIES</Panel.Title>
+          </Panel.Header>
           <div className="overflow-x-auto">
           <div className="grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3 min-w-[620px]">
             <span>DATE</span>
@@ -825,13 +825,13 @@ export function FitnessClient() {
             })}
           </ul>
           </div>
-        </section>
+        </Panel>
       )}
 
       {/* Approved foods */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">APPROVED_FOODS · {foods.length}</span>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>APPROVED_FOODS · {foods.length}</Panel.Title>
           <Sheet open={foodDrawerOpen} onOpenChange={setFoodDrawerOpen}>
             <SheetTrigger
               render={
@@ -889,7 +889,7 @@ export function FitnessClient() {
               </form>
             </SheetContent>
           </Sheet>
-        </header>
+        </Panel.Header>
 
         {loading ? (
           <div className="grid grid-cols-2 gap-2 p-4 md:grid-cols-3 lg:grid-cols-4">
@@ -898,7 +898,7 @@ export function FitnessClient() {
             ))}
           </div>
         ) : foods.length === 0 ? (
-          <p className="font-mono text-xs text-text-3 px-4 py-8">&gt; no foods added yet</p>
+          <EmptyState variant="flush">no foods added yet</EmptyState>
         ) : (
           <ul className="grid grid-cols-2 gap-2 p-4 md:grid-cols-3 lg:grid-cols-4">
             {foods.map((food) => (
@@ -929,7 +929,7 @@ export function FitnessClient() {
             ))}
           </ul>
         )}
-      </section>
+      </Panel>
     </div>
   )
 }

@@ -7,6 +7,8 @@ import type { SavingsGoal } from '@/types'
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { LoadError } from '@/components/data/load-error'
 import { SkeletonBarRows } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 export function SavingsMini() {
   const [goals, setGoals] = useState<SavingsGoal[]>([])
@@ -38,14 +40,14 @@ export function SavingsMini() {
   const overallPct = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">SAVINGS</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>SAVINGS</Panel.Title>
         <span className="font-mono text-[12px] tabular-nums text-text-1">
           {formatCurrencyShort(totalSaved)}
           <span className="text-text-3">/{formatCurrencyShort(totalTarget)}</span>
         </span>
-      </header>
+      </Panel.Header>
 
       <div className="p-4">
         {loading ? (
@@ -53,7 +55,7 @@ export function SavingsMini() {
         ) : failed ? (
           <LoadError onRetry={fetchGoals} />
         ) : goals.length === 0 ? (
-          <p className="font-mono text-xs text-text-3 py-4">&gt; no savings goals</p>
+          <EmptyState>no savings goals</EmptyState>
         ) : (
           <div className="space-y-3">
             {/* Overall */}
@@ -88,6 +90,6 @@ export function SavingsMini() {
           </div>
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

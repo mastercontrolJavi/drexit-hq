@@ -17,6 +17,8 @@ import type { WeighIn } from '@/types'
 import { LoadError } from '@/components/data/load-error'
 import { CHART_ANIMATION } from '@/lib/motion'
 import { SkeletonLineChart } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 interface ChartPoint {
   date: string
@@ -79,13 +81,13 @@ export function MiniWeightChart() {
   const delta = latest !== null && first !== null ? latest - first : null
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">WEIGHT_PROGRESS</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>WEIGHT_PROGRESS</Panel.Title>
         <span className="font-mono text-[11px] tabular-nums text-text-3">
           TARGET {USER_STATS.goalWeight} LBS
         </span>
-      </header>
+      </Panel.Header>
 
       <div className="p-4">
         {loading ? (
@@ -93,7 +95,7 @@ export function MiniWeightChart() {
         ) : failed ? (
           <LoadError onRetry={fetchWeighIns} />
         ) : data.length === 0 ? (
-          <p className="font-mono text-xs text-text-3 py-4">&gt; no weigh-ins yet</p>
+          <EmptyState>no weigh-ins yet</EmptyState>
         ) : (
           <>
             <div className="h-[180px] md:h-[200px]">
@@ -150,6 +152,6 @@ export function MiniWeightChart() {
           </>
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

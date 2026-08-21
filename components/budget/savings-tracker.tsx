@@ -27,6 +27,8 @@ import {
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { TerminalButton } from '@/components/ui/terminal-button'
 import { SkeletonBarRows, SkeletonRows } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 const DEFAULT_GOALS = [
   { name: 'Mexico Trip Fund', target_amount: 800, current_amount: 0 },
@@ -215,16 +217,16 @@ export function SavingsTracker() {
 
   return (
     <>
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">SAVINGS</span>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>SAVINGS</Panel.Title>
           <button
             onClick={() => setAddingNew(true)}
             className="caption flex items-center gap-1 text-text-2 transition-colors duration-150 ease-out-200 hover:text-text-1"
           >
             <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD GOAL
           </button>
-        </header>
+        </Panel.Header>
 
         <div className="p-4 space-y-4">
           {loading ? (
@@ -435,10 +437,10 @@ export function SavingsTracker() {
           )}
 
           {goals.length === 0 && !addingNew && (
-            <p className="font-mono text-xs text-text-3">&gt; no savings goals</p>
+            <EmptyState variant="flush">no savings goals</EmptyState>
           )}
         </div>
-      </section>
+      </Panel>
 
       {/* Transaction history dialog */}
       <Dialog
@@ -468,7 +470,7 @@ export function SavingsTracker() {
             {historyLoading ? (
               <SkeletonRows count={4} />
             ) : transactions.length === 0 ? (
-              <p className="px-4 py-8 font-mono text-xs text-text-3">&gt; no transactions</p>
+              <EmptyState variant="flush">no transactions</EmptyState>
             ) : (
               <ul>
                 {transactions.map((tx) => {

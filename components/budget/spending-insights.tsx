@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { format, getDate, getDaysInMonth, subMonths } from 'date-fns'
 import { cn, formatCurrency, formatCurrencyShort, getMonthLabel } from '@/lib/utils'
 import { SkeletonCard } from '@/components/data/skeleton'
+import { EmptyState } from '@/components/data/empty-state'
 import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import {
@@ -252,13 +253,13 @@ export function SpendingInsights() {
 
   if (insights.length === 0) {
     return (
-      <div className="border border-border bg-bg-elevated px-4 py-16 text-center">
-        <Zap className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
-        <p className="caption mt-3 text-text-2">NO INSIGHTS YET</p>
-        <p className="font-mono text-[11px] text-text-3 mt-1">
-          &gt; add transactions this month to generate insights
-        </p>
-      </div>
+      <EmptyState
+        variant="block"
+        icon={Zap}
+        hint="add transactions this month to generate insights"
+      >
+        NO INSIGHTS YET
+      </EmptyState>
     )
   }
 

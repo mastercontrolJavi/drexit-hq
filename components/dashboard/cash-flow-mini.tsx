@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recha
 import { LoadError } from '@/components/data/load-error'
 import { CHART_ANIMATION } from '@/lib/motion'
 import { SkeletonBarChart } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
 
 interface MonthRow {
   month: string
@@ -87,15 +88,15 @@ export function CashFlowMini() {
   const latestNet = data.length > 0 ? data[data.length - 1].net : 0
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">CASH_FLOW</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>CASH_FLOW</Panel.Title>
         <span
           className={`font-mono text-[12px] tabular-nums ${latestNet >= 0 ? 'text-success' : 'text-danger'}`}
         >
           NET {latestNet >= 0 ? '+' : ''}{formatCurrencyShort(latestNet)}
         </span>
-      </header>
+      </Panel.Header>
       <div className="p-4">
         {loading ? (
           <SkeletonBarChart height={140} bars={6} />
@@ -118,6 +119,6 @@ export function CashFlowMini() {
           </ResponsiveContainer>
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

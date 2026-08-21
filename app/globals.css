@@ -85,7 +85,12 @@
   body {
     @apply antialiased;
     font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-feature-settings: "ss01", "cv11";
+    /*
+      ss01/cv11 were Inter's stylistic sets and are inert now the sans is
+      Instrument Sans. Kept in spirit: contextual alternates on, and slashed
+      zero via the mono face where numerics actually live.
+    */
+    font-feature-settings: "calt" 1;
   }
 
   /*
@@ -107,6 +112,15 @@
   /* But never on the mouse-click pseudo-state */
   :focus:not(:focus-visible) {
     outline: none;
+  }
+
+  /*
+    The command palette input is focused programmatically the moment the
+    palette opens, so the ring above would always be painted around it. The
+    caret and the panel's own border already say "you are typing here".
+  */
+  [data-command-input]:focus-visible {
+    outline: none !important;
   }
 
   /* Tabular numerics on every number by default within data surfaces */

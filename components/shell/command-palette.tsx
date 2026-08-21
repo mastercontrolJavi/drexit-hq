@@ -177,6 +177,7 @@ export function CommandPalette() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder="> type a command..."
+          data-command-input
           className="block w-full bg-transparent px-4 py-3.5 font-mono text-sm text-text-1 placeholder:text-text-3 focus:outline-none"
           spellCheck={false}
           autoComplete="off"

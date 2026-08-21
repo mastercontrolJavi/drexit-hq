@@ -27,6 +27,7 @@ import { TimelineRail } from '@/components/data/timeline-rail'
 import { StatusLabel } from '@/components/data/status-label'
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { CountUp } from '@/components/data/count-up'
+import { EmptyState } from '@/components/data/empty-state'
 import { Shimmer, SkeletonBarRows } from '@/components/data/skeleton'
 import { DUR, EASE_OUT, staggerDelay } from '@/lib/motion'
 import { TerminalButton } from '@/components/ui/terminal-button'
@@ -312,10 +313,9 @@ export function GoalsClient() {
 
       {/* Timeline */}
       {filteredGoals.length === 0 ? (
-        <div className="border border-border bg-bg-elevated px-4 py-16 text-center">
-          <Target className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
-          <p className="caption mt-3 text-text-2">NO GOALS IN THIS CATEGORY</p>
-        </div>
+        <EmptyState variant="block" icon={Target}>
+          NO GOALS IN THIS CATEGORY
+        </EmptyState>
       ) : (
         <TimelineRail>
           {filteredGoals.map((goal, i) => {
@@ -390,10 +390,15 @@ export function GoalsClient() {
                     <span className={cn('font-mono', TONE_TEXT_CLASS[tone])}>
                       {goal.deadline ? formatDate(goal.deadline).toUpperCase() : 'NO DEADLINE'}
                     </span>
-                    <span className="text-text-3">·</span>
-                    <span className={cn('font-mono', TONE_TEXT_CLASS[tone])}>
-                      {deadlineLabel(goal.deadline, goal.status)}
-                    </span>
+                    {/* Without a deadline both slots read "NO DEADLINE" — show it once */}
+                    {goal.deadline && (
+                      <>
+                        <span className="text-text-3">·</span>
+                        <span className={cn('font-mono', TONE_TEXT_CLASS[tone])}>
+                          {deadlineLabel(goal.deadline, goal.status)}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </motion.button>
               </TimelineRail.Item>

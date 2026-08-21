@@ -17,6 +17,8 @@ import { toast } from 'sonner'
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { Shimmer, SkeletonBarRows } from '@/components/data/skeleton'
 import { TerminalButton } from '@/components/ui/terminal-button'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 function getPaceTone(pct: number): 'success' | 'warn' | 'danger' {
   if (pct >= 90) return 'danger'
@@ -286,15 +288,13 @@ export function BudgetLimits() {
 
       {/* Category cards */}
       {categoryStats.length === 0 ? (
-        <section className="border border-border bg-bg-elevated px-4 py-12 text-center">
-          <TrendingUp className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
-          <p className="caption mt-3 text-text-2">NO BUDGET LIMITS SET</p>
-          <p className="caption mt-1 text-text-3">ADD A CATEGORY BUDGET BELOW</p>
-        </section>
+        <EmptyState variant="block" icon={TrendingUp} hint="add a category budget below">
+          NO BUDGET LIMITS SET
+        </EmptyState>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {categoryStats.map((cat) => (
-            <section key={cat.category} className="border border-border bg-bg-elevated p-4">
+            <Panel key={cat.category} className="p-4">
               <header className="mb-3 flex items-start justify-between">
                 <div>
                   <span className="caption text-text-1">{cat.category.toUpperCase()}</span>
@@ -413,20 +413,20 @@ export function BudgetLimits() {
               >
                 {cat.rollover ? '↩ ROLLOVER ON' : 'ROLLOVER OFF'}
               </button>
-            </section>
+            </Panel>
           ))}
         </div>
       )}
 
       {/* Add category */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+      <Panel>
+        <Panel.Header className="justify-start gap-2">
           <Plus className="h-3 w-3 text-text-2" strokeWidth={1.5} />
-          <span className="caption text-text-2">ADD CATEGORY BUDGET</span>
-        </header>
+          <Panel.Title>ADD CATEGORY BUDGET</Panel.Title>
+        </Panel.Header>
         <div className="p-4">
           {availableCategories.length === 0 ? (
-            <p className="font-mono text-xs text-text-3">&gt; all categories have limits set</p>
+            <EmptyState>all categories have limits set</EmptyState>
           ) : (
             <div className="flex gap-2">
               <Select value={addCategory} onValueChange={(v) => setAddCategory(v ?? '')}>
@@ -460,7 +460,7 @@ export function BudgetLimits() {
             </div>
           )}
         </div>
-      </section>
+      </Panel>
 
       <p className="caption text-center text-text-3">
         {getMonthLabel(currentMonth).toUpperCase()} · {daysRemaining} DAYS REMAINING

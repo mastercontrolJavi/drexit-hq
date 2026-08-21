@@ -37,6 +37,8 @@ import { SkeletonRows } from '@/components/data/skeleton'
 import { listContainer, listItem } from '@/lib/motion'
 import { UnderlineTabs, type UnderlineTabOption } from '@/components/data/underline-tabs'
 import { TerminalButton } from '@/components/ui/terminal-button'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 const COMMAND_HINT = '£ amount  category  [description...]'
 
@@ -295,7 +297,7 @@ export function BudgetClient() {
                   setEditingIncome(true)
                 }
               }}
-              className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
+              className="self-center text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
               aria-label="Edit income"
             >
               {editingIncome ? <Check className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />}
@@ -377,11 +379,11 @@ export function BudgetClient() {
       )}
 
       {/* Command bar entry */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">QUICK_LOG</span>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>QUICK_LOG</Panel.Title>
           <span className="caption text-text-3">{COMMAND_HINT}</span>
-        </header>
+        </Panel.Header>
         <form onSubmit={handleCommand} className="flex items-center gap-2 px-3 py-3 md:py-2.5 min-h-[48px] md:min-h-0">
           <span className="font-mono text-sm text-text-3">&gt;</span>
           <input
@@ -485,38 +487,38 @@ export function BudgetClient() {
             </TerminalButton>
           </form>
         </details>
-      </section>
+      </Panel>
 
       {/* Savings + CSV import row */}
       <div className="grid gap-6 lg:grid-cols-2">
         <SavingsTracker />
-        <section className="border border-border bg-bg-elevated">
-          <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">IMPORT</span>
+        <Panel>
+          <Panel.Header>
+            <Panel.Title>IMPORT</Panel.Title>
             <span className="caption text-text-3">CSV / XLSX</span>
-          </header>
+          </Panel.Header>
           <div className="p-4">
             <p className="font-mono text-xs text-text-3 mb-3">
               &gt; map columns and bulk-import bank statements
             </p>
             <CsvImport onImportComplete={fetchEntries} />
           </div>
-        </section>
+        </Panel>
       </div>
 
       {/* Expense table */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">EXPENSES · {getMonthLabel(selectedMonth).toUpperCase()}</span>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>EXPENSES · {getMonthLabel(selectedMonth).toUpperCase()}</Panel.Title>
           <span className="caption text-text-3">
             {entries.length} ROWS · {formatCurrencyShort(totalSpent)}
           </span>
-        </header>
+        </Panel.Header>
 
         {loading ? (
           <SkeletonRows count={5} />
         ) : entries.length === 0 ? (
-          <p className="font-mono text-xs text-text-3 px-4 py-6">&gt; no expenses logged</p>
+          <EmptyState variant="flush">no expenses logged</EmptyState>
         ) : (
           <div className="overflow-x-auto">
             {/* Header row */}
@@ -601,7 +603,7 @@ export function BudgetClient() {
             )}
           </button>
         )}
-      </section>
+      </Panel>
 
       {/* Analytics */}
       <BudgetAnalytics

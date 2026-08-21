@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Instrument_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/sidebar'
 import { Toaster } from '@/components/ui/sonner'
@@ -9,7 +9,10 @@ import { BootSequence } from '@/components/shell/boot-sequence'
 import { CommandPalette } from '@/components/shell/command-palette'
 import { MobileNav } from '@/components/shell/mobile-nav'
 
-const fontSans = Inter({
+// Instrument Sans over Inter: a modern grotesque with sharper terminals and
+// tighter apertures, which holds up better at the 11-13px this UI lives at
+// and sits closer to JetBrains Mono's squared-off forms.
+const fontSans = Instrument_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
