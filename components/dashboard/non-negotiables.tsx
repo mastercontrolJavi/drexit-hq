@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { X, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { NonNegotiable } from '@/types'
+import { DUR, EASE_OUT, listContainer, listItem } from '@/lib/motion'
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10)
@@ -130,18 +132,22 @@ export function NonNegotiables() {
           &gt; no non-negotiables yet
         </p>
       ) : (
-        <ul>
+        <motion.ul variants={listContainer} initial="hidden" animate="show">
+          <AnimatePresence initial={false}>
           {items.map((item) => {
             const done = item.last_completed_date === today
             return (
-              <li
+              <motion.li
                 key={item.id}
-                className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-200 ease-out-200"
+                variants={listItem}
+                exit={{ opacity: 0, x: 8 }}
+                transition={{ duration: DUR.fast, ease: EASE_OUT }}
+                className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-150 ease-out-200"
               >
                 <button
                   onClick={() => toggleItem(item)}
                   className={cn(
-                    'shrink-0 font-mono text-[13px] leading-none focus:outline-none transition-colors',
+                    'shrink-0 cursor-pointer font-mono text-[13px] leading-none transition-colors duration-150 ease-out-200',
                     done ? 'text-success' : 'text-text-3 hover:text-text-1',
                   )}
                   aria-label={done ? 'Unmark as done' : 'Mark as done'}
@@ -150,7 +156,7 @@ export function NonNegotiables() {
                 </button>
                 <span
                   className={cn(
-                    'flex-1 text-[13px] leading-tight',
+                    'min-w-0 flex-1 truncate text-[13px] leading-tight transition-colors duration-150 ease-out-200',
                     done ? 'line-through text-text-3' : 'text-text-1',
                   )}
                 >
@@ -163,10 +169,11 @@ export function NonNegotiables() {
                 >
                   <X className="h-3 w-3" strokeWidth={1.5} />
                 </button>
-              </li>
+              </motion.li>
             )
           })}
-        </ul>
+          </AnimatePresence>
+        </motion.ul>
       )}
 
       <div className="flex items-center gap-2 border-t border-border px-3 py-2">

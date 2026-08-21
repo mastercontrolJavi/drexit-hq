@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { TodoItem } from '@/types'
+import { DUR, EASE_OUT, listContainer, listItem } from '@/lib/motion'
 
 export function TodoList() {
   const [todos, setTodos] = useState<TodoItem[]>([])
@@ -91,25 +93,32 @@ export function TodoList() {
           &gt; all clear
         </p>
       ) : (
-        <ul>
-          {todos.map((todo) => (
-            <li
-              key={todo.id}
-              className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-200 ease-out-200"
-            >
-              <button
-                onClick={() => completeTodo(todo.id)}
-                className={cn(
-                  'shrink-0 font-mono text-[13px] leading-none text-text-3 hover:text-text-1 focus:outline-none transition-colors',
-                )}
-                aria-label="Complete todo"
+        <motion.ul variants={listContainer} initial="hidden" animate="show">
+          <AnimatePresence initial={false}>
+            {todos.map((todo) => (
+              <motion.li
+                key={todo.id}
+                variants={listItem}
+                exit={{ opacity: 0, x: 8 }}
+                transition={{ duration: DUR.fast, ease: EASE_OUT }}
+                className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-150 ease-out-200"
               >
-                [ ]
-              </button>
-              <span className="flex-1 text-[13px] leading-tight text-text-1">{todo.title}</span>
-            </li>
-          ))}
-        </ul>
+                <button
+                  onClick={() => completeTodo(todo.id)}
+                  className={cn(
+                    'shrink-0 cursor-pointer font-mono text-[13px] leading-none text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1',
+                  )}
+                  aria-label="Complete todo"
+                >
+                  [ ]
+                </button>
+                <span className="min-w-0 flex-1 truncate text-[13px] leading-tight text-text-1">
+                  {todo.title}
+                </span>
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </motion.ul>
       )}
 
       <div className="flex items-center gap-2 border-t border-border px-3 py-2">

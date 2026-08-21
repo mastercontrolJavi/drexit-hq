@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
+  KeyboardSensor,
   closestCorners,
   PointerSensor,
   useSensor,
@@ -11,11 +12,13 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core'
+import { motion } from 'framer-motion'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { toast } from 'sonner'
 import { Archive, Plus, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn, formatDateShort } from '@/lib/utils'
+import { DUR, EASE_OUT, staggerDelay } from '@/lib/motion'
 import {
   IDEA_DIRECTIONS,
   IDEA_STATUSES,
@@ -118,9 +121,11 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
 
 function IdeaCard({
   idea,
+  index,
   onOpen,
 }: {
   idea: BusinessIdea
+  index: number
   onOpen: (idea: BusinessIdea) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: idea.id })
@@ -128,7 +133,7 @@ function IdeaCard({
 
   const style: React.CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
   }
 
   return (
@@ -149,9 +154,24 @@ function IdeaCard({
         }
         pointerDownPos.current = null
       }}
-      className="cursor-grab active:cursor-grabbing kanban-card"
+      // Space picks the card up and puts it down (KeyboardSensor); Enter is
+      // left free to open the editor, so the card is fully keyboard-operable.
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          onOpen(idea)
+        }
+      }}
+      className="kanban-card cursor-grab active:cursor-grabbing"
     >
-      <CardBody idea={idea} />
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: DUR.base, ease: EASE_OUT, delay: staggerDelay(index) }}
+      >
+        <CardBody idea={idea} />
+      </motion.div>
     </div>
   )
 }
@@ -178,7 +198,7 @@ function KanbanColumn({
         </span>
         <button
           onClick={() => onAddIdea(status)}
-          className="text-text-3 transition-colors hover:text-text-1"
+          className="cursor-pointer text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
           aria-label="Add idea"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -188,12 +208,12 @@ function KanbanColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          'min-h-[420px] space-y-2 p-3 transition-colors duration-200 ease-out-200',
-          isOver && 'bg-bg-hover',
+          'min-h-[420px] space-y-2 p-3 ring-inset transition-[background-color,box-shadow] duration-150 ease-out-200',
+          isOver ? 'bg-bg-hover ring-1 ring-accent' : 'ring-0 ring-transparent',
         )}
       >
-        {ideas.map((idea) => (
-          <IdeaCard key={idea.id} idea={idea} onOpen={onOpenIdea} />
+        {ideas.map((idea, i) => (
+          <IdeaCard key={idea.id} idea={idea} index={i} onOpen={onOpenIdea} />
         ))}
         {ideas.length === 0 && (
           <p className="font-mono text-xs text-text-3 py-2">&gt; empty</p>
@@ -220,7 +240,14 @@ export function KanbanBoard() {
   const [formNextAction, setFormNextAction] = useState('')
   const [formNotes, setFormNotes] = useState('')
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    // Space starts and ends the drag, Escape cancels — Enter stays with the
+    // card's own handler so keyboard users can still open the editor.
+    useSensor(KeyboardSensor, {
+      keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space'] },
+    }),
+  )
 
   const fetchIdeas = useCallback(async () => {
     const { data, error } = await supabase
@@ -450,9 +477,16 @@ export function KanbanBoard() {
             ))}
           </div>
 
-          <DragOverlay>
+          <DragOverlay
+            dropAnimation={{
+              duration: DUR.slow * 1000,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
             {activeIdea ? (
-              <div className="w-[260px] rotate-1">
+              // Lift reads as a hairline ring and 2% scale — the design system
+              // has no shadows, so elevation is drawn, not cast.
+              <div className="w-[260px] scale-[1.02] cursor-grabbing ring-1 ring-border-strong">
                 <CardBody idea={activeIdea} />
               </div>
             ) : null}

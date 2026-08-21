@@ -1,12 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { getCurrentMonthKey, formatCurrencyShort } from '@/lib/utils'
 import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { LoadError } from '@/components/data/load-error'
+import { listContainer, listItem } from '@/lib/motion'
 
 interface CategorySpend {
   category: string
@@ -77,11 +79,16 @@ export function BurnRateBars() {
         ) : categories.length === 0 ? (
           <p className="font-mono text-xs text-text-3 py-4">&gt; no spending logged this month</p>
         ) : (
-          <ul className="space-y-3">
+          <motion.ul
+            className="space-y-3"
+            variants={listContainer}
+            initial="hidden"
+            animate="show"
+          >
             {categories.map(({ category, amount }) => {
               const pct = Math.min(100, (amount / income) * 100)
               return (
-                <li key={category}>
+                <motion.li key={category} variants={listItem}>
                   <div className="mb-1 flex items-baseline justify-between gap-3">
                     <span className="caption text-text-2">{category.toUpperCase()}</span>
                     <span className="font-mono text-[12px] tabular-nums text-text-1">
@@ -90,10 +97,10 @@ export function BurnRateBars() {
                     </span>
                   </div>
                   <HairlineProgress value={pct} tone={tone(pct)} height={2} />
-                </li>
+                </motion.li>
               )
             })}
-          </ul>
+          </motion.ul>
         )}
       </div>
     </section>

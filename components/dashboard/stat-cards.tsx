@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MetricStrip, type MetricStripItem } from '@/components/data/metric-strip'
+import { CountUp } from '@/components/data/count-up'
 import { supabase } from '@/lib/supabase'
 import {
   daysUntilDrexit,
@@ -100,19 +101,19 @@ export function StatCards() {
   const items: MetricStripItem[] = [
     {
       label: 'DREXIT_T',
-      value: `T-${daysUntilDrexit()}`,
+      value: <CountUp value={daysUntilDrexit()} format={(n) => `T-${n}`} />,
       delta: '07 JUL 26',
     },
     {
       label: 'RUNWAY',
-      value: formatCurrencyShort(series.runway),
+      value: <CountUp value={series.runway} format={formatCurrencyShort} />,
       tone: series.runway >= 0 ? 'success' : 'danger',
       spark: series.weeklyBurn,
       delta: `${series.weeklyBurn.length}W BURN`,
     },
     {
       label: 'TO_GOAL',
-      value: `${series.lbsToGoal} LBS`,
+      value: <CountUp value={series.lbsToGoal} format={(n) => `${n} LBS`} />,
       spark: series.weightSeries,
       delta: series.weightSeries.length > 1
         ? `Δ ${(series.weightSeries[series.weightSeries.length - 1] - series.weightSeries[0]).toFixed(1)}`
@@ -120,7 +121,7 @@ export function StatCards() {
     },
     {
       label: 'OPEN_TODOS',
-      value: String(series.openTodos),
+      value: <CountUp value={series.openTodos} />,
       delta: series.openTodos === 0 ? 'CLEAR' : 'PENDING',
       tone: series.openTodos === 0 ? 'success' : 'neutral',
     },

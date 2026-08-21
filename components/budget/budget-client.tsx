@@ -26,11 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { motion } from 'framer-motion'
 import { AlertTriangle, Check, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react'
 import { CsvImport } from './csv-import'
 import { SavingsTracker } from './savings-tracker'
 import { BudgetAnalytics } from './budget-analytics'
 import { Sparkline } from '@/components/data/sparkline'
+import { CountUp } from '@/components/data/count-up'
+import { listContainer, listItem } from '@/lib/motion'
 import { UnderlineTabs, type UnderlineTabOption } from '@/components/data/underline-tabs'
 import { TerminalButton } from '@/components/ui/terminal-button'
 
@@ -311,7 +314,7 @@ export function BudgetClient() {
             />
           ) : (
             <div className="num-display mt-2 text-[32px] md:text-[48px] leading-none text-text-1">
-              {formatCurrencyShort(income)}
+              <CountUp value={income} format={formatCurrencyShort} />
             </div>
           )}
           <div className="mt-3 text-text-3">
@@ -326,7 +329,7 @@ export function BudgetClient() {
             <span className="caption text-text-3">{entries.length} ENTRIES</span>
           </div>
           <div className="num-display mt-2 text-[32px] md:text-[48px] leading-none text-text-1">
-            {formatCurrencyShort(totalSpent)}
+            <CountUp value={totalSpent} format={formatCurrencyShort} />
           </div>
           <div className="mt-3 text-text-2">
             <Sparkline data={cumulative.length > 1 ? cumulative : [0, 0]} width={140} height={16} />
@@ -347,7 +350,7 @@ export function BudgetClient() {
               remaining >= 0 ? 'text-success' : 'text-danger',
             )}
           >
-            {formatCurrencyShort(remaining)}
+            <CountUp value={remaining} format={formatCurrencyShort} />
           </div>
           <div className={cn('mt-3', remaining >= 0 ? 'text-success' : 'text-danger')}>
             <Sparkline
@@ -529,11 +532,12 @@ export function BudgetClient() {
               <span className="text-right">AMOUNT</span>
               <span />
             </div>
-            <ul>
+            <motion.ul variants={listContainer} initial="hidden" animate="show">
               {visibleEntries.map((entry) => (
-                <li
+                <motion.li
                   key={entry.id}
-                  className="group grid grid-cols-[80px_140px_1fr_100px_32px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-200 ease-out-200 hover:bg-bg-hover min-w-[520px]"
+                  variants={listItem}
+                  className="group grid grid-cols-[80px_140px_1fr_100px_32px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-150 ease-out-200 hover:bg-bg-hover min-w-[520px]"
                 >
                   <span className="font-mono text-[12px] tabular-nums text-text-2">
                     {format(new Date(entry.date), 'MMM dd').toUpperCase()}
@@ -582,9 +586,9 @@ export function BudgetClient() {
                   >
                     <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
                   </button>
-                </li>
+                </motion.li>
               ))}
-            </ul>
+            </motion.ul>
           </div>
         )}
         {hasMore && (

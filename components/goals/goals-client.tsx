@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
+import { motion } from 'framer-motion'
 import { Plus, Target, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn, daysUntil, formatDate } from '@/lib/utils'
@@ -25,6 +26,8 @@ import { GOAL_CATEGORIES } from '@/types'
 import { TimelineRail } from '@/components/data/timeline-rail'
 import { StatusLabel } from '@/components/data/status-label'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { CountUp } from '@/components/data/count-up'
+import { DUR, EASE_OUT, staggerDelay } from '@/lib/motion'
 import { TerminalButton } from '@/components/ui/terminal-button'
 import {
   UnderlineTabs,
@@ -272,19 +275,19 @@ export function GoalsClient() {
         <div className="px-5 py-4">
           <span className="caption text-text-2">NOT_STARTED</span>
           <p className="num-display mt-1 text-[28px] leading-none text-text-3">
-            {statusCounts.not_started}
+            <CountUp value={statusCounts.not_started} />
           </p>
         </div>
         <div className="px-5 py-4">
           <span className="caption text-text-2">IN_PROGRESS</span>
           <p className="num-display mt-1 text-[28px] leading-none text-accent">
-            {statusCounts.in_progress}
+            <CountUp value={statusCounts.in_progress} />
           </p>
         </div>
         <div className="px-5 py-4">
           <span className="caption text-text-2">COMPLETE</span>
           <p className="num-display mt-1 text-[28px] leading-none text-success">
-            {statusCounts.done}
+            <CountUp value={statusCounts.done} />
           </p>
         </div>
       </div>
@@ -311,7 +314,7 @@ export function GoalsClient() {
         </div>
       ) : (
         <TimelineRail>
-          {filteredGoals.map((goal) => {
+          {filteredGoals.map((goal, i) => {
             const tone = deadlineTone(goal.deadline, goal.status)
             const dotTone =
               goal.status === 'done' ? 'success' : goal.status === 'in_progress' ? 'accent' : 'neutral'
@@ -321,9 +324,17 @@ export function GoalsClient() {
                 tone={dotTone}
                 active={goal.status === 'in_progress'}
               >
-                <button
+                <motion.button
                   onClick={() => openGoalDrawer(goal)}
-                  className="block w-full border border-border bg-bg-elevated p-4 text-left transition-colors duration-200 ease-out-200 hover:border-border-strong hover:bg-bg-hover"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileTap={{ scale: 0.995 }}
+                  transition={{
+                    duration: DUR.base,
+                    ease: EASE_OUT,
+                    delay: staggerDelay(i),
+                  }}
+                  className="block w-full cursor-pointer border border-border bg-bg-elevated p-4 text-left transition-colors duration-150 ease-out-200 hover:border-border-strong hover:bg-bg-hover"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -374,7 +385,7 @@ export function GoalsClient() {
                       {deadlineLabel(goal.deadline, goal.status)}
                     </span>
                   </div>
-                </button>
+                </motion.button>
               </TimelineRail.Item>
             )
           })}
