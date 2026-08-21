@@ -32,6 +32,7 @@ import { SavingsTracker } from './savings-tracker'
 import { BudgetAnalytics } from './budget-analytics'
 import { Sparkline } from '@/components/data/sparkline'
 import { UnderlineTabs, type UnderlineTabOption } from '@/components/data/underline-tabs'
+import { TerminalButton } from '@/components/ui/terminal-button'
 
 const COMMAND_HINT = '£ amount  category  [description...]'
 
@@ -475,12 +476,9 @@ export function BudgetClient() {
                 </Select>
               </label>
             )}
-            <button
-              type="submit"
-              className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors duration-200 ease-out-200 hover:bg-bg-base hover:text-text-1"
-            >
+            <TerminalButton type="submit" block>
               ADD EXPENSE
-            </button>
+            </TerminalButton>
           </form>
         </details>
       </section>

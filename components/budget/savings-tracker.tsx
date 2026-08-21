@@ -25,6 +25,7 @@ import {
   X,
 } from 'lucide-react'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { TerminalButton } from '@/components/ui/terminal-button'
 
 const DEFAULT_GOALS = [
   { name: 'Mexico Trip Fund', target_amount: 800, current_amount: 0 },
@@ -427,18 +428,12 @@ export function SavingsTracker() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={handleAdd}
-                  className="caption flex items-center gap-1 border border-text-1 bg-text-1 px-2 py-1 text-bg-base hover:bg-bg-base hover:text-text-1"
-                >
+                <TerminalButton size="sm" onClick={handleAdd}>
                   <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD
-                </button>
-                <button
-                  onClick={() => setAddingNew(false)}
-                  className="caption border border-border px-2 py-1 text-text-2 hover:border-text-1 hover:text-text-1"
-                >
+                </TerminalButton>
+                <TerminalButton variant="ghost" size="sm" onClick={() => setAddingNew(false)}>
                   CANCEL
-                </button>
+                </TerminalButton>
               </div>
             </div>
           )}

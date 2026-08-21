@@ -25,6 +25,7 @@ import { GOAL_CATEGORIES } from '@/types'
 import { TimelineRail } from '@/components/data/timeline-rail'
 import { StatusLabel } from '@/components/data/status-label'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { TerminalButton } from '@/components/ui/terminal-button'
 import {
   UnderlineTabs,
   type UnderlineTabOption,
@@ -297,12 +298,9 @@ export function GoalsClient() {
           className="flex-1"
           scroll
         />
-        <button
-          onClick={openNewGoalDrawer}
-          className="caption flex items-center gap-1.5 border border-text-1 bg-text-1 px-3 py-3 md:py-2 text-bg-base transition-colors duration-200 ease-out-200 hover:bg-bg-base hover:text-text-1"
-        >
+        <TerminalButton onClick={openNewGoalDrawer}>
           <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD GOAL
-        </button>
+        </TerminalButton>
       </div>
 
       {/* Timeline */}
@@ -517,22 +515,18 @@ export function GoalsClient() {
             </label>
 
             <div className="flex gap-2 border-t border-border pt-4">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="caption flex-1 border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors disabled:opacity-50 hover:bg-bg-base hover:text-text-1 disabled:hover:bg-text-1 disabled:hover:text-bg-base"
-              >
+              <TerminalButton onClick={handleSave} disabled={saving} className="flex-1">
                 {saving ? 'SAVING...' : isNew ? 'CREATE GOAL' : 'SAVE CHANGES'}
-              </button>
+              </TerminalButton>
               {!isNew && (
-                <button
+                <TerminalButton
+                  variant="danger"
                   onClick={handleDelete}
                   disabled={saving}
-                  className="caption border border-border px-3 py-2 text-text-2 transition-colors hover:border-danger hover:text-danger"
                   aria-label="Delete"
                 >
                   <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
-                </button>
+                </TerminalButton>
               )}
             </div>
           </div>

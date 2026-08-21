@@ -56,6 +56,7 @@ import {
   YAxis,
 } from 'recharts'
 import { RingProgress } from '@/components/data/ring-progress'
+import { TerminalButton } from '@/components/ui/terminal-button'
 import {
   UnderlineTabs,
   type UnderlineTabOption,
@@ -494,12 +495,9 @@ export function FitnessClient() {
                 className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
             </label>
-            <button
-              type="submit"
-              className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors duration-200 ease-out-200 hover:bg-bg-base hover:text-text-1"
-            >
+            <TerminalButton type="submit" block>
               LOG ENTRY
-            </button>
+            </TerminalButton>
           </form>
         </section>
 
@@ -884,12 +882,9 @@ export function FitnessClient() {
                     className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
                   />
                 </label>
-                <button
-                  type="submit"
-                  className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base hover:bg-bg-base hover:text-text-1"
-                >
+                <TerminalButton type="submit" block>
                   ADD FOOD
-                </button>
+                </TerminalButton>
               </form>
             </SheetContent>
           </Sheet>

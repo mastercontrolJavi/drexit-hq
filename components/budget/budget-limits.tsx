@@ -15,6 +15,7 @@ import {
 import { Check, Pencil, Plus, RefreshCcw, TrendingUp, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { TerminalButton } from '@/components/ui/terminal-button'
 
 function getPaceTone(pct: number): 'success' | 'warn' | 'danger' {
   if (pct >= 90) return 'danger'
@@ -445,13 +446,14 @@ export function BudgetLimits() {
                 placeholder="£ limit"
                 className="w-28 border border-border bg-transparent px-2 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
-              <button
+              <TerminalButton
+                size="sm"
                 onClick={handleAddLimit}
                 disabled={!addCategory || !addAmount || saving}
-                className="caption border border-text-1 bg-text-1 px-3 py-1.5 text-bg-base disabled:opacity-50 hover:bg-bg-base hover:text-text-1 disabled:hover:bg-text-1 disabled:hover:text-bg-base"
+                className="px-3 py-1.5"
               >
                 ADD
-              </button>
+              </TerminalButton>
             </div>
           )}
         </div>

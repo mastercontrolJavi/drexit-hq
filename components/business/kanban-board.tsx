@@ -45,6 +45,7 @@ import {
   UnderlineTabs,
   type UnderlineTabOption,
 } from '@/components/data/underline-tabs'
+import { TerminalButton } from '@/components/ui/terminal-button'
 
 const SEED_IDEAS: Omit<BusinessIdea, 'id' | 'updated_at' | 'created_at' | 'archived'>[] = [
   { title: 'AI SaaS tool',          description: 'An AI-powered tool for a specific niche',         direction: 'SaaS',             priority: 'high',   status: 'researching', next_action: 'Research market niches',  notes: null },
@@ -573,35 +574,23 @@ export function KanbanBoard() {
 
             <div className="border-t border-border pt-3">
               {isNew ? (
-                <button
-                  onClick={handleCreate}
-                  className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base hover:bg-bg-base hover:text-text-1"
-                >
+                <TerminalButton onClick={handleCreate} block>
                   CREATE IDEA
-                </button>
+                </TerminalButton>
               ) : (
                 <div className="space-y-2">
-                  <button
-                    onClick={handleSave}
-                    className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base hover:bg-bg-base hover:text-text-1"
-                  >
+                  <TerminalButton onClick={handleSave} block>
                     SAVE CHANGES
-                  </button>
+                  </TerminalButton>
                   <div className="flex gap-2">
-                    <button
-                      onClick={handleArchive}
-                      className="caption flex flex-1 items-center justify-center gap-1.5 border border-border px-3 py-2 text-text-2 hover:border-text-1 hover:text-text-1"
-                    >
+                    <TerminalButton variant="ghost" onClick={handleArchive} className="flex-1">
                       <Archive className="h-3 w-3" strokeWidth={1.5} />
                       ARCHIVE
-                    </button>
-                    <button
-                      onClick={handleDelete}
-                      className="caption flex flex-1 items-center justify-center gap-1.5 border border-border px-3 py-2 text-text-2 hover:border-danger hover:text-danger"
-                    >
+                    </TerminalButton>
+                    <TerminalButton variant="danger" onClick={handleDelete} className="flex-1">
                       <Trash2 className="h-3 w-3" strokeWidth={1.5} />
                       DELETE
-                    </button>
+                    </TerminalButton>
                   </div>
                 </div>
               )}
