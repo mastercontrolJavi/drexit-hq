@@ -15,7 +15,7 @@ import { DUR, EASE_OUT } from '@/lib/motion'
  * `md` is intentionally taller on touch (py-3 → 44px) and tightens on desktop.
  */
 const terminalButtonVariants = cva(
-  'caption inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-1.5 border text-center transition-colors duration-150 ease-out-200 disabled:pointer-events-none disabled:opacity-40',
+  'caption inline-flex shrink-0 select-none items-center justify-center gap-1.5 border text-center transition-colors duration-150 ease-out-200 disabled:pointer-events-none disabled:opacity-40',
   {
     variants: {
       variant: {

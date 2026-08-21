@@ -106,13 +106,16 @@ export function TodoList() {
                 <button
                   onClick={() => completeTodo(todo.id)}
                   className={cn(
-                    'shrink-0 cursor-pointer font-mono text-[13px] leading-none text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1',
+                    'shrink-0 font-mono text-[13px] leading-none text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1',
                   )}
                   aria-label="Complete todo"
                 >
                   [ ]
                 </button>
-                <span className="min-w-0 flex-1 truncate text-[13px] leading-tight text-text-1">
+                <span
+                  className="min-w-0 flex-1 truncate text-[13px] leading-tight text-text-1"
+                  title={todo.title}
+                >
                   {todo.title}
                 </span>
               </motion.li>
@@ -136,7 +139,7 @@ export function TodoList() {
         <button
           onClick={addTodo}
           disabled={adding || !newTitle.trim()}
-          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors"
+          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors duration-150 ease-out-200"
           aria-label="Add"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />

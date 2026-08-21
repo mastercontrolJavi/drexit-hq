@@ -226,7 +226,7 @@ export function RecurringTracker() {
         <button
           onClick={() => setShowInactive(!showInactive)}
           className={cn(
-            'caption border px-3 py-1.5 transition-colors',
+            'caption border px-3 py-1.5 transition-colors duration-150 ease-out-200',
             showInactive
               ? 'border-accent text-accent'
               : 'border-border text-text-3 hover:border-text-1 hover:text-text-1',
@@ -250,7 +250,7 @@ export function RecurringTracker() {
             <li
               key={i}
               className={cn(
-                'border border-border bg-bg-elevated p-3 transition-colors hover:bg-bg-hover',
+                'border border-border bg-bg-elevated p-3 transition-colors duration-150 ease-out-200 hover:bg-bg-hover',
                 !item.isActive && 'opacity-60',
               )}
             >

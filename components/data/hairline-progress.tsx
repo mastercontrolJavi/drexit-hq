@@ -37,7 +37,7 @@ export function HairlineProgress({
       aria-valuemax={max}
     >
       <div
-        className={cn('h-full transition-[width] duration-200 ease-out', TONE[tone])}
+        className={cn('h-full transition-[width] duration-[240ms] ease-out-200', TONE[tone])}
         style={{ width: `${pct}%` }}
       />
     </div>

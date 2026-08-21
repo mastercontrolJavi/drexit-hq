@@ -275,7 +275,7 @@ export function SpendingInsights() {
             <section
               key={insight.id}
               className={cn(
-                'border bg-bg-elevated p-4 transition-colors hover:bg-bg-hover',
+                'border bg-bg-elevated p-4 transition-colors duration-150 ease-out-200 hover:bg-bg-hover',
                 TONE_BORDER[insight.tone],
               )}
             >

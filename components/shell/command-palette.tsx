@@ -135,7 +135,7 @@ export function CommandPalette() {
     <>
       {/* Mobile FAB — opens command palette on touch */}
       <motion.button
-        className="mobile-fab fixed right-4 z-30 flex h-11 w-11 cursor-pointer items-center justify-center border border-border bg-bg-elevated md:hidden"
+        className="mobile-fab fixed right-4 z-30 flex h-11 w-11 items-center justify-center border border-border bg-bg-elevated md:hidden"
         onClick={() => setOpen((o) => !o)}
         whileTap={{ scale: 0.94 }}
         transition={{ duration: DUR.press, ease: EASE_OUT }}
@@ -208,7 +208,7 @@ export function CommandPalette() {
                             cmd.run({ router, setTheme, resolvedTheme, close: () => setOpen(false) })
                           }
                           className={cn(
-                            'flex w-full cursor-pointer items-center gap-3 px-4 py-2 text-left transition-colors duration-150 ease-out-200',
+                            'flex w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-150 ease-out-200',
                             isActive ? 'bg-bg-hover text-text-1' : 'text-text-2 hover:bg-bg-hover'
                           )}
                         >

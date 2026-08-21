@@ -88,6 +88,16 @@
     font-feature-settings: "ss01", "cv11";
   }
 
+  /*
+    Preflight already gives buttons `cursor: pointer` and disabled ones
+    `cursor: default`. Default reads as "nothing here"; not-allowed reads as
+    "this is refused", which is what a disabled control actually means.
+  */
+  button:disabled,
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
   /* Keyboard-only focus ring — overrides any `focus:outline-none` set by Tailwind */
   :focus-visible {
     outline: 2px solid var(--accent) !important;

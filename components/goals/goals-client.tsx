@@ -334,15 +334,21 @@ export function GoalsClient() {
                     ease: EASE_OUT,
                     delay: staggerDelay(i),
                   }}
-                  className="block w-full cursor-pointer border border-border bg-bg-elevated p-4 text-left transition-colors duration-150 ease-out-200 hover:border-border-strong hover:bg-bg-hover"
+                  className="block w-full border border-border bg-bg-elevated p-4 text-left transition-colors duration-150 ease-out-200 hover:border-border-strong hover:bg-bg-hover"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-[14px] font-medium leading-snug text-text-1">
+                      <h3
+                        className="line-clamp-2 text-[14px] font-medium leading-snug text-text-1"
+                        title={goal.title}
+                      >
                         {goal.title}
                       </h3>
                       {goal.description && (
-                        <p className="mt-1 line-clamp-2 text-[12px] text-text-2">
+                        <p
+                          className="mt-1 line-clamp-2 text-[12px] text-text-2"
+                          title={goal.description}
+                        >
                           {goal.description}
                         </p>
                       )}

@@ -267,7 +267,7 @@ export function BudgetLimits() {
       {hasRolloverReady && (
         <div className="flex items-center justify-between border border-accent/40 bg-bg-elevated px-4 py-3">
           <div className="flex items-center gap-3">
-            <RefreshCcw className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.5} />
+            <RefreshCcw className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.5} />
             <p className="font-mono text-[12px] text-text-2">
               <span className="text-accent">ROLLOVER AVAILABLE</span> · apply unspent budget from {getMonthLabel(prevMonth).toUpperCase()}
             </p>
@@ -318,14 +318,14 @@ export function BudgetLimits() {
                       setEditingCategory(cat.category)
                       setEditValue(String(cat.monthly_limit))
                     }}
-                    className="text-text-3 transition-colors hover:text-text-1"
+                    className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
                     aria-label="Edit"
                   >
                     <Pencil className="h-3 w-3" strokeWidth={1.5} />
                   </button>
                   <button
                     onClick={() => removeLimit(cat.id)}
-                    className="text-text-3 transition-colors hover:text-danger"
+                    className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-danger"
                     aria-label="Remove"
                   >
                     <X className="h-3 w-3" strokeWidth={1.5} />
@@ -351,15 +351,15 @@ export function BudgetLimits() {
                   <button
                     onClick={() => saveLimit(cat.category, parseFloat(editValue))}
                     disabled={saving}
-                    className="text-success transition-colors hover:opacity-80"
+                    className="text-success transition-colors duration-150 ease-out-200 hover:opacity-80"
                   >
-                    <Check className="h-4 w-4" strokeWidth={1.5} />
+                    <Check className="h-3.5 w-3.5" strokeWidth={1.5} />
                   </button>
                   <button
                     onClick={() => setEditingCategory(null)}
-                    className="text-text-3 transition-colors hover:text-text-1"
+                    className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
                   >
-                    <X className="h-4 w-4" strokeWidth={1.5} />
+                    <X className="h-3.5 w-3.5" strokeWidth={1.5} />
                   </button>
                 </div>
               ) : (
@@ -402,7 +402,7 @@ export function BudgetLimits() {
               <button
                 onClick={() => toggleRollover(cat.id, cat.rollover)}
                 className={cn(
-                  'caption mt-3 block w-full border py-1.5 transition-colors',
+                  'caption mt-3 block w-full border py-1.5 transition-colors duration-150 ease-out-200',
                   cat.rollover
                     ? 'border-accent text-accent'
                     : 'border-border text-text-3 hover:border-text-1 hover:text-text-1',

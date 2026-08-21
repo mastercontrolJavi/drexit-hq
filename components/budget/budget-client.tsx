@@ -294,10 +294,10 @@ export function BudgetClient() {
                   setEditingIncome(true)
                 }
               }}
-              className="text-text-3 transition-colors hover:text-text-1"
+              className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
               aria-label="Edit income"
             >
-              {editingIncome ? <Check className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Pencil className="h-3 w-3" strokeWidth={1.5} />}
+              {editingIncome ? <Check className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />}
             </button>
           </div>
           {editingIncome ? (
@@ -396,7 +396,7 @@ export function BudgetClient() {
           />
           <button
             type="submit"
-            className="caption shrink-0 border border-border px-3 py-3 md:py-1.5 text-text-2 transition-colors duration-200 ease-out-200 hover:border-text-1 hover:text-text-1"
+            className="caption shrink-0 border border-border px-3 py-3 md:py-1.5 text-text-2 transition-colors duration-150 ease-out-200 hover:border-text-1 hover:text-text-1"
           >
             LOG
           </button>
@@ -570,7 +570,10 @@ export function BudgetClient() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="truncate text-[12px] text-text-2">
+                  <span
+                    className="truncate text-[12px] text-text-2"
+                    title={entry.description ?? undefined}
+                  >
                     {entry.description || '—'}
                     {linkedEntryIds.has(entry.id) && (
                       <span className="ml-2 caption text-accent">·LINKED</span>
@@ -584,7 +587,7 @@ export function BudgetClient() {
                     className="justify-self-end text-text-3 opacity-0 transition-[color,opacity] duration-150 ease-out-200 hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
                     aria-label="Delete"
                   >
-                    <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    <Trash2 className="h-3 w-3" strokeWidth={1.5} />
                   </button>
                 </motion.li>
               ))}
@@ -594,7 +597,7 @@ export function BudgetClient() {
         {hasMore && (
           <button
             onClick={() => setExpensesExpanded(!expensesExpanded)}
-            className="caption flex w-full items-center justify-center gap-1.5 border-t border-border py-2 text-text-2 transition-colors hover:bg-bg-hover hover:text-text-1"
+            className="caption flex w-full items-center justify-center gap-1.5 border-t border-border py-2 text-text-2 transition-colors duration-150 ease-out-200 hover:bg-bg-hover hover:text-text-1"
           >
             {expensesExpanded ? (
               <>SHOW LESS <ChevronUp className="h-3 w-3" strokeWidth={1.5} /></>

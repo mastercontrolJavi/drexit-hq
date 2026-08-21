@@ -219,7 +219,7 @@ export function SavingsTracker() {
           <span className="caption text-text-2">SAVINGS</span>
           <button
             onClick={() => setAddingNew(true)}
-            className="caption flex items-center gap-1 text-text-2 transition-colors hover:text-text-1"
+            className="caption flex items-center gap-1 text-text-2 transition-colors duration-150 ease-out-200 hover:text-text-1"
           >
             <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD GOAL
           </button>
@@ -382,7 +382,7 @@ export function SavingsTracker() {
                       </button>
                       <button
                         onClick={() => startEdit(goal)}
-                        className="ml-auto text-text-3 transition-colors hover:text-text-1"
+                        className="ml-auto text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
                         aria-label="Edit"
                       >
                         <Pencil className="h-3 w-3" strokeWidth={1.5} />

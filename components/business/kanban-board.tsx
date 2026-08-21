@@ -85,14 +85,16 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
   return (
     <div
       className={cn(
-        'relative border border-border bg-bg-elevated p-3 pl-3.5 transition-colors duration-200 ease-out-200',
+        'relative border border-border bg-bg-elevated p-3 pl-3.5 transition-colors duration-150 ease-out-200',
         // Priority hairline as a ::before so we can keep the card itself rectangular
         'before:absolute before:inset-y-0 before:left-0 before:w-[3px]',
         PRIORITY_BORDER[idea.priority],
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[13px] font-medium leading-tight text-text-1">{idea.title}</p>
+        <p className="line-clamp-2 text-[13px] font-medium leading-tight text-text-1" title={idea.title}>
+          {idea.title}
+        </p>
         <span
           className="shrink-0 border border-border px-1 caption text-text-2"
           title={idea.direction}
@@ -102,7 +104,9 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
       </div>
 
       {idea.description && (
-        <p className="mt-1.5 line-clamp-2 text-[12px] text-text-2">{idea.description}</p>
+        <p className="mt-1.5 line-clamp-2 text-[12px] text-text-2" title={idea.description}>
+          {idea.description}
+        </p>
       )}
 
       <div className="mt-2 flex items-center justify-between caption">
@@ -112,7 +116,10 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
 
       {idea.next_action && (
         <p className="mt-2 border-t border-border pt-2 caption text-text-3">
-          NEXT · <span className="text-text-2 normal-case tracking-normal">{idea.next_action}</span>
+          NEXT ·{' '}
+          <span className="line-clamp-1 inline text-text-2 normal-case tracking-normal" title={idea.next_action}>
+            {idea.next_action}
+          </span>
         </p>
       )}
     </div>
@@ -198,7 +205,7 @@ function KanbanColumn({
         </span>
         <button
           onClick={() => onAddIdea(status)}
-          className="cursor-pointer text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
+          className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
           aria-label="Add idea"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />

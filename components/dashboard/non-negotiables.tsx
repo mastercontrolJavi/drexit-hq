@@ -147,7 +147,7 @@ export function NonNegotiables() {
                 <button
                   onClick={() => toggleItem(item)}
                   className={cn(
-                    'shrink-0 cursor-pointer font-mono text-[13px] leading-none transition-colors duration-150 ease-out-200',
+                    'shrink-0 font-mono text-[13px] leading-none transition-colors duration-150 ease-out-200',
                     done ? 'text-success' : 'text-text-3 hover:text-text-1',
                   )}
                   aria-label={done ? 'Unmark as done' : 'Mark as done'}
@@ -159,6 +159,7 @@ export function NonNegotiables() {
                     'min-w-0 flex-1 truncate text-[13px] leading-tight transition-colors duration-150 ease-out-200',
                     done ? 'line-through text-text-3' : 'text-text-1',
                   )}
+                  title={item.title}
                 >
                   {item.title}
                 </span>
@@ -191,7 +192,7 @@ export function NonNegotiables() {
         <button
           onClick={addItem}
           disabled={adding || !newTitle.trim()}
-          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors"
+          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors duration-150 ease-out-200"
           aria-label="Add"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />

@@ -79,7 +79,9 @@ export function SavingsMini() {
               return (
                 <div key={goal.id}>
                   <div className="mb-1 flex items-baseline justify-between gap-3 font-mono text-[11px] tabular-nums">
-                    <span className="truncate text-text-2 uppercase tracking-[0.04em]">{goal.name}</span>
+                    <span className="truncate text-text-2 uppercase tracking-[0.04em]" title={goal.name}>
+                      {goal.name}
+                    </span>
                     <span className="text-text-3 shrink-0">
                       <span className="text-text-1">{formatCurrencyShort(Number(goal.current_amount))}</span>
                       /{formatCurrencyShort(Number(goal.target_amount))}

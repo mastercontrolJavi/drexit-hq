@@ -778,7 +778,7 @@ export function FitnessClient() {
               return (
                 <li
                   key={w.id}
-                  className="group grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-200 ease-out-200 hover:bg-bg-hover"
+                  className="group grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-150 ease-out-200 hover:bg-bg-hover"
                 >
                   <span className="font-mono text-[12px] tabular-nums text-text-2">
                     {format(parseISO(w.date), 'MMM dd').toUpperCase()}
@@ -903,7 +903,7 @@ export function FitnessClient() {
             {foods.map((food) => (
               <li
                 key={food.id}
-                className="group relative border border-border bg-bg-elevated p-3 transition-colors duration-200 ease-out-200 hover:bg-bg-hover"
+                className="group relative border border-border bg-bg-elevated p-3 transition-colors duration-150 ease-out-200 hover:bg-bg-hover"
               >
                 <button
                   onClick={() => handleDeleteFood(food.id)}

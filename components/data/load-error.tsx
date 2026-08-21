@@ -25,7 +25,7 @@ export function LoadError({ detail, onRetry, className }: LoadErrorProps) {
         <button
           type="button"
           onClick={onRetry}
-          className="caption shrink-0 cursor-pointer border border-border px-2 py-1 text-text-3 transition-colors duration-150 ease-out-200 hover:border-danger hover:text-danger"
+          className="caption shrink-0 border border-border px-2 py-1 text-text-3 transition-colors duration-150 ease-out-200 hover:border-danger hover:text-danger"
         >
           RETRY
         </button>

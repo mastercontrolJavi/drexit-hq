@@ -29,7 +29,7 @@ export function MobileNav() {
             key={item.href}
             href={item.href}
             className={cn(
-              'flex flex-1 flex-col items-center justify-center gap-1 transition-colors duration-200',
+              'flex flex-1 flex-col items-center justify-center gap-1 transition-colors duration-150 ease-out-200',
               isActive ? 'text-accent' : 'text-text-3'
             )}
           >

@@ -287,7 +287,7 @@ export function SpendingOverview() {
         <button
           onClick={() => setIncludeBills(!includeBills)}
           className={cn(
-            'caption ml-auto border px-3 py-1.5 transition-colors',
+            'caption ml-auto border px-3 py-1.5 transition-colors duration-150 ease-out-200',
             includeBills
               ? 'border-accent text-accent'
               : 'border-border text-text-3 hover:border-text-1 hover:text-text-1',

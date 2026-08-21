@@ -194,7 +194,7 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
       />
       <button
         onClick={() => fileRef.current?.click()}
-        className="caption flex items-center gap-2 border border-border px-3 py-2 text-text-2 transition-colors duration-200 ease-out-200 hover:border-text-1 hover:text-text-1"
+        className="caption flex items-center gap-2 border border-border px-3 py-2 text-text-2 transition-colors duration-150 ease-out-200 hover:border-text-1 hover:text-text-1"
       >
         <Upload className="h-3 w-3" strokeWidth={1.5} />
         &gt; IMPORT FILE...
