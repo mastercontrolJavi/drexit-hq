@@ -579,7 +579,7 @@ export function BudgetClient() {
                   </span>
                   <button
                     onClick={() => handleDelete(entry.id)}
-                    className="invisible justify-self-end text-text-3 transition-colors hover:text-danger group-hover:visible focus:visible"
+                    className="justify-self-end text-text-3 opacity-0 transition-[color,opacity] duration-150 ease-out-200 hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
                     aria-label="Delete"
                   >
                     <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />

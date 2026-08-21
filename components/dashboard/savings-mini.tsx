@@ -5,17 +5,26 @@ import { supabase } from '@/lib/supabase'
 import { formatCurrencyShort } from '@/lib/utils'
 import type { SavingsGoal } from '@/types'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { LoadError } from '@/components/data/load-error'
 
 export function SavingsMini() {
   const [goals, setGoals] = useState<SavingsGoal[]>([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
 
   const fetchGoals = useCallback(async () => {
-    const { data } = await supabase
+    setLoading(true)
+    setFailed(false)
+    const { data, error } = await supabase
       .from('savings_goals')
       .select('*')
       .order('created_at', { ascending: true })
-    setGoals((data as SavingsGoal[]) || [])
+    if (error || !data) {
+      setFailed(true)
+      setLoading(false)
+      return
+    }
+    setGoals(data as SavingsGoal[])
     setLoading(false)
   }, [])
 
@@ -47,6 +56,8 @@ export function SavingsMini() {
               </div>
             ))}
           </div>
+        ) : failed ? (
+          <LoadError onRetry={fetchGoals} />
         ) : goals.length === 0 ? (
           <p className="font-mono text-xs text-text-3 py-4">&gt; no savings goals</p>
         ) : (

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/sidebar'
-import { Toaster } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
 import { Providers } from '@/components/shell/providers'
 import { Ticker } from '@/components/shell/ticker'
 import { BootSequence } from '@/components/shell/boot-sequence'
@@ -66,19 +66,7 @@ export default function RootLayout({
           </div>
           <MobileNav />
           <CommandPalette />
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-hairline)',
-                borderRadius: '4px',
-                color: 'var(--text-1)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-              },
-            }}
-          />
+          <Toaster />
         </Providers>
       </body>
     </html>

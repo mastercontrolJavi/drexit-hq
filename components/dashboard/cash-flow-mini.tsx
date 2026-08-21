@@ -7,6 +7,7 @@ import { getMonthLabel, formatCurrencyShort } from '@/lib/utils'
 import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { LoadError } from '@/components/data/load-error'
 
 interface MonthRow {
   month: string
@@ -38,13 +39,22 @@ export function CashFlowMini() {
   const { income } = useIncome()
   const [data, setData] = useState<MonthRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
 
   const fetchData = useCallback(async () => {
+    setLoading(true)
+    setFailed(false)
     const threeMonthsAgo = format(subMonths(new Date(), 2), 'yyyy-MM')
-    const { data: entries } = await supabase
+    const { data: entries, error } = await supabase
       .from('budget_entries')
       .select('amount_gbp, month_key')
       .gte('month_key', threeMonthsAgo)
+
+    if (error) {
+      setFailed(true)
+      setLoading(false)
+      return
+    }
 
     const months: string[] = []
     for (let i = 2; i >= 0; i--) {
@@ -87,6 +97,8 @@ export function CashFlowMini() {
       <div className="p-4">
         {loading ? (
           <div className="h-[140px] w-full animate-pulse bg-bg-hover" />
+        ) : failed ? (
+          <LoadError onRetry={fetchData} className="h-[140px] items-start" />
         ) : (
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={data} barGap={2}>

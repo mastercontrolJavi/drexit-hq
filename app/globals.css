@@ -158,9 +158,16 @@
     margin-left: 2px;
   }
 
+  /* Toasts ride the house curve instead of sonner's default ease */
+  [data-sonner-toast] {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+    transition-duration: 240ms !important;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-ticker { animation: none; }
     .boot-cursor::after { animation: none; }
+    [data-sonner-toast] { transition-duration: 1ms !important; }
   }
 
   /* iOS PWA safe areas */

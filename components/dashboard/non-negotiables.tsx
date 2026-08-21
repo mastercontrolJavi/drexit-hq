@@ -158,7 +158,7 @@ export function NonNegotiables() {
                 </span>
                 <button
                   onClick={() => deleteItem(item.id)}
-                  className="invisible shrink-0 text-text-3 hover:text-danger group-hover:visible focus:outline-none focus:visible:visible"
+                  className="shrink-0 text-text-3 opacity-0 transition-[color,opacity] duration-150 ease-out-200 hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
                   aria-label="Remove item"
                 >
                   <X className="h-3 w-3" strokeWidth={1.5} />

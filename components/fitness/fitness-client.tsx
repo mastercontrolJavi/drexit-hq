@@ -813,7 +813,7 @@ export function FitnessClient() {
                     {delta !== null ? `${delta > 0 ? '+' : ''}${delta.toFixed(1)}` : '—'}
                   </span>
                   <span className="truncate text-[12px] text-text-2">{w.note || '—'}</span>
-                  <div className="flex justify-end gap-1.5 invisible group-hover:visible">
+                  <div className="flex justify-end gap-1.5 opacity-0 transition-opacity duration-150 ease-out-200 group-hover:opacity-100 focus-within:opacity-100">
                     <button onClick={() => startEdit(w)} className="text-text-3 hover:text-text-1" aria-label="Edit">
                       <Pencil className="h-3 w-3" strokeWidth={1.5} />
                     </button>
@@ -912,7 +912,7 @@ export function FitnessClient() {
               >
                 <button
                   onClick={() => handleDeleteFood(food.id)}
-                  className="invisible absolute right-2 top-2 text-text-3 hover:text-danger group-hover:visible focus:visible"
+                  className="absolute right-2 top-2 text-text-3 opacity-0 transition-[color,opacity] duration-150 ease-out-200 hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
                   aria-label="Remove"
                 >
                   <X className="h-3 w-3" strokeWidth={1.5} />

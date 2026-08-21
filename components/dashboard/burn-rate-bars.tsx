@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { getCurrentMonthKey, formatCurrencyShort } from '@/lib/utils'
 import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { LoadError } from '@/components/data/load-error'
 
 interface CategorySpend {
   category: string
@@ -22,29 +23,37 @@ export function BurnRateBars() {
   const { income } = useIncome()
   const [categories, setCategories] = useState<CategorySpend[]>([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+
+  const fetchBudget = useCallback(async () => {
+    setLoading(true)
+    setFailed(false)
+    const monthKey = getCurrentMonthKey()
+    const { data, error } = await supabase
+      .from('budget_entries')
+      .select('category, amount_gbp')
+      .eq('month_key', monthKey)
+
+    if (error || !data) {
+      setFailed(true)
+      setLoading(false)
+      return
+    }
+
+    const grouped: Record<string, number> = {}
+    for (const entry of data as Pick<BudgetEntry, 'category' | 'amount_gbp'>[]) {
+      grouped[entry.category] = (grouped[entry.category] ?? 0) + Number(entry.amount_gbp)
+    }
+    const sorted = Object.entries(grouped)
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount)
+    setCategories(sorted)
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
-    async function fetchBudget() {
-      const monthKey = getCurrentMonthKey()
-      const { data, error } = await supabase
-        .from('budget_entries')
-        .select('category, amount_gbp')
-        .eq('month_key', monthKey)
-
-      if (!error && data) {
-        const grouped: Record<string, number> = {}
-        for (const entry of data as Pick<BudgetEntry, 'category' | 'amount_gbp'>[]) {
-          grouped[entry.category] = (grouped[entry.category] ?? 0) + Number(entry.amount_gbp)
-        }
-        const sorted = Object.entries(grouped)
-          .map(([category, amount]) => ({ category, amount }))
-          .sort((a, b) => b.amount - a.amount)
-        setCategories(sorted)
-      }
-      setLoading(false)
-    }
     fetchBudget()
-  }, [])
+  }, [fetchBudget])
 
   return (
     <section className="border border-border bg-bg-elevated">
@@ -63,6 +72,8 @@ export function BurnRateBars() {
               </div>
             ))}
           </div>
+        ) : failed ? (
+          <LoadError onRetry={fetchBudget} />
         ) : categories.length === 0 ? (
           <p className="font-mono text-xs text-text-3 py-4">&gt; no spending logged this month</p>
         ) : (

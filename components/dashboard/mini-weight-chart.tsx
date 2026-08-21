@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   LineChart,
   Line,
@@ -14,6 +14,7 @@ import { format } from 'date-fns'
 import { supabase } from '@/lib/supabase'
 import { USER_STATS } from '@/types'
 import type { WeighIn } from '@/types'
+import { LoadError } from '@/components/data/load-error'
 
 interface ChartPoint {
   date: string
@@ -40,27 +41,36 @@ function MonoTooltip({ active, payload }: { active?: boolean; payload?: TooltipP
 export function MiniWeightChart() {
   const [data, setData] = useState<ChartPoint[]>([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+
+  const fetchWeighIns = useCallback(async () => {
+    setLoading(true)
+    setFailed(false)
+    const { data: rows, error } = await supabase
+      .from('weigh_ins')
+      .select('date, weight_lbs')
+      .order('date', { ascending: true })
+      .limit(8)
+
+    if (error || !rows) {
+      setFailed(true)
+      setLoading(false)
+      return
+    }
+
+    setData(
+      (rows as Pick<WeighIn, 'date' | 'weight_lbs'>[]).map((r) => ({
+        date: r.date,
+        label: format(new Date(r.date), 'MMM d'),
+        weight: Number(r.weight_lbs),
+      })),
+    )
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
-    async function fetchWeighIns() {
-      const { data: rows, error } = await supabase
-        .from('weigh_ins')
-        .select('date, weight_lbs')
-        .order('date', { ascending: true })
-        .limit(8)
-
-      if (!error && rows) {
-        const points = (rows as Pick<WeighIn, 'date' | 'weight_lbs'>[]).map((r) => ({
-          date: r.date,
-          label: format(new Date(r.date), 'MMM d'),
-          weight: Number(r.weight_lbs),
-        }))
-        setData(points)
-      }
-      setLoading(false)
-    }
     fetchWeighIns()
-  }, [])
+  }, [fetchWeighIns])
 
   const latest = data.length > 0 ? data[data.length - 1].weight : null
   const first = data.length > 0 ? data[0].weight : null
@@ -78,6 +88,8 @@ export function MiniWeightChart() {
       <div className="p-4">
         {loading ? (
           <div className="h-[180px] md:h-[200px] w-full animate-pulse bg-bg-hover" />
+        ) : failed ? (
+          <LoadError onRetry={fetchWeighIns} />
         ) : data.length === 0 ? (
           <p className="font-mono text-xs text-text-3 py-4">&gt; no weigh-ins yet</p>
         ) : (
