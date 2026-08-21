@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { TerminalButton } from '@/components/ui/terminal-button'
+import { SkeletonBarRows, SkeletonRows } from '@/components/data/skeleton'
 
 const DEFAULT_GOALS = [
   { name: 'Mexico Trip Fund', target_amount: 800, current_amount: 0 },
@@ -227,12 +228,7 @@ export function SavingsTracker() {
 
         <div className="p-4 space-y-4">
           {loading ? (
-            Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <div className="h-3 w-1/2 animate-pulse bg-bg-hover" />
-                <div className="h-0.5 w-full animate-pulse bg-bg-hover" />
-              </div>
-            ))
+            <SkeletonBarRows count={2} />
           ) : (
             goals.map((goal) => (
               <div key={goal.id}>
@@ -470,11 +466,7 @@ export function SavingsTracker() {
 
           <div className="max-h-[60vh] overflow-y-auto">
             {historyLoading ? (
-              <div className="space-y-2 p-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-9 animate-pulse bg-bg-hover" />
-                ))}
-              </div>
+              <SkeletonRows count={4} />
             ) : transactions.length === 0 ? (
               <p className="px-4 py-8 font-mono text-xs text-text-3">&gt; no transactions</p>
             ) : (

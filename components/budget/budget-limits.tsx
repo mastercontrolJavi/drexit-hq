@@ -15,6 +15,7 @@ import {
 import { Check, Pencil, Plus, RefreshCcw, TrendingUp, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { Shimmer, SkeletonBarRows } from '@/components/data/skeleton'
 import { TerminalButton } from '@/components/ui/terminal-button'
 
 function getPaceTone(pct: number): 'success' | 'warn' | 'danger' {
@@ -219,10 +220,12 @@ export function BudgetLimits() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-16 animate-pulse bg-bg-hover" />
+        <Shimmer className="h-16 w-full" />
         <div className="grid gap-3 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-40 animate-pulse bg-bg-hover" />
+            <div key={i} className="space-y-3 border border-border bg-bg-elevated p-4" aria-hidden>
+              <SkeletonBarRows count={3} />
+            </div>
           ))}
         </div>
       </div>

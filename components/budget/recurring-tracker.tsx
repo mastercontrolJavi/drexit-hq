@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { differenceInDays, format, parseISO, subMonths } from 'date-fns'
 import { cn, formatAxisCurrency, formatCurrency, getMonthLabel } from '@/lib/utils'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonBarChart, SkeletonBarRows, SkeletonPanel, SkeletonRows } from '@/components/data/skeleton'
 import type { BudgetEntry } from '@/types'
 import {
   Bar,
@@ -161,13 +163,19 @@ export function RecurringTracker() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-20 animate-pulse bg-bg-hover" />
-        <div className="h-44 animate-pulse bg-bg-hover" />
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-14 animate-pulse bg-bg-hover" />
-          ))}
-        </div>
+        <SkeletonPanel headerWidth="w-24">
+          <div className="p-4">
+            <SkeletonBarRows count={1} />
+          </div>
+        </SkeletonPanel>
+        <SkeletonPanel headerWidth="w-28">
+          <div className="p-4">
+            <SkeletonBarChart height={140} bars={6} />
+          </div>
+        </SkeletonPanel>
+        <SkeletonPanel headerWidth="w-20">
+          <SkeletonRows count={4} />
+        </SkeletonPanel>
       </div>
     )
   }
@@ -208,7 +216,7 @@ export function RecurringTracker() {
               <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
               <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={42} />
               <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
-              <Bar dataKey="total">
+              <Bar {...CHART_ANIMATION} dataKey="total">
                 {trendData.map((entry, i) => (
                   <Cell key={i} fill={entry.monthKey === currentMonthKey ? 'var(--accent)' : 'var(--text-3)'} />
                 ))}

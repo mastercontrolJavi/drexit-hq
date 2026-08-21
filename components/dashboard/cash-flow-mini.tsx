@@ -8,6 +8,8 @@ import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { LoadError } from '@/components/data/load-error'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonBarChart } from '@/components/data/skeleton'
 
 interface MonthRow {
   month: string
@@ -96,7 +98,7 @@ export function CashFlowMini() {
       </header>
       <div className="p-4">
         {loading ? (
-          <div className="h-[140px] w-full animate-pulse bg-bg-hover" />
+          <SkeletonBarChart height={140} bars={6} />
         ) : failed ? (
           <LoadError onRetry={fetchData} className="h-[140px] items-start" />
         ) : (
@@ -110,8 +112,8 @@ export function CashFlowMini() {
               />
               <YAxis hide />
               <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<CashFlowTooltip />} />
-              <Bar dataKey="income" fill="var(--success)" barSize={12} />
-              <Bar dataKey="expenses" fill="var(--danger)" barSize={12} />
+              <Bar {...CHART_ANIMATION} dataKey="income" fill="var(--success)" barSize={12} />
+              <Bar {...CHART_ANIMATION} dataKey="expenses" fill="var(--danger)" barSize={12} />
             </BarChart>
           </ResponsiveContainer>
         )}

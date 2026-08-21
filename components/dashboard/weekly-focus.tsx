@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { Shimmer } from '@/components/data/skeleton'
 
 export function WeeklyFocus() {
   const [text, setText] = useState('')
@@ -55,7 +56,11 @@ export function WeeklyFocus() {
       </header>
       <div className="p-4">
         {loading ? (
-          <div className="h-16 w-full animate-pulse bg-bg-hover" />
+          <div className="space-y-2" aria-hidden>
+            <Shimmer className="h-3 w-[85%]" />
+            <Shimmer className="h-3 w-[62%]" delay={90} />
+            <Shimmer className="h-3 w-[40%]" delay={180} />
+          </div>
         ) : (
           <textarea
             rows={3}

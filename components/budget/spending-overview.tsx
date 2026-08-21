@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { addDays, differenceInDays, format, parseISO, subMonths } from 'date-fns'
 import { cn, formatAxisCurrency, formatCurrency, formatCurrencyShort, getMonthLabel } from '@/lib/utils'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { Shimmer, SkeletonBarChart, SkeletonBarRows, SkeletonPanel, SkeletonRows } from '@/components/data/skeleton'
 import { BUDGET_CATEGORIES, type BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import {
@@ -243,15 +245,29 @@ export function SpendingOverview() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-9 w-72 animate-pulse bg-bg-hover" />
+        <Shimmer className="h-9 w-72" />
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
-            <div className="h-44 animate-pulse bg-bg-hover" />
-            <div className="h-72 animate-pulse bg-bg-hover" />
+            <SkeletonPanel headerWidth="w-28">
+              <div className="p-4">
+                <SkeletonBarChart height={140} bars={6} />
+              </div>
+            </SkeletonPanel>
+            <SkeletonPanel headerWidth="w-20">
+              <SkeletonRows count={5} />
+            </SkeletonPanel>
           </div>
           <div className="space-y-3">
-            <div className="h-44 animate-pulse bg-bg-hover" />
-            <div className="h-32 animate-pulse bg-bg-hover" />
+            <SkeletonPanel headerWidth="w-24">
+              <div className="p-4">
+                <SkeletonBarRows count={4} />
+              </div>
+            </SkeletonPanel>
+            <SkeletonPanel headerWidth="w-16">
+              <div className="p-4">
+                <SkeletonBarRows count={2} />
+              </div>
+            </SkeletonPanel>
           </div>
         </div>
       </div>
@@ -319,7 +335,7 @@ export function SpendingOverview() {
                     width={42}
                   />
                   <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
-                  <Bar
+                  <Bar {...CHART_ANIMATION}
                     dataKey="amount"
                     cursor="pointer"
                     onClick={(_, index) => {

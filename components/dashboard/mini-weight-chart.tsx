@@ -15,6 +15,8 @@ import { supabase } from '@/lib/supabase'
 import { USER_STATS } from '@/types'
 import type { WeighIn } from '@/types'
 import { LoadError } from '@/components/data/load-error'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonLineChart } from '@/components/data/skeleton'
 
 interface ChartPoint {
   date: string
@@ -87,7 +89,7 @@ export function MiniWeightChart() {
 
       <div className="p-4">
         {loading ? (
-          <div className="h-[180px] md:h-[200px] w-full animate-pulse bg-bg-hover" />
+          <SkeletonLineChart className="h-[180px] md:h-[200px]" />
         ) : failed ? (
           <LoadError onRetry={fetchWeighIns} />
         ) : data.length === 0 ? (
@@ -123,14 +125,13 @@ export function MiniWeightChart() {
                   strokeDasharray="3 3"
                   strokeWidth={1}
                 />
-                <Line
+                <Line {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="weight"
                   stroke="var(--text-1)"
                   strokeWidth={1.5}
                   dot={{ r: 2, fill: 'var(--text-1)', strokeWidth: 0 }}
                   activeDot={{ r: 4, fill: 'var(--accent)', strokeWidth: 0 }}
-                  isAnimationActive={false}
                 />
               </LineChart>
             </ResponsiveContainer>

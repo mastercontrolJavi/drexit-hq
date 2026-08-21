@@ -33,6 +33,7 @@ import { SavingsTracker } from './savings-tracker'
 import { BudgetAnalytics } from './budget-analytics'
 import { Sparkline } from '@/components/data/sparkline'
 import { CountUp } from '@/components/data/count-up'
+import { SkeletonRows } from '@/components/data/skeleton'
 import { listContainer, listItem } from '@/lib/motion'
 import { UnderlineTabs, type UnderlineTabOption } from '@/components/data/underline-tabs'
 import { TerminalButton } from '@/components/ui/terminal-button'
@@ -513,13 +514,7 @@ export function BudgetClient() {
         </header>
 
         {loading ? (
-          <ul>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <li key={i} className="border-b border-border px-4 py-3 last:border-b-0">
-                <div className="h-4 w-3/4 animate-pulse bg-bg-hover" />
-              </li>
-            ))}
-          </ul>
+          <SkeletonRows count={5} />
         ) : entries.length === 0 ? (
           <p className="font-mono text-xs text-text-3 px-4 py-6">&gt; no expenses logged</p>
         ) : (

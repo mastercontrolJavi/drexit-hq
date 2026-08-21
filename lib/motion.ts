@@ -80,3 +80,17 @@ export const route = {
   animate: { opacity: 1, y: 0 },
   transition: { duration: DUR.base, ease: EASE_OUT },
 } as const
+
+/**
+ * Recharts series animation. Recharts only accepts named easings, so
+ * 'ease-out' stands in for the house curve. 400ms matches DUR.count, so a
+ * chart and the figure sitting above it settle together instead of racing.
+ *
+ * Spread onto every <Bar>, <Line> and <Area>: the library default is a
+ * bouncy 1500ms `ease`, which is both too long and the wrong shape here.
+ */
+export const CHART_ANIMATION = {
+  isAnimationActive: true,
+  animationDuration: 400,
+  animationEasing: 'ease-out',
+} as const

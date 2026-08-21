@@ -8,6 +8,7 @@ import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { LoadError } from '@/components/data/load-error'
+import { SkeletonBarRows } from '@/components/data/skeleton'
 import { listContainer, listItem } from '@/lib/motion'
 
 interface CategorySpend {
@@ -66,14 +67,7 @@ export function BurnRateBars() {
 
       <div className="p-4">
         {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="space-y-1">
-                <div className="h-3 w-20 bg-bg-hover animate-pulse" />
-                <div className="h-0.5 w-full bg-bg-hover animate-pulse" />
-              </div>
-            ))}
-          </div>
+          <SkeletonBarRows count={4} />
         ) : failed ? (
           <LoadError onRetry={fetchBudget} />
         ) : categories.length === 0 ? (

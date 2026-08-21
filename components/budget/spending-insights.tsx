@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { format, getDate, getDaysInMonth, subMonths } from 'date-fns'
 import { cn, formatCurrency, formatCurrencyShort, getMonthLabel } from '@/lib/utils'
+import { SkeletonCard } from '@/components/data/skeleton'
 import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import {
@@ -243,7 +244,7 @@ export function SpendingInsights() {
     return (
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-32 animate-pulse bg-bg-hover" />
+          <SkeletonCard key={i} className="h-32" lines={2} delay={i * 60} />
         ))}
       </div>
     )

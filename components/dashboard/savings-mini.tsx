@@ -6,6 +6,7 @@ import { formatCurrencyShort } from '@/lib/utils'
 import type { SavingsGoal } from '@/types'
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { LoadError } from '@/components/data/load-error'
+import { SkeletonBarRows } from '@/components/data/skeleton'
 
 export function SavingsMini() {
   const [goals, setGoals] = useState<SavingsGoal[]>([])
@@ -48,14 +49,7 @@ export function SavingsMini() {
 
       <div className="p-4">
         {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="space-y-1">
-                <div className="h-3 w-24 bg-bg-hover animate-pulse" />
-                <div className="h-0.5 w-full bg-bg-hover animate-pulse" />
-              </div>
-            ))}
-          </div>
+          <SkeletonBarRows count={3} />
         ) : failed ? (
           <LoadError onRetry={fetchGoals} />
         ) : goals.length === 0 ? (

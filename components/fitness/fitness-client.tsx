@@ -57,6 +57,8 @@ import {
 } from 'recharts'
 import { RingProgress } from '@/components/data/ring-progress'
 import { TerminalButton } from '@/components/ui/terminal-button'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonCard, SkeletonLineChart } from '@/components/data/skeleton'
 import {
   UnderlineTabs,
   type UnderlineTabOption,
@@ -511,7 +513,7 @@ export function FitnessClient() {
           </header>
           <div className="p-4">
             {loading ? (
-              <div className="h-[180px] md:h-[280px] w-full animate-pulse bg-bg-hover" />
+              <SkeletonLineChart className="h-[180px] md:h-[280px]" />
             ) : chartData.length === 0 ? (
               <p className="font-mono text-xs text-text-3 py-12 text-center">
                 &gt; no weigh-ins yet — log your first entry
@@ -548,7 +550,7 @@ export function FitnessClient() {
                     strokeDasharray="3 3"
                     strokeWidth={1}
                   />
-                  <Line
+                  <Line {...CHART_ANIMATION}
                     type="monotone"
                     dataKey="weight"
                     stroke="var(--text-1)"
@@ -556,9 +558,8 @@ export function FitnessClient() {
                     dot={{ r: 2, fill: 'var(--text-1)', strokeWidth: 0 }}
                     activeDot={{ r: 4, fill: 'var(--accent)', strokeWidth: 0 }}
                     name="weight"
-                    isAnimationActive={false}
                   />
-                  <Line
+                  <Line {...CHART_ANIMATION}
                     type="monotone"
                     dataKey="target"
                     stroke="var(--text-3)"
@@ -634,7 +635,7 @@ export function FitnessClient() {
                   <ReferenceLine y={18.5} stroke="var(--warn)" strokeDasharray="3 3" strokeOpacity={0.5} />
                   <ReferenceLine y={25} stroke="var(--success)" strokeDasharray="3 3" strokeOpacity={0.5} />
                   <ReferenceLine y={30} stroke="var(--danger)" strokeDasharray="3 3" strokeOpacity={0.5} />
-                  <Area
+                  <Area {...CHART_ANIMATION}
                     type="monotone"
                     dataKey="bmi"
                     stroke="var(--accent)"
@@ -668,7 +669,7 @@ export function FitnessClient() {
                       <stop offset="95%" stopColor="var(--text-1)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <Area
+                  <Area {...CHART_ANIMATION}
                     type="monotone"
                     dataKey="bodyFat"
                     stroke="var(--text-1)"
@@ -691,9 +692,9 @@ export function FitnessClient() {
                   <YAxis yAxisId="pct" orientation="right" tick={tickStyle} tickLine={false} axisLine={false} domain={[0, 'dataMax + 5']} width={32} />
                   <Tooltip cursor={{ stroke: 'var(--border-strong)' }} content={<MonoTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
-                  <Line yAxisId="weight" type="monotone" dataKey="weight" stroke="var(--text-1)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--text-1)' }} name="Weight" />
-                  <Line yAxisId="pct" type="monotone" dataKey="bmi" stroke="var(--accent)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--accent)' }} name="BMI" />
-                  <Line yAxisId="pct" type="monotone" dataKey="bodyFat" stroke="var(--warn)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--warn)' }} name="Body Fat" />
+                  <Line {...CHART_ANIMATION} yAxisId="weight" type="monotone" dataKey="weight" stroke="var(--text-1)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--text-1)' }} name="Weight" />
+                  <Line {...CHART_ANIMATION} yAxisId="pct" type="monotone" dataKey="bmi" stroke="var(--accent)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--accent)' }} name="BMI" />
+                  <Line {...CHART_ANIMATION} yAxisId="pct" type="monotone" dataKey="bodyFat" stroke="var(--warn)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--warn)' }} name="Body Fat" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -893,7 +894,7 @@ export function FitnessClient() {
         {loading ? (
           <div className="grid grid-cols-2 gap-2 p-4 md:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-20 animate-pulse bg-bg-hover" />
+              <SkeletonCard key={i} className="h-20" lines={1} delay={i * 50} />
             ))}
           </div>
         ) : foods.length === 0 ? (

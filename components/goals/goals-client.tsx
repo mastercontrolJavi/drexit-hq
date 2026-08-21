@@ -27,6 +27,7 @@ import { TimelineRail } from '@/components/data/timeline-rail'
 import { StatusLabel } from '@/components/data/status-label'
 import { HairlineProgress } from '@/components/data/hairline-progress'
 import { CountUp } from '@/components/data/count-up'
+import { Shimmer, SkeletonBarRows } from '@/components/data/skeleton'
 import { DUR, EASE_OUT, staggerDelay } from '@/lib/motion'
 import { TerminalButton } from '@/components/ui/terminal-button'
 import {
@@ -258,10 +259,13 @@ export function GoalsClient() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-9 w-72 animate-pulse bg-bg-hover" />
+        <Shimmer className="h-9 w-72" />
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse bg-bg-hover" />
+            <div key={i} className="ml-8 space-y-3 border border-border bg-bg-elevated p-4" aria-hidden>
+              <Shimmer className="h-4 w-2/3" delay={i * 80} />
+              <SkeletonBarRows count={1} />
+            </div>
           ))}
         </div>
       </div>

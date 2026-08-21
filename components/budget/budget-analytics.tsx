@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { format, getDaysInMonth, subMonths } from 'date-fns'
 import { formatAxisCurrency, getMonthLabel } from '@/lib/utils'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonBarChart, SkeletonLineChart } from '@/components/data/skeleton'
 import {
   BUDGET_CATEGORIES,
   type BudgetEntry,
@@ -263,7 +265,10 @@ export function BudgetAnalytics({
         <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
           <span className="caption text-text-2">ANALYTICS</span>
         </header>
-        <div className="h-[420px] animate-pulse bg-bg-hover" />
+        <div className="space-y-4 p-4">
+          <SkeletonBarChart height={220} bars={8} />
+          <SkeletonLineChart height={160} />
+        </div>
       </section>
     )
   }
@@ -314,7 +319,7 @@ export function BudgetAnalytics({
                     tickFormatter={(v) => String(v).toUpperCase()}
                   />
                   <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
-                  <Bar
+                  <Bar {...CHART_ANIMATION}
                     dataKey="amount"
                     barSize={18}
                     cursor="pointer"
@@ -344,7 +349,7 @@ export function BudgetAnalytics({
                 <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
-                <Bar
+                <Bar {...CHART_ANIMATION}
                   dataKey="income"
                   fill="var(--success)"
                   barSize={16}
@@ -352,7 +357,7 @@ export function BudgetAnalytics({
                   cursor="pointer"
                   onClick={(_, index) => handleMonthBarClick(index)}
                 />
-                <Bar
+                <Bar {...CHART_ANIMATION}
                   dataKey="expenses"
                   fill="var(--danger)"
                   barSize={16}
@@ -360,7 +365,7 @@ export function BudgetAnalytics({
                   cursor="pointer"
                   onClick={(_, index) => handleMonthBarClick(index)}
                 />
-                <Line
+                <Line {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="net"
                   stroke="var(--accent)"
@@ -388,7 +393,7 @@ export function BudgetAnalytics({
                     <stop offset="100%" stopColor="var(--warn)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <Area
+                <Area {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="cumulative"
                   stroke="var(--warn)"
@@ -396,7 +401,7 @@ export function BudgetAnalytics({
                   fill="url(#paceGradient)"
                   name="Actual"
                 />
-                <Line
+                <Line {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="budget"
                   stroke="var(--success)"
@@ -435,7 +440,7 @@ export function BudgetAnalytics({
                 {BUDGET_CATEGORIES.filter((cat) =>
                   categoryTrendData.some((d) => (d[cat] as number) > 0),
                 ).map((cat) => (
-                  <Bar key={cat} dataKey={cat} stackId="a" fill={CATEGORY_FILL(cat)} />
+                  <Bar {...CHART_ANIMATION} key={cat} dataKey={cat} stackId="a" fill={CATEGORY_FILL(cat)} />
                 ))}
               </BarChart>
             </ResponsiveContainer>
@@ -456,7 +461,7 @@ export function BudgetAnalytics({
                   <Tooltip cursor={{ stroke: 'var(--border-strong)' }} content={<MonoTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
                   {savingsGoals.map((goal, i) => (
-                    <Line
+                    <Line {...CHART_ANIMATION}
                       key={goal.id}
                       type="monotone"
                       dataKey={goal.name}
@@ -490,10 +495,10 @@ export function BudgetAnalytics({
                 <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
-                <Bar dataKey="income"   fill="var(--success)" barSize={14} name="Income" />
-                <Bar dataKey="expenses" fill="var(--danger)"  barSize={14} name="Expenses" />
-                <Bar dataKey="savings"  fill="var(--accent)"  barSize={14} name="Savings" />
-                <Line
+                <Bar {...CHART_ANIMATION} dataKey="income"   fill="var(--success)" barSize={14} name="Income" />
+                <Bar {...CHART_ANIMATION} dataKey="expenses" fill="var(--danger)"  barSize={14} name="Expenses" />
+                <Bar {...CHART_ANIMATION} dataKey="savings"  fill="var(--accent)"  barSize={14} name="Savings" />
+                <Line {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="net"
                   stroke="var(--text-1)"

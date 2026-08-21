@@ -19,6 +19,7 @@ import { Archive, Plus, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn, formatDateShort } from '@/lib/utils'
 import { DUR, EASE_OUT, staggerDelay } from '@/lib/motion'
+import { Shimmer, SkeletonCard, SkeletonPanel } from '@/components/data/skeleton'
 import {
   IDEA_DIRECTIONS,
   IDEA_STATUSES,
@@ -443,11 +444,21 @@ export function KanbanBoard() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-72 animate-pulse bg-bg-hover" />
+        <Shimmer className="h-8 w-72" />
         <div className="overflow-x-auto -mx-4 px-4 md:-mx-8 md:px-8 snap-x snap-mandatory md:snap-none">
           <div className="flex gap-3 md:grid md:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="w-[85vw] shrink-0 snap-start md:w-auto h-[420px] animate-pulse bg-bg-hover" />
+            {Array.from({ length: 4 }).map((_, col) => (
+              <SkeletonPanel
+                key={col}
+                headerWidth="w-24"
+                className="w-[85vw] shrink-0 snap-start md:w-auto"
+              >
+                <div className="min-h-[420px] space-y-2 p-3">
+                  {Array.from({ length: 3 - (col % 2) }).map((_, i) => (
+                    <SkeletonCard key={i} lines={2} delay={col * 60 + i * 90} />
+                  ))}
+                </div>
+              </SkeletonPanel>
             ))}
           </div>
         </div>

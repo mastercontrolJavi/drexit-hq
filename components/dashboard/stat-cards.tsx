@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
+import { SkeletonStat } from '@/components/data/skeleton'
 import { MetricStrip, type MetricStripItem } from '@/components/data/metric-strip'
 import { CountUp } from '@/components/data/count-up'
 import { supabase } from '@/lib/supabase'
@@ -88,11 +88,7 @@ export function StatCards() {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 border border-border bg-bg-elevated divide-x divide-border">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="px-5 py-4 space-y-2">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-3 w-16" />
-          </div>
+          <SkeletonStat key={i} className="px-5 py-4" />
         ))}
       </div>
     )

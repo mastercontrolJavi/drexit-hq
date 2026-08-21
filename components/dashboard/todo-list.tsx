@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { TodoItem } from '@/types'
+import { SkeletonRows } from '@/components/data/skeleton'
 import { DUR, EASE_OUT, listContainer, listItem } from '@/lib/motion'
 
 export function TodoList() {
@@ -81,13 +82,7 @@ export function TodoList() {
       </header>
 
       {loading ? (
-        <ul>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <li key={i} className="border-b border-border px-4 py-2.5 last:border-b-0">
-              <div className="h-4 w-3/4 bg-bg-hover animate-pulse" />
-            </li>
-          ))}
-        </ul>
+        <SkeletonRows count={3} />
       ) : todos.length === 0 ? (
         <p className="font-mono text-xs text-text-3 px-4 py-6">
           &gt; all clear
