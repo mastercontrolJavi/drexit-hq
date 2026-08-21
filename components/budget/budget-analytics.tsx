@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { format, getDaysInMonth, subMonths } from 'date-fns'
-import { getMonthLabel } from '@/lib/utils'
+import { formatAxisCurrency, getMonthLabel } from '@/lib/utils'
 import {
   BUDGET_CATEGORIES,
   type BudgetEntry,
@@ -302,7 +302,7 @@ export function BudgetAnalytics({
                     tick={tickStyle}
                     tickLine={false}
                     axisLine={{ stroke: 'var(--border)' }}
-                    tickFormatter={(v) => `£${v}`}
+                    tickFormatter={(v) => formatAxisCurrency(Number(v))}
                   />
                   <YAxis
                     type="category"
@@ -341,7 +341,7 @@ export function BudgetAnalytics({
               <ComposedChart data={cashFlowData} margin={{ top: 16, right: 16, bottom: 4, left: 4 }}>
                 <CartesianGrid stroke="var(--border)" />
                 <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
                 <Bar
@@ -380,7 +380,7 @@ export function BudgetAnalytics({
               <AreaChart data={dailyPaceData} margin={{ top: 16, right: 24, bottom: 4, left: 4 }}>
                 <CartesianGrid stroke="var(--border)" />
                 <XAxis dataKey="day" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ stroke: 'var(--border-strong)' }} content={<MonoTooltip />} />
                 <defs>
                   <linearGradient id="paceGradient" x1="0" y1="0" x2="0" y2="1">
@@ -429,7 +429,7 @@ export function BudgetAnalytics({
               <BarChart data={categoryTrendData} margin={{ top: 16, right: 16, bottom: 4, left: 4 }}>
                 <CartesianGrid stroke="var(--border)" />
                 <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
                 {BUDGET_CATEGORIES.filter((cat) =>
@@ -452,7 +452,7 @@ export function BudgetAnalytics({
                 <LineChart data={savingsGrowthData} margin={{ top: 16, right: 24, bottom: 4, left: 4 }}>
                   <CartesianGrid stroke="var(--border)" />
                   <XAxis dataKey="date" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                  <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                  <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                   <Tooltip cursor={{ stroke: 'var(--border-strong)' }} content={<MonoTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
                   {savingsGoals.map((goal, i) => (
@@ -487,7 +487,7 @@ export function BudgetAnalytics({
               <ComposedChart data={netPositionData} margin={{ top: 16, right: 16, bottom: 4, left: 4 }}>
                 <CartesianGrid stroke="var(--border)" />
                 <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
                 <Bar dataKey="income"   fill="var(--success)" barSize={14} name="Income" />

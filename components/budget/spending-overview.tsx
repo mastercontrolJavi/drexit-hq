@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { addDays, differenceInDays, format, parseISO, subMonths } from 'date-fns'
-import { cn, formatCurrency, formatCurrencyShort, getMonthLabel } from '@/lib/utils'
+import { cn, formatAxisCurrency, formatCurrency, formatCurrencyShort, getMonthLabel } from '@/lib/utils'
 import { BUDGET_CATEGORIES, type BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import {
@@ -315,7 +315,7 @@ export function SpendingOverview() {
                     tick={tickStyle}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(v) => `£${v}`}
+                    tickFormatter={(v) => formatAxisCurrency(Number(v))}
                     width={42}
                   />
                   <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />

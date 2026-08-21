@@ -17,14 +17,45 @@ export function daysUntilDrexit(): number {
   return daysUntil(DREXIT_DATE)
 }
 
+// Instantiated once — these run inside list renders.
+const DECIMAL = new Intl.NumberFormat('en-GB', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+const WHOLE = new Intl.NumberFormat('en-GB', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})
+
+/** Full precision with thousands grouping: £1,484.20 */
 export function formatCurrency(amount: number, currency = '\u00A3'): string {
-  if (amount < 0) return `-${currency}${Math.abs(amount).toFixed(2)}`
-  return `${currency}${amount.toFixed(2)}`
+  const sign = amount < 0 ? '-' : ''
+  return `${sign}${currency}${DECIMAL.format(Math.abs(amount))}`
 }
 
+/** Whole pounds with thousands grouping: £1,484 */
 export function formatCurrencyShort(amount: number, currency = '\u00A3'): string {
-  if (amount < 0) return `-${currency}${Math.abs(amount).toFixed(0)}`
-  return `${currency}${amount.toFixed(0)}`
+  const sign = amount < 0 ? '-' : ''
+  return `${sign}${currency}${WHOLE.format(Math.abs(amount))}`
+}
+
+/**
+ * Abbreviated form for chart axes, where the gutter is ~48px and a grouped
+ * four-digit figure would either clip or force the plot area narrower.
+ * £980 · £2.4k · £14k · £1.2m
+ */
+export function formatAxisCurrency(amount: number, currency = '\u00A3'): string {
+  const sign = amount < 0 ? '-' : ''
+  const abs = Math.abs(amount)
+  if (abs >= 1_000_000) {
+    const m = abs / 1_000_000
+    return `${sign}${currency}${m >= 10 ? Math.round(m) : m.toFixed(1)}m`
+  }
+  if (abs >= 1_000) {
+    const k = abs / 1_000
+    return `${sign}${currency}${k >= 10 ? Math.round(k) : k.toFixed(1)}k`
+  }
+  return `${sign}${currency}${Math.round(abs)}`
 }
 
 export function formatDate(date: string | Date): string {

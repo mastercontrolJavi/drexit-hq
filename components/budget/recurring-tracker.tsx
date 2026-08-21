@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { differenceInDays, format, parseISO, subMonths } from 'date-fns'
-import { cn, formatCurrency, getMonthLabel } from '@/lib/utils'
+import { cn, formatAxisCurrency, formatCurrency, getMonthLabel } from '@/lib/utils'
 import type { BudgetEntry } from '@/types'
 import {
   Bar,
@@ -206,7 +206,7 @@ export function RecurringTracker() {
             <BarChart data={trendData} barSize={28}>
               <CartesianGrid stroke="var(--border)" vertical={false} />
               <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-              <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={42} />
+              <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={42} />
               <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
               <Bar dataKey="total">
                 {trendData.map((entry, i) => (
