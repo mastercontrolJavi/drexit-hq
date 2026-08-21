@@ -7,6 +7,7 @@ import { CountUp } from '@/components/data/count-up'
 import { supabase } from '@/lib/supabase'
 import {
   daysUntilDrexit,
+  drexitDate,
   getCurrentMonthKey,
   formatCurrencyShort,
 } from '@/lib/utils'
@@ -37,10 +38,12 @@ export function StatCards() {
           .from('budget_entries')
           .select('amount_gbp, date')
           .eq('month_key', monthKey),
+        // Newest first, then reversed below — ordering ascending with a limit
+        // returns the *oldest* eight, which pinned this tile to stale data.
         supabase
           .from('weigh_ins')
           .select('weight_lbs, date')
-          .order('date', { ascending: true })
+          .order('date', { ascending: false })
           .limit(8),
         supabase
           .from('todos')
@@ -66,7 +69,9 @@ export function StatCards() {
         weeklyBurn.push(Math.round(sum))
       }
 
-      const weighIns = (weighInRes.data as Pick<WeighIn, 'weight_lbs' | 'date'>[] | null) ?? []
+      const weighIns = [
+        ...((weighInRes.data as Pick<WeighIn, 'weight_lbs' | 'date'>[] | null) ?? []),
+      ].reverse()
       const weightSeries = weighIns.map((w) => Number(w.weight_lbs))
       const latestWeight =
         weightSeries.length > 0 ? weightSeries[weightSeries.length - 1] : USER_STATS.currentWeight
@@ -98,7 +103,7 @@ export function StatCards() {
     {
       label: 'DREXIT_T',
       value: <CountUp value={daysUntilDrexit()} format={(n) => `T-${n}`} />,
-      delta: '07 JUL 26',
+      delta: format(new Date(drexitDate()), 'dd MMM yy').toUpperCase(),
     },
     {
       label: 'RUNWAY',

@@ -50,11 +50,13 @@ export function MiniWeightChart() {
   const fetchWeighIns = useCallback(async () => {
     setLoading(true)
     setFailed(false)
+    // Newest first then reversed: ascending + limit returns the oldest rows,
+    // which left this chart showing the first eight weigh-ins forever.
     const { data: rows, error } = await supabase
       .from('weigh_ins')
       .select('date, weight_lbs')
-      .order('date', { ascending: true })
-      .limit(8)
+      .order('date', { ascending: false })
+      .limit(10)
 
     if (error || !rows) {
       setFailed(true)
@@ -63,7 +65,7 @@ export function MiniWeightChart() {
     }
 
     setData(
-      (rows as Pick<WeighIn, 'date' | 'weight_lbs'>[]).map((r) => ({
+      [...(rows as Pick<WeighIn, 'date' | 'weight_lbs'>[])].reverse().map((r) => ({
         date: r.date,
         label: format(new Date(r.date), 'MMM d'),
         weight: Number(r.weight_lbs),

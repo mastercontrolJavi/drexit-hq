@@ -7,15 +7,15 @@ import { differenceInCalendarDays, format, parseISO, subDays } from 'date-fns'
 import {
   calculateTargetWeight,
   cn,
+  drexitDate,
   formatDateShort,
   getUserMacros,
+  weightStartDate,
 } from '@/lib/utils'
 import {
-  DREXIT_DATE,
   FOOD_CATEGORIES,
   type FoodItem,
   USER_STATS,
-  WEIGHT_START_DATE,
   type WeighIn,
 } from '@/types'
 import {
@@ -189,14 +189,22 @@ export function FitnessClient() {
     fetchData()
   }, [fetchData])
 
+  // Anchor the glide path to the first logged weigh-in rather than to
+  // USER_STATS.currentWeight, which is today's weight — using it as the start
+  // re-baselines the target every time you step on the scale.
+  const glideStartWeight = weighIns.length
+    ? Number(weighIns[0].weight_lbs)
+    : USER_STATS.currentWeight
+  const glideStartDate = weighIns.length ? weighIns[0].date : weightStartDate()
+
   const chartData = weighIns.map((w) => ({
     date: formatDateShort(w.date),
     weight: Number(w.weight_lbs),
     target: calculateTargetWeight(
-      USER_STATS.currentWeight,
+      glideStartWeight,
       USER_STATS.goalWeight,
-      WEIGHT_START_DATE,
-      DREXIT_DATE,
+      glideStartDate,
+      drexitDate(),
       new Date(w.date),
     ),
   }))
@@ -227,6 +235,9 @@ export function FitnessClient() {
   const latest = weighIns.length > 0 ? weighIns[weighIns.length - 1] : null
   const latestWeight = latest ? Number(latest.weight_lbs) : null
   const latestBmi = latest && latest.bmi !== null ? Number(latest.bmi) : null
+  // Most recent body-fat reading — they are logged less often than weight.
+  const latestBodyFat =
+    [...weighIns].reverse().find((w) => w.body_fat_pct !== null)?.body_fat_pct ?? null
 
   // BMI Δ vs ~7 days ago
   const oneWeekAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd')
@@ -239,7 +250,7 @@ export function FitnessClient() {
       : null
 
   const latestTarget = latestWeight
-    ? calculateTargetWeight(USER_STATS.currentWeight, USER_STATS.goalWeight, WEIGHT_START_DATE, DREXIT_DATE)
+    ? calculateTargetWeight(glideStartWeight, USER_STATS.goalWeight, glideStartDate, drexitDate())
     : null
   const isOnTrack = latestWeight && latestTarget ? latestWeight <= latestTarget : null
 
@@ -462,7 +473,7 @@ export function FitnessClient() {
                 step="0.1"
                 value={wiWeight}
                 onChange={(e) => setWiWeight(e.target.value)}
-                placeholder="210.5"
+                placeholder={latestWeight ? String(latestWeight) : "210.5"}
                 className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
             </label>
@@ -474,7 +485,7 @@ export function FitnessClient() {
                   step="0.1"
                   value={wiBmi}
                   onChange={(e) => setWiBmi(e.target.value)}
-                  placeholder="28.5"
+                  placeholder={latestBmi ? latestBmi.toFixed(1) : "28.5"}
                   className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
                 />
               </label>
@@ -485,7 +496,7 @@ export function FitnessClient() {
                   step="0.1"
                   value={wiBodyFat}
                   onChange={(e) => setWiBodyFat(e.target.value)}
-                  placeholder="22.0"
+                  placeholder={latestBodyFat ? latestBodyFat.toFixed(1) : "22.0"}
                   className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
                 />
               </label>

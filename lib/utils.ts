@@ -1,7 +1,8 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { differenceInDays, format, getDaysInMonth, getDate } from "date-fns"
-import { DREXIT_DATE, USER_STATS } from "@/types"
+import { DREXIT_DATE, USER_STATS, WEIGHT_START_DATE } from "@/types"
+import { DEMO_DREXIT_DATE, DEMO_WEIGHT_START_DATE, isDemoMode } from "./demo"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -13,8 +14,21 @@ export function daysUntil(dateStr: string): number {
   return Math.max(0, differenceInDays(new Date(dateStr), new Date()))
 }
 
+/**
+ * The departure date the app is counting down to. Demo mode substitutes a
+ * rolling date so the public build never shows an expired countdown.
+ */
+export function drexitDate(): string {
+  return isDemoMode ? DEMO_DREXIT_DATE : DREXIT_DATE
+}
+
 export function daysUntilDrexit(): number {
-  return daysUntil(DREXIT_DATE)
+  return daysUntil(drexitDate())
+}
+
+/** Date the weight glide path is measured from. Demo mode tracks its fixtures. */
+export function weightStartDate(): string {
+  return isDemoMode ? DEMO_WEIGHT_START_DATE : WEIGHT_START_DATE
 }
 
 // Instantiated once — these run inside list renders.
