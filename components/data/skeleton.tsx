@@ -4,8 +4,8 @@ import { cn } from '@/lib/utils'
  * Loading shapes that match the real content.
  *
  * A grey slab where a chart goes tells the reader nothing and guarantees a
- * jump when the data lands. These draw the actual structure — panel chrome,
- * row rhythm, bar columns, a line path — so the skeleton and the loaded
+ * jump when the data lands. These draw the actual structure: panel chrome,
+ * row rhythm, bar columns, a line path, so the skeleton and the loaded
  * state occupy the same geometry.
  *
  * Pulse is offset per element so a panel breathes in sequence rather than
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
  * server and client markup identical.
  */
 
-/** Base block. Rectangular — the design system has no rounded fills. */
+/** Base block. Rectangular, because the design system has no rounded fills. */
 export function Shimmer({
   className,
   delay = 0,
@@ -81,7 +81,7 @@ export function SkeletonRows({
   )
 }
 
-/** Caption plus 2px bar — the shape HairlineProgress rows actually take. */
+/** Caption plus 2px bar: the shape HairlineProgress rows actually take. */
 export function SkeletonBarRows({
   count = 3,
   className,
@@ -118,7 +118,7 @@ export function SkeletonStat({ className }: { className?: string }) {
   )
 }
 
-/** Deterministic column heights — reads as data, not as a placeholder. */
+/** Deterministic column heights, so it reads as data not as a placeholder. */
 const BAR_RATIOS = [0.42, 0.68, 0.34, 0.86, 0.55, 0.72, 0.38, 0.62, 0.5, 0.78]
 
 export function SkeletonBarChart({

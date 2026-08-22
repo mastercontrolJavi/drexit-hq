@@ -7,7 +7,7 @@ export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
-  // Avoid hydration mismatch — only render the resolved label after mount.
+  // Avoid hydration mismatch: only render the resolved label after mount.
   useEffect(() => setMounted(true), [])
 
   const label = mounted ? (resolvedTheme === 'dark' ? 'DARK' : 'LIGHT') : '...'

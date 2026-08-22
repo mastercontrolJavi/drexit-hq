@@ -233,7 +233,7 @@ export function BudgetClient() {
     e.preventDefault()
     const parsed = parseCommandLine(commandInput)
     if (!parsed) {
-      setCommandError(`unable to parse — expected "${COMMAND_HINT}"`)
+      setCommandError(`unable to parse, expected "${COMMAND_HINT}"`)
       return
     }
     setCommandError(null)
@@ -282,7 +282,7 @@ export function BudgetClient() {
         scroll
       />
 
-      {/* Hero — Income / Spent / Remaining */}
+      {/* Hero: Income / Spent / Remaining */}
       <div className="grid grid-cols-1 md:grid-cols-3 border border-border bg-bg-elevated divide-y md:divide-y-0 md:divide-x divide-border">
         {/* INCOME */}
         <div className="px-6 py-5">

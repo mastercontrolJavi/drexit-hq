@@ -116,7 +116,7 @@ export function SpendingInsights() {
         Icon: TrendingDown,
         label: 'NICE_CUT',
         headline: `${top.category} spend down vs last month`,
-        metric: `${top.changePct.toFixed(0)}% — saved ${formatCurrency(top.prev - top.curr)}`,
+        metric: `${top.changePct.toFixed(0)}%, saved ${formatCurrency(top.prev - top.curr)}`,
         tone: 'success',
       })
     }
@@ -154,7 +154,7 @@ export function SpendingInsights() {
         id: 'highest-day',
         Icon: Flame,
         label: 'BIG_SPEND_DAY',
-        headline: `${format(new Date(topDay + 'T12:00:00'), 'EEEE, MMM d')} — ${txCount} txn${txCount !== 1 ? 's' : ''}`,
+        headline: `${format(new Date(topDay + 'T12:00:00'), 'EEEE, MMM d')}, ${txCount} txn${txCount !== 1 ? 's' : ''}`,
         metric: formatCurrency(topDayAmount),
         tone: 'warn',
       })
@@ -175,7 +175,7 @@ export function SpendingInsights() {
         id: 'top-merchant',
         Icon: ShoppingBag,
         label: 'MOST_FREQUENT',
-        headline: `${topMerchant[0]} — ${topMerchant[1]}× this month`,
+        headline: `${topMerchant[0]}, ${topMerchant[1]}× this month`,
         metric: `Total: ${formatCurrency(merchantSpend)}`,
         tone: 'accent',
       })

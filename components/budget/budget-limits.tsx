@@ -197,7 +197,7 @@ export function BudgetLimits() {
     toast.success(
       updated > 0
         ? `Rollover applied to ${updated} categor${updated === 1 ? 'y' : 'ies'}`
-        : 'Nothing to roll over — all categories were over budget last month',
+        : 'Nothing to roll over. All categories were over budget last month',
     )
   }
 

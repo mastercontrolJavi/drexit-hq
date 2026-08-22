@@ -47,17 +47,17 @@ const GOALS: Array<{
     createdDaysAgo: 190,
   },
 
-  // ── Overdue — the danger tone ──────────────────────────────────────────────
+  // ── Overdue, the danger tone ──────────────────────────────────────────────
   {
     title: 'Launch the first paid digital product',
-    description: 'One product, priced, live, with a real checkout — not another prototype.',
+    description: 'One product, priced, live, with a real checkout. Not another prototype.',
     category: 'Business', status: 'in_progress', progress: 70,
     deadlineInDays: -6, quarter: true,
     notes: 'Rate calculator is built. Blocked on the landing page, which is on me.',
     createdDaysAgo: 120,
   },
 
-  // ── Due soon — the warn tone ───────────────────────────────────────────────
+  // ── Due soon, the warn tone ───────────────────────────────────────────────
   {
     title: 'Publish the AXIS_OS case study',
     description: 'Write-up with screenshots, architecture notes and the demo link.',
@@ -75,7 +75,7 @@ const GOALS: Array<{
     createdDaysAgo: 160,
   },
 
-  // ── Comfortable runway — the success tone ──────────────────────────────────
+  // ── Comfortable runway, the success tone ──────────────────────────────────
   {
     title: 'Save £4,000 for the move',
     description: 'Deposit, first month and a buffer, without touching the emergency fund.',
@@ -89,7 +89,7 @@ const GOALS: Array<{
     description: 'Either path works. The point is not being tied to one city.',
     category: 'Career', status: 'in_progress', progress: 30,
     deadlineInDays: 128, quarter: true,
-    notes: 'Two interviews in the pipeline. Product income is at £180/mo — long way to go.',
+    notes: 'Two interviews in the pipeline. Product income is at £180/mo, long way to go.',
     createdDaysAgo: 200,
   },
   {
@@ -131,7 +131,7 @@ const GOALS: Array<{
     description: null,
     category: 'Creative', status: 'not_started', progress: 0,
     deadlineInDays: null, quarter: false,
-    notes: 'No deadline on purpose — this one is meant to be pressure-free.',
+    notes: 'No deadline on purpose. This one is meant to be pressure-free.',
     createdDaysAgo: 40,
   },
 ]

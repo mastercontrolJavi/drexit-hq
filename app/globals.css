@@ -22,7 +22,7 @@
     --danger:         #EF4444;
     --grid:           rgba(255,255,255,0.02);
 
-    /* shadcn-compat aliases — keep existing primitives working */
+    /* shadcn-compat aliases, kept so existing primitives keep working */
     --background:           var(--bg-base);
     --foreground:           var(--text-1);
     --card:                 var(--bg-elevated);
@@ -103,7 +103,7 @@
     cursor: not-allowed;
   }
 
-  /* Keyboard-only focus ring — overrides any `focus:outline-none` set by Tailwind */
+  /* Keyboard-only focus ring. Overrides any `focus:outline-none` set by Tailwind */
   :focus-visible {
     outline: 2px solid var(--accent) !important;
     outline-offset: 1px;
@@ -214,7 +214,7 @@
     }
   }
 
-  /* Disable kanban drag on touch devices — let scroll-snap take over */
+  /* Disable kanban drag on touch devices so scroll-snap takes over */
   @media (pointer: coarse) {
     .kanban-card {
       touch-action: pan-y;

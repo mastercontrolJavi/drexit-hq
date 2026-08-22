@@ -9,7 +9,7 @@ interface LoadErrorProps {
 }
 
 /**
- * Failure state for a data surface. Distinct from the empty state on purpose —
+ * Failure state for a data surface. Distinct from the empty state on purpose:
  * "no data" and "we could not read the data" must never look the same.
  */
 export function LoadError({ detail, onRetry, className }: LoadErrorProps) {
@@ -19,7 +19,7 @@ export function LoadError({ detail, onRetry, className }: LoadErrorProps) {
       className={cn('flex items-center justify-between gap-3 py-4', className)}
     >
       <p className="min-w-0 truncate font-mono text-xs text-danger">
-        ! failed to load{detail ? ` — ${detail}` : ''}
+        ! failed to load{detail ? `: ${detail}` : ''}
       </p>
       {onRetry && (
         <button

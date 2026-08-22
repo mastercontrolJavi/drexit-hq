@@ -18,7 +18,7 @@ const DAILY_DAYS = 22
 
 const NOTES = [
   'Held the deficit all week.',
-  'Travel week — happy to hold flat.',
+  'Travel week, happy to hold flat.',
   'Two gym sessions and a long walk.',
   'Slept badly, water weight up. Ignoring it.',
   'Steps up, snacking down.',
@@ -54,7 +54,7 @@ function weightAt(daysBack: number, noise: number): number {
   return Math.round((trend + between(r, -noise, noise)) * 10) / 10
 }
 
-// Weekly phase — oldest first, stopping where the daily phase takes over.
+// Weekly phase: oldest first, stopping where the daily phase takes over.
 for (let w = WEEKLY_WEEKS; w >= 1; w--) {
   const daysBack = DAILY_DAYS + w * 7
   const d = daysAgo(daysBack)
@@ -70,7 +70,7 @@ for (let w = WEEKLY_WEEKS; w >= 1; w--) {
   })
 }
 
-// Daily phase — an unbroken run up to and including today.
+// Daily phase: an unbroken run up to and including today.
 for (let d0 = DAILY_DAYS - 1; d0 >= 0; d0--) {
   const d = daysAgo(d0)
   const weight = weightAt(d0, 0.22)
@@ -101,23 +101,23 @@ export const WEIGH_IN_START_DATE = entries[0].date
 
 const FOODS: Array<[string, 'Protein' | 'Carb' | 'Fat' | 'Veg' | 'Other', string | null]> = [
   ['Chicken breast',           'Protein', 'Base of every meal. ~31g protein per 100g.'],
-  ['Eggs (pasture-raised)',    'Protein', '5–6 per day, mostly scrambled.'],
-  ['Whey protein isolate',     'Protein', '1–2 scoops post-workout, 25g each.'],
-  ['Salmon fillet',            'Protein', 'Twice a week — worth it for the omega-3.'],
+  ['Eggs (pasture-raised)',    'Protein', '5 or 6 per day, mostly scrambled.'],
+  ['Whey protein isolate',     'Protein', '1 to 2 scoops post-workout, 25g each.'],
+  ['Salmon fillet',            'Protein', 'Twice a week. Worth it for the omega-3.'],
   ['Greek yogurt (0% fat)',    'Protein', 'On oats or as a snack. 10g protein per 100g.'],
   ['Tinned tuna',              'Protein', 'Emergency protein. Always two tins in the cupboard.'],
   ['Cottage cheese',           'Protein', 'Late-night option that does not wreck the day.'],
   ['Brown rice',               'Carb',    '80g dry weight per serving.'],
   ['Oats (rolled)',            'Carb',    'Pre-workout with protein powder and blueberries.'],
   ['Sweet potato',             'Carb',    'Roasted. Better micronutrients than white potato.'],
-  ['Quinoa',                   'Carb',    'High-protein carb — good variety from rice.'],
+  ['Quinoa',                   'Carb',    'High-protein carb, good variety from rice.'],
   ['Sourdough',                'Carb',    'Weekends only, otherwise it disappears.'],
   ['Olive oil (extra virgin)', 'Fat',     'Cooking only, measured. Easy 300 kcal mistake.'],
   ['Almonds',                  'Fat',     '30g weighed out. Never from the bag.'],
   ['Avocado',                  'Fat',     'Half with eggs in the morning.'],
   ['Peanut butter',            'Fat',     'One tablespoon, on the scale, no exceptions.'],
   ['Broccoli',                 'Veg',     null],
-  ['Spinach',                  'Veg',     'Into smoothies — no taste, good iron.'],
+  ['Spinach',                  'Veg',     'Into smoothies. No taste, good iron.'],
   ['Kale',                     'Veg',     null],
   ['Bell peppers',             'Veg',     'Raw with hummus when the 4pm craving hits.'],
   ['Frozen berries',           'Other',   'Cheaper than fresh and always in date.'],

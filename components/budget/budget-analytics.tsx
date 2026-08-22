@@ -33,7 +33,7 @@ import { UnderlineTabs } from '@/components/data/underline-tabs'
 import { Panel } from '@/components/data/panel'
 import { EmptyState } from '@/components/data/empty-state'
 
-// Restrained palette — one accent + monochromatic grays
+// Restrained palette: one accent plus monochromatic grays
 const PALETTE = [
   'var(--accent)',
   'var(--text-1)',

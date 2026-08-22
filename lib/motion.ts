@@ -20,13 +20,13 @@ export const DUR = {
   fast: 0.15,
   /** Default: entrances, route swaps, palette. */
   base: 0.18,
-  /** Anything that also translates — panels, drawers, drag settle. */
+  /** Anything that also translates: panels, drawers, drag settle. */
   slow: 0.24,
   /** Numeric count-up. */
   count: 0.4,
 } as const
 
-/** 60ms — fast enough that an eight-row list still reads as one gesture. */
+/** 60ms, fast enough that an eight-row list still reads as one gesture. */
 export const STAGGER = 0.06
 /** Past this many rows the stagger stops paying for itself and just feels slow. */
 export const STAGGER_MAX = 8
@@ -66,7 +66,7 @@ export const scrim = {
   transition: { duration: DUR.fast, ease: EASE_OUT },
 } as const
 
-/** Overlay panel — command palette, popovers anchored to the viewport top. */
+/** Overlay panel: command palette, popovers anchored to the viewport top. */
 export const panel = {
   initial: { y: -8, scale: 0.98 },
   animate: { y: 0, scale: 1 },
@@ -74,7 +74,7 @@ export const panel = {
   transition: { duration: DUR.base, ease: EASE_OUT },
 } as const
 
-/** Route change. Deliberately near-subliminal — chrome must not move. */
+/** Route change. Deliberately near-subliminal, because chrome must not move. */
 export const route = {
   initial: { opacity: 0, y: 4 },
   animate: { opacity: 1, y: 0 },

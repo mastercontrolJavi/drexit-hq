@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { DUR, EASE_OUT } from '@/lib/motion'
 
 /**
- * The app's own button. `components/ui/button.tsx` is stock shadcn — it carries
+ * The app's own button. `components/ui/button.tsx` is stock shadcn. It carries
  * pill radii, rings and shadows the design system does not use, and no screen
  * imports it. This is the one the screens actually use: hairline border, 4px
  * radius, 11px tracked mono label.

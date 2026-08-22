@@ -12,7 +12,7 @@ import {
 /**
  * Toasts are a system readout, not a notification bubble: mono type, hairline
  * border, 4px radius, house easing. Timing is deliberately shorter than the
- * sonner default (4000ms) — these confirm an action the user just took.
+ * sonner default (4000ms), because these confirm an action the user just took.
  */
 const Toaster = ({ ...props }: ToasterProps) => {
   return (

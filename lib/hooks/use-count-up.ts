@@ -5,7 +5,7 @@ import { animate, useReducedMotion } from 'framer-motion'
 import { DUR, EASE_OUT } from '@/lib/motion'
 
 interface CountUpOptions {
-  /** Decimal places held during the tween. Default 0 — whole units. */
+  /** Decimal places held during the tween. Default 0, whole units. */
   precision?: number
   /** Seconds. Default DUR.count. */
   duration?: number
@@ -14,7 +14,7 @@ interface CountUpOptions {
 /**
  * Tweens a figure toward its new value. Runs from 0 on first paint (data
  * arrives async, so this is the moment the number lands) and from the
- * previous value on every change after that — so logging an expense walks
+ * previous value on every change after that, so logging an expense walks
  * the total up rather than snapping it.
  *
  * Always pair with tabular-nums, or the number will jitter its own width.

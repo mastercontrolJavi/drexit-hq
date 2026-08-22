@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { route } from '@/lib/motion'
 
 /**
- * Route transition. Only the page body moves — the sidebar, ticker strip and
+ * Route transition. Only the page body moves. The sidebar, ticker strip and
  * page header live in the layout and stay pinned, which is the whole point:
  * the frame is the instrument, the content is what changes.
  */

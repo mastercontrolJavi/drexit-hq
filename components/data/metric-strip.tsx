@@ -18,7 +18,7 @@ interface MetricStripProps {
 
 /**
  * Horizontal strip of stats with hairline dividers between cells.
- * No card chrome, no shadows — pure data density.
+ * No card chrome, no shadows. Pure data density.
  */
 export function MetricStrip({ items, valueSize, className }: MetricStripProps) {
   return (

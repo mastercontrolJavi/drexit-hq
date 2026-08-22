@@ -190,7 +190,7 @@ export function FitnessClient() {
   }, [fetchData])
 
   // Anchor the glide path to the first logged weigh-in rather than to
-  // USER_STATS.currentWeight, which is today's weight — using it as the start
+  // USER_STATS.currentWeight, which is today's weight. Using it as the start
   // re-baselines the target every time you step on the scale.
   const glideStartWeight = weighIns.length
     ? Number(weighIns[0].weight_lbs)
@@ -235,7 +235,7 @@ export function FitnessClient() {
   const latest = weighIns.length > 0 ? weighIns[weighIns.length - 1] : null
   const latestWeight = latest ? Number(latest.weight_lbs) : null
   const latestBmi = latest && latest.bmi !== null ? Number(latest.bmi) : null
-  // Most recent body-fat reading — they are logged less often than weight.
+  // Most recent body-fat reading. They are logged less often than weight.
   const latestBodyFat =
     [...weighIns].reverse().find((w) => w.body_fat_pct !== null)?.body_fat_pct ?? null
 
@@ -400,7 +400,7 @@ export function FitnessClient() {
         ))}
       </div>
 
-      {/* Stats strip — streak / BMI Δ / on-track */}
+      {/* Stats strip: streak / BMI Δ / on-track */}
       <div className="grid grid-cols-3 border border-border bg-bg-elevated divide-x divide-border">
         <div className="px-5 py-4">
           <span className="caption text-text-2">STREAK</span>
@@ -528,7 +528,7 @@ export function FitnessClient() {
             {loading ? (
               <SkeletonLineChart className="h-[180px] md:h-[280px]" />
             ) : chartData.length === 0 ? (
-              <EmptyState>no weigh-ins yet — log your first entry</EmptyState>
+              <EmptyState>no weigh-ins yet, log your first entry</EmptyState>
             ) : (
             <div className="h-[180px] md:h-[280px]">
               <ResponsiveContainer width="100%" height="100%">

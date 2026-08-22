@@ -3,7 +3,7 @@ import type { IdeaDirection, IdeaPriority, IdeaStatus } from '@/types'
 
 /**
  * `updated_at` drives the date stamp on every kanban card, so it is expressed
- * in days-ago rather than fixed dates — otherwise the board reads as abandoned
+ * in days-ago rather than fixed dates. Otherwise the board reads as abandoned
  * the moment the calendar moves past it.
  */
 const IDEAS: Array<{
@@ -18,7 +18,7 @@ const IDEAS: Array<{
   createdDaysAgo: number
 }> = [
   {
-    title: 'AXIS_OS — personal command centre',
+    title: 'AXIS_OS personal command centre',
     description: 'Full-stack personal OS: budget tracker, goal board, fitness log and idea kanban in one dense terminal-style shell.',
     direction: 'SaaS', priority: 'high', status: 'live',
     next_action: 'Ship the public demo and write the case study',
@@ -26,7 +26,7 @@ const IDEAS: Array<{
     updatedDaysAgo: 0, createdDaysAgo: 210,
   },
   {
-    title: 'Still.AI — AI video generator for creators',
+    title: 'Still.AI video generator for creators',
     description: 'Turn a text prompt into short-form video. Target: creators who want volume without an editor.',
     direction: 'AI Tools', priority: 'high', status: 'building',
     next_action: 'Get the v2 prototype to two minutes end-to-end',
@@ -46,7 +46,7 @@ const IDEAS: Array<{
     description: 'One dashboard consolidating sponsorship bookings, paid subscriptions and tip jars for independent writers.',
     direction: 'SaaS', priority: 'medium', status: 'researching',
     next_action: 'Survey 50 newsletter writers on current pain points',
-    notes: 'Crowded space. Needs a wedge — probably sponsorships, which nobody handles well.',
+    notes: 'Crowded space. Needs a wedge, probably sponsorships, which nobody handles well.',
     updatedDaysAgo: 5, createdDaysAgo: 74,
   },
   {
@@ -62,7 +62,7 @@ const IDEAS: Array<{
     description: 'Eight templates covering goal tracking, weekly reviews, content calendars and habit systems.',
     direction: 'Digital Products', priority: 'medium', status: 'live',
     next_action: 'Drive traffic via Pinterest boards and r/Notion',
-    notes: 'Shipped at £19. Slow but genuinely passive — 3–4 sales a week with no upkeep.',
+    notes: 'Shipped at £19. Slow but genuinely passive, 3 or 4 sales a week with no upkeep.',
     updatedDaysAgo: 11, createdDaysAgo: 168,
   },
   {
@@ -91,7 +91,7 @@ const IDEAS: Array<{
   },
   {
     title: 'Weekly "what I shipped" newsletter',
-    description: 'Short Friday letter documenting the build in public — one project, one lesson, one number.',
+    description: 'Short Friday letter documenting the build in public. One project, one lesson, one number.',
     direction: 'Content', priority: 'medium', status: 'idea',
     next_action: 'Write three issues before publishing any of them',
     notes: 'Cheap to start, compounds slowly. Mostly a forcing function for shipping.',

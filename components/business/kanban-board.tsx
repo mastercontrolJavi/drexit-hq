@@ -254,7 +254,7 @@ export function KanbanBoard() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    // Space starts and ends the drag, Escape cancels — Enter stays with the
+    // Space starts and ends the drag, Escape cancels. Enter stays with the
     // card's own handler so keyboard users can still open the editor.
     useSensor(KeyboardSensor, {
       keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space'] },
@@ -506,7 +506,7 @@ export function KanbanBoard() {
             }}
           >
             {activeIdea ? (
-              // Lift reads as a hairline ring and 2% scale — the design system
+              // Lift reads as a hairline ring and 2% scale, because the design system
               // has no shadows, so elevation is drawn, not cast.
               <div className="w-[260px] scale-[1.02] cursor-grabbing ring-1 ring-border-strong">
                 <CardBody idea={activeIdea} />

@@ -13,8 +13,8 @@ export interface TickerItem {
 }
 
 /**
- * The ticker used to carry hardcoded figures — RUNWAY £1,484, GOALS 1/12,
- * WEIGHT 222.4 — none of which matched the data the rest of the app was
+ * The ticker used to carry hardcoded figures: RUNWAY £1,484, GOALS 1/12,
+ * WEIGHT 222.4. None of which matched the data the rest of the app was
  * rendering. In demo mode it now reads from the same fixtures every other
  * surface does, so the strip cannot contradict the screen underneath it.
  */

@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'AXIS_OS',
-  description: 'Personal command center — budget, goals, fitness, ideas.',
+  description: 'Personal command center for budget, goals, fitness and ideas.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

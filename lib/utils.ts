@@ -31,7 +31,7 @@ export function weightStartDate(): string {
   return isDemoMode ? DEMO_WEIGHT_START_DATE : WEIGHT_START_DATE
 }
 
-// Instantiated once — these run inside list renders.
+// Instantiated once, because these run inside list renders.
 const DECIMAL = new Intl.NumberFormat('en-GB', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,

@@ -390,7 +390,7 @@ export function GoalsClient() {
                     <span className={cn('font-mono', TONE_TEXT_CLASS[tone])}>
                       {goal.deadline ? formatDate(goal.deadline).toUpperCase() : 'NO DEADLINE'}
                     </span>
-                    {/* Without a deadline both slots read "NO DEADLINE" — show it once */}
+                    {/* Without a deadline both slots read "NO DEADLINE", so show it once */}
                     {goal.deadline && (
                       <>
                         <span className="text-text-3">·</span>

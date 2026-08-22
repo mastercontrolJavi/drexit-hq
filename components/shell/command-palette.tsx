@@ -133,7 +133,7 @@ export function CommandPalette() {
 
   return (
     <>
-      {/* Mobile FAB — opens command palette on touch */}
+      {/* Mobile FAB: opens command palette on touch */}
       <motion.button
         className="mobile-fab fixed right-4 z-30 flex h-11 w-11 items-center justify-center border border-border bg-bg-elevated md:hidden"
         onClick={() => setOpen((o) => !o)}

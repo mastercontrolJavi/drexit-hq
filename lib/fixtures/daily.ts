@@ -14,7 +14,7 @@ export const todos = [
 
 /**
  * Three of five ticked for today. A demo where everything is done reads as
- * finished and a demo where nothing is reads as abandoned — mid-progress is
+ * finished and a demo where nothing is reads as abandoned. Mid-progress is
  * the only state that shows the counter, the strike-through and the untouched
  * row all at once.
  */

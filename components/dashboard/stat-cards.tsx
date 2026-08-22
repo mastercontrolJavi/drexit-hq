@@ -38,7 +38,7 @@ export function StatCards() {
           .from('budget_entries')
           .select('amount_gbp, date')
           .eq('month_key', monthKey),
-        // Newest first, then reversed below — ordering ascending with a limit
+        // Newest first, then reversed below. Ordering ascending with a limit
         // returns the *oldest* eight, which pinned this tile to stale data.
         supabase
           .from('weigh_ins')

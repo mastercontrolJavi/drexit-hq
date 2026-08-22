@@ -1,6 +1,6 @@
 # Axis OS
 
-Personal command center for budget, fitness, goals, and business ideas — terminal-aesthetic dashboard with demo mode, no account required.
+Personal command center for budget, fitness, goals, and business ideas. A terminal-aesthetic dashboard with demo mode, no account required.
 
 [Live Demo →](https://axis.javiertpadilla.com) | [Portfolio →](https://javiertpadilla.com)
 

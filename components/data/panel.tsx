@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
  * The section shell every data surface uses: hairline border, elevated
  * ground, a header rule at 10px vertical.
  *
- * It existed as two dozen inline copies — consistent by luck, with three
+ * It existed as two dozen inline copies: consistent by luck, with three
  * outliers that had already drifted. This makes it consistent by
  * construction, so the next surface added to the app cannot drift either.
  */
@@ -34,7 +34,7 @@ function PanelTitle({ className, ...props }: React.ComponentProps<'span'>) {
   return <span className={cn('caption min-w-0 truncate text-text-2', className)} {...props} />
 }
 
-/** Right-hand readout — counts, totals, units. */
+/** Right-hand readout: counts, totals, units. */
 function PanelMeta({ className, ...props }: React.ComponentProps<'span'>) {
   return <span className={cn('caption shrink-0 text-text-3', className)} {...props} />
 }

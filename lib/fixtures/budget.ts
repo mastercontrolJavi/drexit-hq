@@ -16,7 +16,7 @@ import {
 /**
  * Six rolling months of spend: five complete, plus the current month up to
  * today. Generated rather than hand-written so the demo always shows a month
- * in flight — a hardcoded set goes stale the moment the calendar moves past it.
+ * in flight. A hardcoded set goes stale the moment the calendar moves past it.
  */
 
 const MONTHS_BACK = 5
@@ -32,13 +32,13 @@ interface Recurring {
 }
 
 /** Fixed monthly commitments. Descriptions are identical month to month by
- *  design — that is what the recurring detector keys on. */
+ *  design, because that is what the recurring detector keys on. */
 const RECURRING: Recurring[] = [
-  { day: 1,  category: 'Rent',           description: 'Monthly rent — Zone 3 flatshare', base: 800,   drift: 0 },
+  { day: 1,  category: 'Rent',           description: 'Monthly rent, Zone 3 flatshare', base: 800,   drift: 0 },
   { day: 1,  category: 'Health',         description: 'PureGym membership',              base: 31.99, drift: 0 },
   { day: 2,  category: 'Transportation', description: 'TfL monthly travelcard',          base: 88.8,  drift: 0 },
   { day: 3,  category: 'Services',       description: 'Council tax',                     base: 118,   drift: 0 },
-  { day: 4,  category: 'Utilities',      description: 'EDF Energy — gas & electric',     base: 89,    drift: 0.18 },
+  { day: 4,  category: 'Utilities',      description: 'EDF Energy gas & electric',     base: 89,    drift: 0.18 },
   { day: 5,  category: 'Utilities',      description: 'BT Broadband',                    base: 32,    drift: 0 },
   { day: 6,  category: 'Utilities',      description: 'giffgaff mobile',                 base: 18,    drift: 0 },
   { day: 7,  category: 'Subscriptions',  description: 'Spotify + Netflix + Claude Pro',  base: 43.97, drift: 0.04 },
@@ -54,11 +54,11 @@ const GROCERY_SHOPS = [
 
 const EATING_OUT = [
   ['Pret A Manger', 4.2, 9.8],
-  ['Dishoom — dinner with Sam', 28, 46],
+  ['Dishoom dinner with Sam', 28, 46],
   ['Local curry house', 16, 27],
   ['Flat white + pastry', 4.6, 7.4],
   ['Franco Manca', 12, 19],
-  ['Team lunch — Borough Market', 11, 18],
+  ['Team lunch at Borough Market', 11, 18],
 ] as const
 
 const ENTERTAINMENT = [
@@ -69,25 +69,25 @@ const ENTERTAINMENT = [
 ] as const
 
 const SHOPPING = [
-  ['Uniqlo — basics restock', 28, 62],
+  ['Uniqlo basics restock', 28, 62],
   ['Running shoes', 68, 96],
-  ['Muji — desk bits', 14, 34],
-  ['Birthday gift — Mum', 25, 45],
+  ['Muji desk bits', 14, 34],
+  ['Birthday gift for Mum', 25, 45],
 ] as const
 
 const HEALTH_ONEOFF = [
-  ['Boots — vitamins & protein', 18, 34],
+  ['Boots vitamins & protein', 18, 34],
   ['Dentist check-up', 25, 45],
   ['Physio session', 40, 55],
 ] as const
 
-/** The one big month — a Lisbon long weekend three months back. Gives the
+/** The one big month: a Lisbon long weekend three months back. Gives the
  *  cash-flow chart real shape instead of six near-identical bars. */
 const TRIP_MONTH = 3
 const TRIP: Array<[BudgetCategory, string, number, number]> = [
-  ['Travel', 'Lisbon flights — return', 118, 118],
-  ['Travel', 'Lisbon — Airbnb 3 nights', 164, 164],
-  ['Restaurants', 'Lisbon — food & drink', 96, 96],
+  ['Travel', 'Lisbon return flights', 118, 118],
+  ['Travel', 'Lisbon Airbnb, 3 nights', 164, 164],
+  ['Restaurants', 'Lisbon food & drink', 96, 96],
   ['Transportation', 'Airport transfers', 34, 34],
 ]
 
@@ -136,8 +136,8 @@ function buildMonth(monthsBack: number): Entry[] {
   }
 
   // Variable spend lands anywhere in the month *so far*. Drawing from a fixed
-  // 1–27 window under-fills the current month, since anything past today is
-  // dropped — which is how the Shopping budget card ended up reading £0.
+  // 1 to 27 window under-fills the current month, since anything past today is
+  // dropped, which is how the Shopping budget card ended up reading £0.
   const anyDay = () => 1 + Math.floor(r() * lastDay)
 
   // Weekly groceries, drifting a day or two each week like a real shop does.
@@ -146,7 +146,7 @@ function buildMonth(monthsBack: number): Entry[] {
     push(day, 'Groceries', pick(r, GROCERY_SHOPS), between(r, 34, 58), 18)
   }
 
-  // Eating out — the most variable line in anyone's budget.
+  // Eating out, the most variable line in anyone's budget.
   const meals = 5 + Math.floor(r() * 4)
   for (let i = 0; i < meals; i++) {
     const [name, lo, hi] = pick(r, EATING_OUT)
@@ -217,7 +217,7 @@ const DEPOSIT_PLAN: Array<{
 }> = [
   { id: 'sg-1', name: 'Move-out fund',      target: 4000, monthly: 260, since: 5, deadlineMonths: 8,  note: 'Monthly transfer' },
   { id: 'sg-2', name: 'Emergency fund',     target: 2000, monthly: 120, since: 5, deadlineMonths: 12, note: 'Standing order' },
-  { id: 'sg-3', name: 'Japan trip — spring', target: 2600, monthly: 180, since: 4, deadlineMonths: 9,  note: 'Trip fund' },
+  { id: 'sg-3', name: 'Japan trip, spring', target: 2600, monthly: 180, since: 4, deadlineMonths: 9,  note: 'Trip fund' },
   { id: 'sg-4', name: 'MacBook Pro M4',     target: 2499, monthly: 200, since: 3, deadlineMonths: 5,  note: 'Kit upgrade' },
 ]
 
@@ -264,7 +264,7 @@ export const savingsGoals = DEPOSIT_PLAN.map((plan) => {
 // ── Budget limits ─────────────────────────────────────────────────────────────
 // Previously absent from the mock entirely, so the BUDGETS tab rendered its
 // empty state. Set close to real spend so the tab shows a mix of under, near
-// and over — which is the only way the warn and danger tones ever appear.
+// and over, which is the only way the warn and danger tones ever appear.
 
 export const budgetLimits = [
   { id: 'bl-1', category: 'Groceries',      monthly_limit: 220, rollover: true,  carryover_amount: 18.4, rollover_applied_month: null },

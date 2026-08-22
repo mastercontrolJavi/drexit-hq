@@ -4,18 +4,18 @@ import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 /**
- * Empty states existed at six different paddings for the same job — py-2,
- * py-4, py-6, py-8, py-12, py-16 — and only two of fifteen carried a mark.
+ * Empty states existed at six different paddings for the same job: py-2,
+ * py-4, py-6, py-8, py-12, py-16, and only two of fifteen carried a mark.
  * Three variants now cover every case, and the `>` prompt is baked in so
  * the terminal voice cannot drift out of one of them.
  *
- * This is "there is nothing here yet", never "the read failed" — that is
+ * This is "there is nothing here yet", never "the read failed". That is
  * LoadError, and conflating the two tells the reader something untrue.
  */
 const emptyStateVariants = cva('font-mono text-xs text-text-3', {
   variants: {
     variant: {
-      /** Dense sub-region — a kanban column, an inline sub-list. */
+      /** Dense sub-region: a kanban column, an inline sub-list. */
       compact: 'py-2',
       /** Default: inside a container that already supplies horizontal padding. */
       inline: 'py-6',
@@ -33,7 +33,7 @@ interface EmptyStateProps extends VariantProps<typeof emptyStateVariants> {
   children: React.ReactNode
   /** Only rendered by the `block` variant. */
   icon?: LucideIcon
-  /** Second line — the why, or the next step. `block` variant only. */
+  /** Second line: the why, or the next step. `block` variant only. */
   hint?: React.ReactNode
   className?: string
 }

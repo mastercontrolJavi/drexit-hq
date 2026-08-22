@@ -319,7 +319,7 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
             </div>
 
             <p className="font-mono text-[11px] text-text-3">
-              &gt; imported entries default to category &quot;Other&quot; — re-categorize after import
+              &gt; imported entries default to category &quot;Other&quot;. re-categorize after import
             </p>
 
             <div className="flex gap-2">

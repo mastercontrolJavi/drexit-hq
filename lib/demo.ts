@@ -5,8 +5,8 @@ export const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
 /**
  * The real DREXIT_DATE is a fixed personal date and will eventually pass. For
- * the public demo that would leave the app's signature figure — the countdown
- * in the sidebar and the DREXIT_T tile — permanently reading zero. In demo
+ * the public demo that would leave the app's signature figure, the countdown
+ * in the sidebar and the DREXIT_T tile, permanently reading zero. In demo
  * mode it rides ~10 months ahead of today instead.
  */
 export const DEMO_DREXIT_DATE = iso(addDays(NOW, 304))

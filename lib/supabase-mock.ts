@@ -67,7 +67,7 @@ class MockQueryBuilder {
     _reject?: (e: unknown) => void,
   ) {
     if (this._isWrite) {
-      toast('Demo mode — writes disabled')
+      toast('Demo mode, writes disabled')
       resolve({ data: null, error: null })
       return
     }
@@ -82,7 +82,7 @@ class MockQueryBuilder {
     if (this._order) {
       const { col, asc } = this._order
       // Postgres sorts NULLs last on ASC and first on DESC. Coercing them to
-      // '' instead put undated rows at the top of every ascending list —
+      // '' instead put undated rows at the top of every ascending list,
       // which is why the goals timeline opened on a goal with no deadline.
       rows.sort((a, b) => {
         const an = a[col] == null
