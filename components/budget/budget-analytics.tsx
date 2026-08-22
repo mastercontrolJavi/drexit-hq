@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { format, getDaysInMonth, subMonths } from 'date-fns'
-import { getMonthLabel } from '@/lib/utils'
+import { formatAxisCurrency, getMonthLabel } from '@/lib/utils'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonBarChart, SkeletonLineChart } from '@/components/data/skeleton'
 import {
   BUDGET_CATEGORIES,
   type BudgetEntry,
@@ -28,8 +30,10 @@ import {
   YAxis,
 } from 'recharts'
 import { UnderlineTabs } from '@/components/data/underline-tabs'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
-// Restrained palette — one accent + monochromatic grays
+// Restrained palette: one accent plus monochromatic grays
 const PALETTE = [
   'var(--accent)',
   'var(--text-1)',
@@ -259,20 +263,23 @@ export function BudgetAnalytics({
 
   if (loading) {
     return (
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">ANALYTICS</span>
-        </header>
-        <div className="h-[420px] animate-pulse bg-bg-hover" />
-      </section>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>ANALYTICS</Panel.Title>
+        </Panel.Header>
+        <div className="space-y-4 p-4">
+          <SkeletonBarChart height={220} bars={8} />
+          <SkeletonLineChart height={160} />
+        </div>
+      </Panel>
     )
   }
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-        <span className="caption text-text-2">ANALYTICS</span>
-      </header>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>ANALYTICS</Panel.Title>
+      </Panel.Header>
 
       <div className="px-4 pt-3">
         <UnderlineTabs<Tab> options={TABS} value={tab} onChange={setTab} />
@@ -292,7 +299,7 @@ export function BudgetAnalytics({
               )}
             </div>
             {categoryData.length === 0 ? (
-              <p className="font-mono text-xs text-text-3 py-8">&gt; no spending data</p>
+              <EmptyState variant="flush">no spending data</EmptyState>
             ) : (
               <ResponsiveContainer width="100%" height={Math.max(220, categoryData.length * 28 + 40)}>
                 <BarChart data={categoryData} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 4 }}>
@@ -302,7 +309,7 @@ export function BudgetAnalytics({
                     tick={tickStyle}
                     tickLine={false}
                     axisLine={{ stroke: 'var(--border)' }}
-                    tickFormatter={(v) => `£${v}`}
+                    tickFormatter={(v) => formatAxisCurrency(Number(v))}
                   />
                   <YAxis
                     type="category"
@@ -314,7 +321,7 @@ export function BudgetAnalytics({
                     tickFormatter={(v) => String(v).toUpperCase()}
                   />
                   <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
-                  <Bar
+                  <Bar {...CHART_ANIMATION}
                     dataKey="amount"
                     barSize={18}
                     cursor="pointer"
@@ -341,10 +348,10 @@ export function BudgetAnalytics({
               <ComposedChart data={cashFlowData} margin={{ top: 16, right: 16, bottom: 4, left: 4 }}>
                 <CartesianGrid stroke="var(--border)" />
                 <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
-                <Bar
+                <Bar {...CHART_ANIMATION}
                   dataKey="income"
                   fill="var(--success)"
                   barSize={16}
@@ -352,7 +359,7 @@ export function BudgetAnalytics({
                   cursor="pointer"
                   onClick={(_, index) => handleMonthBarClick(index)}
                 />
-                <Bar
+                <Bar {...CHART_ANIMATION}
                   dataKey="expenses"
                   fill="var(--danger)"
                   barSize={16}
@@ -360,7 +367,7 @@ export function BudgetAnalytics({
                   cursor="pointer"
                   onClick={(_, index) => handleMonthBarClick(index)}
                 />
-                <Line
+                <Line {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="net"
                   stroke="var(--accent)"
@@ -380,7 +387,7 @@ export function BudgetAnalytics({
               <AreaChart data={dailyPaceData} margin={{ top: 16, right: 24, bottom: 4, left: 4 }}>
                 <CartesianGrid stroke="var(--border)" />
                 <XAxis dataKey="day" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ stroke: 'var(--border-strong)' }} content={<MonoTooltip />} />
                 <defs>
                   <linearGradient id="paceGradient" x1="0" y1="0" x2="0" y2="1">
@@ -388,7 +395,7 @@ export function BudgetAnalytics({
                     <stop offset="100%" stopColor="var(--warn)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <Area
+                <Area {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="cumulative"
                   stroke="var(--warn)"
@@ -396,7 +403,7 @@ export function BudgetAnalytics({
                   fill="url(#paceGradient)"
                   name="Actual"
                 />
-                <Line
+                <Line {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="budget"
                   stroke="var(--success)"
@@ -429,13 +436,13 @@ export function BudgetAnalytics({
               <BarChart data={categoryTrendData} margin={{ top: 16, right: 16, bottom: 4, left: 4 }}>
                 <CartesianGrid stroke="var(--border)" />
                 <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
                 {BUDGET_CATEGORIES.filter((cat) =>
                   categoryTrendData.some((d) => (d[cat] as number) > 0),
                 ).map((cat) => (
-                  <Bar key={cat} dataKey={cat} stackId="a" fill={CATEGORY_FILL(cat)} />
+                  <Bar {...CHART_ANIMATION} key={cat} dataKey={cat} stackId="a" fill={CATEGORY_FILL(cat)} />
                 ))}
               </BarChart>
             </ResponsiveContainer>
@@ -446,17 +453,17 @@ export function BudgetAnalytics({
           <>
             <span className="caption text-text-2">SAVINGS GROWTH</span>
             {savingsGrowthData.length === 0 ? (
-              <p className="font-mono text-xs text-text-3 py-8">&gt; no savings transactions yet</p>
+              <EmptyState variant="flush">no savings transactions yet</EmptyState>
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={savingsGrowthData} margin={{ top: 16, right: 24, bottom: 4, left: 4 }}>
                   <CartesianGrid stroke="var(--border)" />
                   <XAxis dataKey="date" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                  <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                  <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                   <Tooltip cursor={{ stroke: 'var(--border-strong)' }} content={<MonoTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
                   {savingsGoals.map((goal, i) => (
-                    <Line
+                    <Line {...CHART_ANIMATION}
                       key={goal.id}
                       type="monotone"
                       dataKey={goal.name}
@@ -487,13 +494,13 @@ export function BudgetAnalytics({
               <ComposedChart data={netPositionData} margin={{ top: 16, right: 16, bottom: 4, left: 4 }}>
                 <CartesianGrid stroke="var(--border)" />
                 <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={48} />
+                <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={48} />
                 <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
-                <Bar dataKey="income"   fill="var(--success)" barSize={14} name="Income" />
-                <Bar dataKey="expenses" fill="var(--danger)"  barSize={14} name="Expenses" />
-                <Bar dataKey="savings"  fill="var(--accent)"  barSize={14} name="Savings" />
-                <Line
+                <Bar {...CHART_ANIMATION} dataKey="income"   fill="var(--success)" barSize={14} name="Income" />
+                <Bar {...CHART_ANIMATION} dataKey="expenses" fill="var(--danger)"  barSize={14} name="Expenses" />
+                <Bar {...CHART_ANIMATION} dataKey="savings"  fill="var(--accent)"  barSize={14} name="Savings" />
+                <Line {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="net"
                   stroke="var(--text-1)"
@@ -507,6 +514,6 @@ export function BudgetAnalytics({
           </>
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

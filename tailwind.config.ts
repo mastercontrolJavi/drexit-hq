@@ -41,7 +41,7 @@ const config: Config = {
         'text-2':       'var(--text-2)',
         'text-3':       'var(--text-3)',
 
-        // Semantic — `accent` keeps shadcn nesting (DEFAULT/foreground) AND is overloaded
+        // Semantic. `accent` keeps shadcn nesting (DEFAULT/foreground) AND is overloaded
         // with the new accent semantics via --primary mapping. For NEW code use:
         accent: {
           DEFAULT: 'var(--accent)',
@@ -63,7 +63,7 @@ const config: Config = {
         '3xl': '4px',
         full: '9999px',
       },
-      // Drop shadows entirely — use hairlines via the design system. Keep 'none' for safety.
+      // Drop shadows entirely and use hairlines via the design system. Keep 'none' for safety.
       boxShadow: {
         none: 'none',
         focus: '0 0 0 1px var(--accent)',

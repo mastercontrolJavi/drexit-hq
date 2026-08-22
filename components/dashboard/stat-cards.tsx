@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Skeleton } from '@/components/ui/skeleton'
+import { SkeletonStat } from '@/components/data/skeleton'
 import { MetricStrip, type MetricStripItem } from '@/components/data/metric-strip'
+import { CountUp } from '@/components/data/count-up'
 import { supabase } from '@/lib/supabase'
 import {
   daysUntilDrexit,
+  drexitDate,
   getCurrentMonthKey,
   formatCurrencyShort,
 } from '@/lib/utils'
@@ -36,10 +38,12 @@ export function StatCards() {
           .from('budget_entries')
           .select('amount_gbp, date')
           .eq('month_key', monthKey),
+        // Newest first, then reversed below. Ordering ascending with a limit
+        // returns the *oldest* eight, which pinned this tile to stale data.
         supabase
           .from('weigh_ins')
           .select('weight_lbs, date')
-          .order('date', { ascending: true })
+          .order('date', { ascending: false })
           .limit(8),
         supabase
           .from('todos')
@@ -65,7 +69,9 @@ export function StatCards() {
         weeklyBurn.push(Math.round(sum))
       }
 
-      const weighIns = (weighInRes.data as Pick<WeighIn, 'weight_lbs' | 'date'>[] | null) ?? []
+      const weighIns = [
+        ...((weighInRes.data as Pick<WeighIn, 'weight_lbs' | 'date'>[] | null) ?? []),
+      ].reverse()
       const weightSeries = weighIns.map((w) => Number(w.weight_lbs))
       const latestWeight =
         weightSeries.length > 0 ? weightSeries[weightSeries.length - 1] : USER_STATS.currentWeight
@@ -87,11 +93,7 @@ export function StatCards() {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 border border-border bg-bg-elevated divide-x divide-border">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="px-5 py-4 space-y-2">
-            <Skeleton className="h-3 w-20" />
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-3 w-16" />
-          </div>
+          <SkeletonStat key={i} className="px-5 py-4" />
         ))}
       </div>
     )
@@ -100,19 +102,19 @@ export function StatCards() {
   const items: MetricStripItem[] = [
     {
       label: 'DREXIT_T',
-      value: `T-${daysUntilDrexit()}`,
-      delta: '07 JUL 26',
+      value: <CountUp value={daysUntilDrexit()} format={(n) => `T-${n}`} />,
+      delta: format(new Date(drexitDate()), 'dd MMM yy').toUpperCase(),
     },
     {
       label: 'RUNWAY',
-      value: formatCurrencyShort(series.runway),
+      value: <CountUp value={series.runway} format={formatCurrencyShort} />,
       tone: series.runway >= 0 ? 'success' : 'danger',
       spark: series.weeklyBurn,
       delta: `${series.weeklyBurn.length}W BURN`,
     },
     {
       label: 'TO_GOAL',
-      value: `${series.lbsToGoal} LBS`,
+      value: <CountUp value={series.lbsToGoal} format={(n) => `${n} LBS`} />,
       spark: series.weightSeries,
       delta: series.weightSeries.length > 1
         ? `Δ ${(series.weightSeries[series.weightSeries.length - 1] - series.weightSeries[0]).toFixed(1)}`
@@ -120,7 +122,7 @@ export function StatCards() {
     },
     {
       label: 'OPEN_TODOS',
-      value: String(series.openTodos),
+      value: <CountUp value={series.openTodos} />,
       delta: series.openTodos === 0 ? 'CLEAR' : 'PENDING',
       tone: series.openTodos === 0 ? 'success' : 'neutral',
     },

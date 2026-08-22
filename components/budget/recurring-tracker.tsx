@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { differenceInDays, format, parseISO, subMonths } from 'date-fns'
-import { cn, formatCurrency, getMonthLabel } from '@/lib/utils'
+import { cn, formatAxisCurrency, formatCurrency, getMonthLabel } from '@/lib/utils'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonBarChart, SkeletonBarRows, SkeletonPanel, SkeletonRows } from '@/components/data/skeleton'
 import type { BudgetEntry } from '@/types'
 import {
   Bar,
@@ -16,6 +18,8 @@ import {
   YAxis,
 } from 'recharts'
 import { CalendarClock, RefreshCcw } from 'lucide-react'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 interface RecurringItem {
   name: string
@@ -161,13 +165,19 @@ export function RecurringTracker() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-20 animate-pulse bg-bg-hover" />
-        <div className="h-44 animate-pulse bg-bg-hover" />
-        <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-14 animate-pulse bg-bg-hover" />
-          ))}
-        </div>
+        <SkeletonPanel headerWidth="w-24">
+          <div className="p-4">
+            <SkeletonBarRows count={1} />
+          </div>
+        </SkeletonPanel>
+        <SkeletonPanel headerWidth="w-28">
+          <div className="p-4">
+            <SkeletonBarChart height={140} bars={6} />
+          </div>
+        </SkeletonPanel>
+        <SkeletonPanel headerWidth="w-20">
+          <SkeletonRows count={4} />
+        </SkeletonPanel>
       </div>
     )
   }
@@ -197,18 +207,18 @@ export function RecurringTracker() {
       </div>
 
       {/* Trend */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">RECURRING SPEND · 6 MONTHS</span>
-        </header>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>RECURRING SPEND · 6 MONTHS</Panel.Title>
+        </Panel.Header>
         <div className="p-4">
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={trendData} barSize={28}>
               <CartesianGrid stroke="var(--border)" vertical={false} />
               <XAxis dataKey="month" tick={tickStyle} tickLine={false} axisLine={{ stroke: 'var(--border)' }} />
-              <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => `£${v}`} width={42} />
+              <YAxis tick={tickStyle} tickLine={false} axisLine={false} tickFormatter={(v) => formatAxisCurrency(Number(v))} width={42} />
               <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
-              <Bar dataKey="total">
+              <Bar {...CHART_ANIMATION} dataKey="total">
                 {trendData.map((entry, i) => (
                   <Cell key={i} fill={entry.monthKey === currentMonthKey ? 'var(--accent)' : 'var(--text-3)'} />
                 ))}
@@ -216,7 +226,7 @@ export function RecurringTracker() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </section>
+      </Panel>
 
       {/* List header */}
       <div className="flex items-center justify-between">
@@ -226,7 +236,7 @@ export function RecurringTracker() {
         <button
           onClick={() => setShowInactive(!showInactive)}
           className={cn(
-            'caption border px-3 py-1.5 transition-colors',
+            'caption border px-3 py-1.5 transition-colors duration-150 ease-out-200',
             showInactive
               ? 'border-accent text-accent'
               : 'border-border text-text-3 hover:border-text-1 hover:text-text-1',
@@ -237,20 +247,20 @@ export function RecurringTracker() {
       </div>
 
       {displayed.length === 0 ? (
-        <section className="border border-border bg-bg-elevated px-4 py-12 text-center">
-          <CalendarClock className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
-          <p className="caption mt-3 text-text-2">NO RECURRING DETECTED</p>
-          <p className="font-mono text-[11px] text-text-3 mt-2 mx-auto max-w-xs">
-            &gt; auto-detected from descriptions appearing in 2+ months with ≤30% amount variance
-          </p>
-        </section>
+        <EmptyState
+          variant="block"
+          icon={CalendarClock}
+          hint="auto-detected from descriptions appearing in 2+ months with ≤30% amount variance"
+        >
+          NO RECURRING DETECTED
+        </EmptyState>
       ) : (
         <ul className="space-y-2">
           {displayed.map((item, i) => (
             <li
               key={i}
               className={cn(
-                'border border-border bg-bg-elevated p-3 transition-colors hover:bg-bg-hover',
+                'border border-border bg-bg-elevated p-3 transition-colors duration-150 ease-out-200 hover:bg-bg-hover',
                 !item.isActive && 'opacity-60',
               )}
             >

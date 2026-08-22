@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Check, Upload, X } from 'lucide-react'
+import { TerminalButton } from '@/components/ui/terminal-button'
 
 type ColumnMapping = 'date' | 'description' | 'amount' | 'skip'
 
@@ -193,7 +194,7 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
       />
       <button
         onClick={() => fileRef.current?.click()}
-        className="caption flex items-center gap-2 border border-border px-3 py-2 text-text-2 transition-colors duration-200 ease-out-200 hover:border-text-1 hover:text-text-1"
+        className="caption flex items-center gap-2 border border-border px-3 py-2 text-text-2 transition-colors duration-150 ease-out-200 hover:border-text-1 hover:text-text-1"
       >
         <Upload className="h-3 w-3" strokeWidth={1.5} />
         &gt; IMPORT FILE...
@@ -318,23 +319,20 @@ export function CsvImport({ onImportComplete }: CsvImportProps) {
             </div>
 
             <p className="font-mono text-[11px] text-text-3">
-              &gt; imported entries default to category &quot;Other&quot; — re-categorize after import
+              &gt; imported entries default to category &quot;Other&quot;. re-categorize after import
             </p>
 
             <div className="flex gap-2">
-              <button
+              <TerminalButton
                 onClick={handleImport}
                 disabled={!isValid || importing}
-                className="caption flex-1 border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors disabled:opacity-50 hover:bg-bg-base hover:text-text-1 disabled:hover:bg-text-1 disabled:hover:text-bg-base"
+                className="flex-1"
               >
                 {importing ? 'IMPORTING...' : `IMPORT ${rows.length} ROWS`}
-              </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="caption border border-border px-3 py-2 text-text-2 hover:border-text-1 hover:text-text-1"
-              >
+              </TerminalButton>
+              <TerminalButton variant="ghost" onClick={() => setOpen(false)}>
                 CANCEL
-              </button>
+              </TerminalButton>
             </div>
           </div>
         </SheetContent>

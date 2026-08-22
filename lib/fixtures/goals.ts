@@ -1,139 +1,161 @@
-export const goals = [
-  // ── Done ───────────────────────────────────────────────────────────────────
+import { NOW, addDays, iso, isoTime } from './clock'
+import type { GoalCategory, GoalStatus } from '@/types'
+
+/**
+ * Deadlines are expressed as an offset in days from today, so the goal board
+ * always shows the full range of deadline tones the UI can render: overdue in
+ * danger, inside 30 days in warn, further out in success, and completed goals
+ * with no countdown at all. Fixed dates collapse to a single tone over time.
+ */
+const GOALS: Array<{
+  title: string
+  description: string | null
+  category: GoalCategory
+  status: GoalStatus
+  progress: number
+  /** Negative = already passed. null = no deadline set. */
+  deadlineInDays: number | null
+  /** Whether to show a target quarter. The label is derived from the deadline
+   *  rather than stated separately, so the two can never disagree. */
+  quarter: boolean
+  notes: string | null
+  createdDaysAgo: number
+}> = [
+  // ── Complete ───────────────────────────────────────────────────────────────
   {
-    id: 'goal-10',
-    title: 'Ship AXIS_OS MVP',
+    title: 'Ship AXIS_OS v1',
     description: 'Full-stack personal command centre: budget, goals, fitness, ideas.',
-    category: 'Business',
-    deadline: '2026-04-01',
-    target_quarter: 'Q1 2026',
-    status: 'done',
-    progress_pct: 100,
-    notes: 'Launched on schedule. Moving to v1.1 with demo mode.',
-    created_at: '2026-01-10T10:00:00.000Z',
+    category: 'Business', status: 'done', progress: 100,
+    deadlineInDays: -128, quarter: true,
+    notes: 'Shipped on schedule. Demo mode and the public write-up came after.',
+    createdDaysAgo: 240,
   },
   {
-    id: 'goal-11',
-    title: 'Read 12 books in 2025',
+    title: 'Read 12 books this year',
     description: null,
-    category: 'Creative',
-    deadline: '2025-12-31',
-    target_quarter: null,
-    status: 'done',
-    progress_pct: 100,
-    notes: 'Finished #12 on Dec 28. Highlights: 4HWW, Zero to One, Atomic Habits.',
-    created_at: '2025-01-01T10:00:00.000Z',
+    category: 'Creative', status: 'done', progress: 100,
+    deadlineInDays: -46, quarter: false,
+    notes: 'Finished #12 early. Best three: Shape Up, The Creative Act, Slow Productivity.',
+    createdDaysAgo: 300,
+  },
+  {
+    title: 'Build a 3-month emergency fund',
+    description: 'Enough runway to leave a job without a plan lined up.',
+    category: 'Life', status: 'done', progress: 100,
+    deadlineInDays: -21, quarter: false,
+    notes: 'Hit £2,000 in July. Rolling the standing order into the move-out fund.',
+    createdDaysAgo: 190,
   },
 
-  // ── In progress ────────────────────────────────────────────────────────────
+  // ── Overdue, the danger tone ──────────────────────────────────────────────
   {
-    id: 'goal-1',
-    title: 'Save £800+ for Europe trip',
-    description: 'Lisbon + Porto or Barcelona before departure in July.',
-    category: 'Life',
-    deadline: '2026-07-07',
-    target_quarter: null,
-    status: 'in_progress',
-    progress_pct: 52,
-    notes: '£420 saved so far. Targeting £100/month minimum.',
-    created_at: '2026-01-15T10:00:00.000Z',
+    title: 'Launch the first paid digital product',
+    description: 'One product, priced, live, with a real checkout. Not another prototype.',
+    category: 'Business', status: 'in_progress', progress: 70,
+    deadlineInDays: -6, quarter: true,
+    notes: 'Rate calculator is built. Blocked on the landing page, which is on me.',
+    createdDaysAgo: 120,
+  },
+
+  // ── Due soon, the warn tone ───────────────────────────────────────────────
+  {
+    title: 'Publish the AXIS_OS case study',
+    description: 'Write-up with screenshots, architecture notes and the demo link.',
+    category: 'Creative', status: 'in_progress', progress: 45,
+    deadlineInDays: 9, quarter: true,
+    notes: 'Draft exists. Needs the demo finished before the screenshots are worth taking.',
+    createdDaysAgo: 34,
   },
   {
-    id: 'goal-2',
-    title: 'Travel to 3+ European cities',
-    description: 'At minimum: Lisbon, Barcelona, and one more.',
-    category: 'Life',
-    deadline: '2026-07-07',
-    target_quarter: null,
-    status: 'in_progress',
-    progress_pct: 33,
-    notes: '1/3 done — Amsterdam trip in February. Lisbon booked for June.',
-    created_at: '2026-01-15T10:00:00.000Z',
+    title: 'Reach 195 lbs',
+    description: 'Next marker on the way to 170.',
+    category: 'Fitness', status: 'in_progress', progress: 72,
+    deadlineInDays: 24, quarter: false,
+    notes: 'On pace at roughly 0.9 lb/week. The daily weigh-in habit is what fixed it.',
+    createdDaysAgo: 160,
+  },
+
+  // ── Comfortable runway, the success tone ──────────────────────────────────
+  {
+    title: 'Save £4,000 for the move',
+    description: 'Deposit, first month and a buffer, without touching the emergency fund.',
+    category: 'Life', status: 'in_progress', progress: 41,
+    deadlineInDays: 232, quarter: true,
+    notes: '£260/month standing order. Ahead of schedule since the Lisbon trip was paid off.',
+    createdDaysAgo: 158,
   },
   {
-    id: 'goal-3',
-    title: 'Document the UK year (photos/video)',
-    description: 'End-of-year YouTube vlog + photo book.',
-    category: 'Creative',
-    deadline: '2026-07-07',
-    target_quarter: null,
-    status: 'in_progress',
-    progress_pct: 60,
-    notes: '6 months of footage organised. Need to edit the Amsterdam and Brighton trips.',
-    created_at: '2026-01-15T10:00:00.000Z',
+    title: 'Land a remote role or £2,000/mo from the business',
+    description: 'Either path works. The point is not being tied to one city.',
+    category: 'Career', status: 'in_progress', progress: 30,
+    deadlineInDays: 128, quarter: true,
+    notes: 'Two interviews in the pipeline. Product income is at £180/mo, long way to go.',
+    createdDaysAgo: 200,
   },
   {
-    id: 'goal-4',
-    title: 'Land remote job OR £2k/mo from business',
-    description: 'Either a remote-first role or enough product revenue to be location-independent.',
-    category: 'Career',
-    deadline: '2026-12-31',
-    target_quarter: 'Q3 2026',
-    status: 'in_progress',
-    progress_pct: 20,
-    notes: '2 interviews in pipeline. AXIS_OS + Gumroad products at ~£180/mo combined.',
-    created_at: '2026-01-10T10:00:00.000Z',
+    title: 'Post 24 videos to the Still.AI channel',
+    description: 'Two a month, every month, regardless of how they perform.',
+    category: 'Creative', status: 'in_progress', progress: 58,
+    deadlineInDays: 160, quarter: true,
+    notes: '14 published. The batching approach is the only reason this is still alive.',
+    createdDaysAgo: 210,
   },
   {
-    id: 'goal-7',
     title: 'Reach 170 lbs',
-    description: 'From current 215 lbs — 45 lbs to go on a 750 kcal/day deficit.',
-    category: 'Fitness',
-    deadline: '2026-07-07',
-    target_quarter: null,
-    status: 'in_progress',
-    progress_pct: 38,
-    notes: 'Down 7.4 lbs since March. On track at ~1 lb/week average.',
-    created_at: '2026-01-10T10:00:00.000Z',
-  },
-  {
-    id: 'goal-8',
-    title: 'Post to Still.AI YouTube consistently',
-    description: '1 video per week, 50 subscribers by July.',
-    category: 'Creative',
-    deadline: '2026-12-31',
-    target_quarter: 'Q2 2026',
-    status: 'in_progress',
-    progress_pct: 40,
-    notes: '8 videos posted, 23 subscribers. Consistency improving.',
-    created_at: '2026-01-10T10:00:00.000Z',
-  },
-  {
-    id: 'goal-9',
-    title: 'Build 2+ business ideas to MVP',
-    description: 'Ship working products, not just prototypes.',
-    category: 'Business',
-    deadline: '2026-12-31',
-    target_quarter: 'Q3 2026',
-    status: 'in_progress',
-    progress_pct: 35,
-    notes: 'AXIS_OS is live (1/2). Still.AI is in active development (partial credit).',
-    created_at: '2026-01-10T10:00:00.000Z',
+    description: 'Goal weight. Roughly 33 lbs to go at the current pace.',
+    category: 'Fitness', status: 'in_progress', progress: 39,
+    deadlineInDays: 290, quarter: true,
+    notes: 'Trend line puts this in spring if the deficit holds through winter.',
+    createdDaysAgo: 165,
   },
 
   // ── Not started ────────────────────────────────────────────────────────────
   {
-    id: 'goal-5',
-    title: 'Move to a city (NYC, Madrid, or Lisbon)',
-    description: 'Post-UK home base. Needs visa research and savings runway.',
-    category: 'Life',
-    deadline: null,
-    target_quarter: 'Q4 2026',
-    status: 'not_started',
-    progress_pct: 0,
-    notes: 'Leaning toward Lisbon. Need to investigate D8 visa requirements.',
-    created_at: '2026-01-15T10:00:00.000Z',
+    title: 'Two weeks in Japan',
+    description: 'Tokyo, Kyoto, Osaka. Booked and paid for from the trip fund, not credit.',
+    category: 'Life', status: 'not_started', progress: 0,
+    deadlineInDays: 268, quarter: true,
+    notes: 'Fund is at £720 of £2,600. Flights need booking before the fare window closes.',
+    createdDaysAgo: 92,
   },
   {
-    id: 'goal-6',
-    title: 'Launch first paid digital product',
-    description: 'Not the template pack — something with a real audience.',
-    category: 'Business',
-    deadline: '2026-12-31',
-    target_quarter: 'Q4 2026',
-    status: 'not_started',
-    progress_pct: 0,
-    notes: 'Candidates: freelance rate calculator or Still.AI paid tier.',
-    created_at: '2026-01-10T10:00:00.000Z',
+    title: 'Get two business ideas to a working MVP',
+    description: 'Not mockups. Something a stranger can use without me in the room.',
+    category: 'Business', status: 'not_started', progress: 0,
+    deadlineInDays: 200, quarter: true,
+    notes: null,
+    createdDaysAgo: 88,
+  },
+  {
+    title: 'Learn enough Japanese to order dinner',
+    description: null,
+    category: 'Creative', status: 'not_started', progress: 0,
+    deadlineInDays: null, quarter: false,
+    notes: 'No deadline on purpose. This one is meant to be pressure-free.',
+    createdDaysAgo: 40,
   },
 ]
+
+function quarterLabel(deadline: Date): string {
+  return `Q${Math.floor(deadline.getMonth() / 3) + 1} ${deadline.getFullYear()}`
+}
+
+export const goals = GOALS.map((g, i) => {
+  const deadlineDate = g.deadlineInDays === null ? null : addDays(NOW, g.deadlineInDays)
+  return {
+  id: `goal-${String(i + 1).padStart(2, '0')}`,
+  title: g.title,
+  description: g.description,
+  category: g.category,
+  deadline: deadlineDate === null ? null : iso(deadlineDate),
+  target_quarter: g.quarter && deadlineDate ? quarterLabel(deadlineDate) : null,
+  status: g.status,
+  progress_pct: g.progress,
+  notes: g.notes,
+  created_at: isoTime(addDays(NOW, -g.createdDaysAgo), 10, i),
+  }
+})
+
+/** Referenced by the ticker so its goal counter cannot drift from the board. */
+export const GOALS_DONE = goals.filter((g) => g.status === 'done').length
+export const GOALS_TOTAL = goals.length

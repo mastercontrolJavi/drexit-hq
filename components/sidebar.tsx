@@ -65,7 +65,7 @@ export function Sidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    'group relative flex items-center gap-2.5 px-3 py-2 transition-colors duration-200 ease-out-200',
+                    'group relative flex items-center gap-2.5 px-3 py-2 transition-colors duration-150 ease-out-200',
                     isActive
                       ? 'text-text-1'
                       : 'text-text-2 hover:bg-bg-hover hover:text-text-1'

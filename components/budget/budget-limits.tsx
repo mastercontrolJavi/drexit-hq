@@ -15,6 +15,10 @@ import {
 import { Check, Pencil, Plus, RefreshCcw, TrendingUp, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { Shimmer, SkeletonBarRows } from '@/components/data/skeleton'
+import { TerminalButton } from '@/components/ui/terminal-button'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 function getPaceTone(pct: number): 'success' | 'warn' | 'danger' {
   if (pct >= 90) return 'danger'
@@ -193,7 +197,7 @@ export function BudgetLimits() {
     toast.success(
       updated > 0
         ? `Rollover applied to ${updated} categor${updated === 1 ? 'y' : 'ies'}`
-        : 'Nothing to roll over — all categories were over budget last month',
+        : 'Nothing to roll over. All categories were over budget last month',
     )
   }
 
@@ -218,10 +222,12 @@ export function BudgetLimits() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-16 animate-pulse bg-bg-hover" />
+        <Shimmer className="h-16 w-full" />
         <div className="grid gap-3 sm:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-40 animate-pulse bg-bg-hover" />
+            <div key={i} className="space-y-3 border border-border bg-bg-elevated p-4" aria-hidden>
+              <SkeletonBarRows count={3} />
+            </div>
           ))}
         </div>
       </div>
@@ -266,7 +272,7 @@ export function BudgetLimits() {
       {hasRolloverReady && (
         <div className="flex items-center justify-between border border-accent/40 bg-bg-elevated px-4 py-3">
           <div className="flex items-center gap-3">
-            <RefreshCcw className="h-3.5 w-3.5 shrink-0 text-accent" strokeWidth={1.5} />
+            <RefreshCcw className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.5} />
             <p className="font-mono text-[12px] text-text-2">
               <span className="text-accent">ROLLOVER AVAILABLE</span> · apply unspent budget from {getMonthLabel(prevMonth).toUpperCase()}
             </p>
@@ -282,15 +288,13 @@ export function BudgetLimits() {
 
       {/* Category cards */}
       {categoryStats.length === 0 ? (
-        <section className="border border-border bg-bg-elevated px-4 py-12 text-center">
-          <TrendingUp className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
-          <p className="caption mt-3 text-text-2">NO BUDGET LIMITS SET</p>
-          <p className="caption mt-1 text-text-3">ADD A CATEGORY BUDGET BELOW</p>
-        </section>
+        <EmptyState variant="block" icon={TrendingUp} hint="add a category budget below">
+          NO BUDGET LIMITS SET
+        </EmptyState>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {categoryStats.map((cat) => (
-            <section key={cat.category} className="border border-border bg-bg-elevated p-4">
+            <Panel key={cat.category} className="p-4">
               <header className="mb-3 flex items-start justify-between">
                 <div>
                   <span className="caption text-text-1">{cat.category.toUpperCase()}</span>
@@ -317,14 +321,14 @@ export function BudgetLimits() {
                       setEditingCategory(cat.category)
                       setEditValue(String(cat.monthly_limit))
                     }}
-                    className="text-text-3 transition-colors hover:text-text-1"
+                    className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
                     aria-label="Edit"
                   >
                     <Pencil className="h-3 w-3" strokeWidth={1.5} />
                   </button>
                   <button
                     onClick={() => removeLimit(cat.id)}
-                    className="text-text-3 transition-colors hover:text-danger"
+                    className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-danger"
                     aria-label="Remove"
                   >
                     <X className="h-3 w-3" strokeWidth={1.5} />
@@ -350,15 +354,15 @@ export function BudgetLimits() {
                   <button
                     onClick={() => saveLimit(cat.category, parseFloat(editValue))}
                     disabled={saving}
-                    className="text-success transition-colors hover:opacity-80"
+                    className="text-success transition-colors duration-150 ease-out-200 hover:opacity-80"
                   >
-                    <Check className="h-4 w-4" strokeWidth={1.5} />
+                    <Check className="h-3.5 w-3.5" strokeWidth={1.5} />
                   </button>
                   <button
                     onClick={() => setEditingCategory(null)}
-                    className="text-text-3 transition-colors hover:text-text-1"
+                    className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
                   >
-                    <X className="h-4 w-4" strokeWidth={1.5} />
+                    <X className="h-3.5 w-3.5" strokeWidth={1.5} />
                   </button>
                 </div>
               ) : (
@@ -401,7 +405,7 @@ export function BudgetLimits() {
               <button
                 onClick={() => toggleRollover(cat.id, cat.rollover)}
                 className={cn(
-                  'caption mt-3 block w-full border py-1.5 transition-colors',
+                  'caption mt-3 block w-full border py-1.5 transition-colors duration-150 ease-out-200',
                   cat.rollover
                     ? 'border-accent text-accent'
                     : 'border-border text-text-3 hover:border-text-1 hover:text-text-1',
@@ -409,20 +413,20 @@ export function BudgetLimits() {
               >
                 {cat.rollover ? '↩ ROLLOVER ON' : 'ROLLOVER OFF'}
               </button>
-            </section>
+            </Panel>
           ))}
         </div>
       )}
 
       {/* Add category */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+      <Panel>
+        <Panel.Header className="justify-start gap-2">
           <Plus className="h-3 w-3 text-text-2" strokeWidth={1.5} />
-          <span className="caption text-text-2">ADD CATEGORY BUDGET</span>
-        </header>
+          <Panel.Title>ADD CATEGORY BUDGET</Panel.Title>
+        </Panel.Header>
         <div className="p-4">
           {availableCategories.length === 0 ? (
-            <p className="font-mono text-xs text-text-3">&gt; all categories have limits set</p>
+            <EmptyState>all categories have limits set</EmptyState>
           ) : (
             <div className="flex gap-2">
               <Select value={addCategory} onValueChange={(v) => setAddCategory(v ?? '')}>
@@ -445,17 +449,18 @@ export function BudgetLimits() {
                 placeholder="£ limit"
                 className="w-28 border border-border bg-transparent px-2 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
-              <button
+              <TerminalButton
+                size="sm"
                 onClick={handleAddLimit}
                 disabled={!addCategory || !addAmount || saving}
-                className="caption border border-text-1 bg-text-1 px-3 py-1.5 text-bg-base disabled:opacity-50 hover:bg-bg-base hover:text-text-1 disabled:hover:bg-text-1 disabled:hover:text-bg-base"
+                className="px-3 py-1.5"
               >
                 ADD
-              </button>
+              </TerminalButton>
             </div>
           )}
         </div>
-      </section>
+      </Panel>
 
       <p className="caption text-center text-text-3">
         {getMonthLabel(currentMonth).toUpperCase()} · {daysRemaining} DAYS REMAINING

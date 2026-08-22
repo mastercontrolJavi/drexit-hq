@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
+import { motion } from 'framer-motion'
 import { Plus, Target, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn, daysUntil, formatDate } from '@/lib/utils'
@@ -25,6 +26,11 @@ import { GOAL_CATEGORIES } from '@/types'
 import { TimelineRail } from '@/components/data/timeline-rail'
 import { StatusLabel } from '@/components/data/status-label'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { CountUp } from '@/components/data/count-up'
+import { EmptyState } from '@/components/data/empty-state'
+import { Shimmer, SkeletonBarRows } from '@/components/data/skeleton'
+import { DUR, EASE_OUT, staggerDelay } from '@/lib/motion'
+import { TerminalButton } from '@/components/ui/terminal-button'
 import {
   UnderlineTabs,
   type UnderlineTabOption,
@@ -254,10 +260,13 @@ export function GoalsClient() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-9 w-72 animate-pulse bg-bg-hover" />
+        <Shimmer className="h-9 w-72" />
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse bg-bg-hover" />
+            <div key={i} className="ml-8 space-y-3 border border-border bg-bg-elevated p-4" aria-hidden>
+              <Shimmer className="h-4 w-2/3" delay={i * 80} />
+              <SkeletonBarRows count={1} />
+            </div>
           ))}
         </div>
       </div>
@@ -271,19 +280,19 @@ export function GoalsClient() {
         <div className="px-5 py-4">
           <span className="caption text-text-2">NOT_STARTED</span>
           <p className="num-display mt-1 text-[28px] leading-none text-text-3">
-            {statusCounts.not_started}
+            <CountUp value={statusCounts.not_started} />
           </p>
         </div>
         <div className="px-5 py-4">
           <span className="caption text-text-2">IN_PROGRESS</span>
           <p className="num-display mt-1 text-[28px] leading-none text-accent">
-            {statusCounts.in_progress}
+            <CountUp value={statusCounts.in_progress} />
           </p>
         </div>
         <div className="px-5 py-4">
           <span className="caption text-text-2">COMPLETE</span>
           <p className="num-display mt-1 text-[28px] leading-none text-success">
-            {statusCounts.done}
+            <CountUp value={statusCounts.done} />
           </p>
         </div>
       </div>
@@ -297,23 +306,19 @@ export function GoalsClient() {
           className="flex-1"
           scroll
         />
-        <button
-          onClick={openNewGoalDrawer}
-          className="caption flex items-center gap-1.5 border border-text-1 bg-text-1 px-3 py-3 md:py-2 text-bg-base transition-colors duration-200 ease-out-200 hover:bg-bg-base hover:text-text-1"
-        >
+        <TerminalButton onClick={openNewGoalDrawer}>
           <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD GOAL
-        </button>
+        </TerminalButton>
       </div>
 
       {/* Timeline */}
       {filteredGoals.length === 0 ? (
-        <div className="border border-border bg-bg-elevated px-4 py-16 text-center">
-          <Target className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
-          <p className="caption mt-3 text-text-2">NO GOALS IN THIS CATEGORY</p>
-        </div>
+        <EmptyState variant="block" icon={Target}>
+          NO GOALS IN THIS CATEGORY
+        </EmptyState>
       ) : (
         <TimelineRail>
-          {filteredGoals.map((goal) => {
+          {filteredGoals.map((goal, i) => {
             const tone = deadlineTone(goal.deadline, goal.status)
             const dotTone =
               goal.status === 'done' ? 'success' : goal.status === 'in_progress' ? 'accent' : 'neutral'
@@ -323,17 +328,31 @@ export function GoalsClient() {
                 tone={dotTone}
                 active={goal.status === 'in_progress'}
               >
-                <button
+                <motion.button
                   onClick={() => openGoalDrawer(goal)}
-                  className="block w-full border border-border bg-bg-elevated p-4 text-left transition-colors duration-200 ease-out-200 hover:border-border-strong hover:bg-bg-hover"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileTap={{ scale: 0.995 }}
+                  transition={{
+                    duration: DUR.base,
+                    ease: EASE_OUT,
+                    delay: staggerDelay(i),
+                  }}
+                  className="block w-full border border-border bg-bg-elevated p-4 text-left transition-colors duration-150 ease-out-200 hover:border-border-strong hover:bg-bg-hover"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-[14px] font-medium leading-snug text-text-1">
+                      <h3
+                        className="line-clamp-2 text-[14px] font-medium leading-snug text-text-1"
+                        title={goal.title}
+                      >
                         {goal.title}
                       </h3>
                       {goal.description && (
-                        <p className="mt-1 line-clamp-2 text-[12px] text-text-2">
+                        <p
+                          className="mt-1 line-clamp-2 text-[12px] text-text-2"
+                          title={goal.description}
+                        >
                           {goal.description}
                         </p>
                       )}
@@ -371,12 +390,17 @@ export function GoalsClient() {
                     <span className={cn('font-mono', TONE_TEXT_CLASS[tone])}>
                       {goal.deadline ? formatDate(goal.deadline).toUpperCase() : 'NO DEADLINE'}
                     </span>
-                    <span className="text-text-3">·</span>
-                    <span className={cn('font-mono', TONE_TEXT_CLASS[tone])}>
-                      {deadlineLabel(goal.deadline, goal.status)}
-                    </span>
+                    {/* Without a deadline both slots read "NO DEADLINE", so show it once */}
+                    {goal.deadline && (
+                      <>
+                        <span className="text-text-3">·</span>
+                        <span className={cn('font-mono', TONE_TEXT_CLASS[tone])}>
+                          {deadlineLabel(goal.deadline, goal.status)}
+                        </span>
+                      </>
+                    )}
                   </div>
-                </button>
+                </motion.button>
               </TimelineRail.Item>
             )
           })}
@@ -517,22 +541,18 @@ export function GoalsClient() {
             </label>
 
             <div className="flex gap-2 border-t border-border pt-4">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="caption flex-1 border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors disabled:opacity-50 hover:bg-bg-base hover:text-text-1 disabled:hover:bg-text-1 disabled:hover:text-bg-base"
-              >
+              <TerminalButton onClick={handleSave} disabled={saving} className="flex-1">
                 {saving ? 'SAVING...' : isNew ? 'CREATE GOAL' : 'SAVE CHANGES'}
-              </button>
+              </TerminalButton>
               {!isNew && (
-                <button
+                <TerminalButton
+                  variant="danger"
                   onClick={handleDelete}
                   disabled={saving}
-                  className="caption border border-border px-3 py-2 text-text-2 transition-colors hover:border-danger hover:text-danger"
                   aria-label="Delete"
                 >
                   <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
-                </button>
+                </TerminalButton>
               )}
             </div>
           </div>

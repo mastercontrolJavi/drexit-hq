@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { format, getDate, getDaysInMonth, subMonths } from 'date-fns'
 import { cn, formatCurrency, formatCurrencyShort, getMonthLabel } from '@/lib/utils'
+import { SkeletonCard } from '@/components/data/skeleton'
+import { EmptyState } from '@/components/data/empty-state'
 import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import {
@@ -114,7 +116,7 @@ export function SpendingInsights() {
         Icon: TrendingDown,
         label: 'NICE_CUT',
         headline: `${top.category} spend down vs last month`,
-        metric: `${top.changePct.toFixed(0)}% — saved ${formatCurrency(top.prev - top.curr)}`,
+        metric: `${top.changePct.toFixed(0)}%, saved ${formatCurrency(top.prev - top.curr)}`,
         tone: 'success',
       })
     }
@@ -152,7 +154,7 @@ export function SpendingInsights() {
         id: 'highest-day',
         Icon: Flame,
         label: 'BIG_SPEND_DAY',
-        headline: `${format(new Date(topDay + 'T12:00:00'), 'EEEE, MMM d')} — ${txCount} txn${txCount !== 1 ? 's' : ''}`,
+        headline: `${format(new Date(topDay + 'T12:00:00'), 'EEEE, MMM d')}, ${txCount} txn${txCount !== 1 ? 's' : ''}`,
         metric: formatCurrency(topDayAmount),
         tone: 'warn',
       })
@@ -173,7 +175,7 @@ export function SpendingInsights() {
         id: 'top-merchant',
         Icon: ShoppingBag,
         label: 'MOST_FREQUENT',
-        headline: `${topMerchant[0]} — ${topMerchant[1]}× this month`,
+        headline: `${topMerchant[0]}, ${topMerchant[1]}× this month`,
         metric: `Total: ${formatCurrency(merchantSpend)}`,
         tone: 'accent',
       })
@@ -243,7 +245,7 @@ export function SpendingInsights() {
     return (
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-32 animate-pulse bg-bg-hover" />
+          <SkeletonCard key={i} className="h-32" lines={2} delay={i * 60} />
         ))}
       </div>
     )
@@ -251,13 +253,13 @@ export function SpendingInsights() {
 
   if (insights.length === 0) {
     return (
-      <div className="border border-border bg-bg-elevated px-4 py-16 text-center">
-        <Zap className="mx-auto h-5 w-5 text-text-3" strokeWidth={1.5} />
-        <p className="caption mt-3 text-text-2">NO INSIGHTS YET</p>
-        <p className="font-mono text-[11px] text-text-3 mt-1">
-          &gt; add transactions this month to generate insights
-        </p>
-      </div>
+      <EmptyState
+        variant="block"
+        icon={Zap}
+        hint="add transactions this month to generate insights"
+      >
+        NO INSIGHTS YET
+      </EmptyState>
     )
   }
 
@@ -275,7 +277,7 @@ export function SpendingInsights() {
             <section
               key={insight.id}
               className={cn(
-                'border bg-bg-elevated p-4 transition-colors hover:bg-bg-hover',
+                'border bg-bg-elevated p-4 transition-colors duration-150 ease-out-200 hover:bg-bg-hover',
                 TONE_BORDER[insight.tone],
               )}
             >

@@ -7,6 +7,10 @@ import { getMonthLabel, formatCurrencyShort } from '@/lib/utils'
 import type { BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { LoadError } from '@/components/data/load-error'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonBarChart } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
 
 interface MonthRow {
   month: string
@@ -38,13 +42,22 @@ export function CashFlowMini() {
   const { income } = useIncome()
   const [data, setData] = useState<MonthRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
 
   const fetchData = useCallback(async () => {
+    setLoading(true)
+    setFailed(false)
     const threeMonthsAgo = format(subMonths(new Date(), 2), 'yyyy-MM')
-    const { data: entries } = await supabase
+    const { data: entries, error } = await supabase
       .from('budget_entries')
       .select('amount_gbp, month_key')
       .gte('month_key', threeMonthsAgo)
+
+    if (error) {
+      setFailed(true)
+      setLoading(false)
+      return
+    }
 
     const months: string[] = []
     for (let i = 2; i >= 0; i--) {
@@ -75,18 +88,20 @@ export function CashFlowMini() {
   const latestNet = data.length > 0 ? data[data.length - 1].net : 0
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">CASH_FLOW</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>CASH_FLOW</Panel.Title>
         <span
           className={`font-mono text-[12px] tabular-nums ${latestNet >= 0 ? 'text-success' : 'text-danger'}`}
         >
           NET {latestNet >= 0 ? '+' : ''}{formatCurrencyShort(latestNet)}
         </span>
-      </header>
+      </Panel.Header>
       <div className="p-4">
         {loading ? (
-          <div className="h-[140px] w-full animate-pulse bg-bg-hover" />
+          <SkeletonBarChart height={140} bars={6} />
+        ) : failed ? (
+          <LoadError onRetry={fetchData} className="h-[140px] items-start" />
         ) : (
           <ResponsiveContainer width="100%" height={140}>
             <BarChart data={data} barGap={2}>
@@ -98,12 +113,12 @@ export function CashFlowMini() {
               />
               <YAxis hide />
               <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<CashFlowTooltip />} />
-              <Bar dataKey="income" fill="var(--success)" barSize={12} />
-              <Bar dataKey="expenses" fill="var(--danger)" barSize={12} />
+              <Bar {...CHART_ANIMATION} dataKey="income" fill="var(--success)" barSize={12} />
+              <Bar {...CHART_ANIMATION} dataKey="expenses" fill="var(--danger)" barSize={12} />
             </BarChart>
           </ResponsiveContainer>
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

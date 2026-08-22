@@ -7,15 +7,15 @@ import { differenceInCalendarDays, format, parseISO, subDays } from 'date-fns'
 import {
   calculateTargetWeight,
   cn,
+  drexitDate,
   formatDateShort,
   getUserMacros,
+  weightStartDate,
 } from '@/lib/utils'
 import {
-  DREXIT_DATE,
   FOOD_CATEGORIES,
   type FoodItem,
   USER_STATS,
-  WEIGHT_START_DATE,
   type WeighIn,
 } from '@/types'
 import {
@@ -56,6 +56,11 @@ import {
   YAxis,
 } from 'recharts'
 import { RingProgress } from '@/components/data/ring-progress'
+import { TerminalButton } from '@/components/ui/terminal-button'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonCard, SkeletonLineChart } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 import {
   UnderlineTabs,
   type UnderlineTabOption,
@@ -184,14 +189,22 @@ export function FitnessClient() {
     fetchData()
   }, [fetchData])
 
+  // Anchor the glide path to the first logged weigh-in rather than to
+  // USER_STATS.currentWeight, which is today's weight. Using it as the start
+  // re-baselines the target every time you step on the scale.
+  const glideStartWeight = weighIns.length
+    ? Number(weighIns[0].weight_lbs)
+    : USER_STATS.currentWeight
+  const glideStartDate = weighIns.length ? weighIns[0].date : weightStartDate()
+
   const chartData = weighIns.map((w) => ({
     date: formatDateShort(w.date),
     weight: Number(w.weight_lbs),
     target: calculateTargetWeight(
-      USER_STATS.currentWeight,
+      glideStartWeight,
       USER_STATS.goalWeight,
-      WEIGHT_START_DATE,
-      DREXIT_DATE,
+      glideStartDate,
+      drexitDate(),
       new Date(w.date),
     ),
   }))
@@ -222,6 +235,9 @@ export function FitnessClient() {
   const latest = weighIns.length > 0 ? weighIns[weighIns.length - 1] : null
   const latestWeight = latest ? Number(latest.weight_lbs) : null
   const latestBmi = latest && latest.bmi !== null ? Number(latest.bmi) : null
+  // Most recent body-fat reading. They are logged less often than weight.
+  const latestBodyFat =
+    [...weighIns].reverse().find((w) => w.body_fat_pct !== null)?.body_fat_pct ?? null
 
   // BMI Δ vs ~7 days ago
   const oneWeekAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd')
@@ -234,7 +250,7 @@ export function FitnessClient() {
       : null
 
   const latestTarget = latestWeight
-    ? calculateTargetWeight(USER_STATS.currentWeight, USER_STATS.goalWeight, WEIGHT_START_DATE, DREXIT_DATE)
+    ? calculateTargetWeight(glideStartWeight, USER_STATS.goalWeight, glideStartDate, drexitDate())
     : null
   const isOnTrack = latestWeight && latestTarget ? latestWeight <= latestTarget : null
 
@@ -384,7 +400,7 @@ export function FitnessClient() {
         ))}
       </div>
 
-      {/* Stats strip — streak / BMI Δ / on-track */}
+      {/* Stats strip: streak / BMI Δ / on-track */}
       <div className="grid grid-cols-3 border border-border bg-bg-elevated divide-x divide-border">
         <div className="px-5 py-4">
           <span className="caption text-text-2">STREAK</span>
@@ -436,10 +452,10 @@ export function FitnessClient() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Log entry form */}
-        <section className="border border-border bg-bg-elevated">
-          <header className="border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">LOG_ENTRY</span>
-          </header>
+        <Panel>
+          <Panel.Header>
+            <Panel.Title>LOG_ENTRY</Panel.Title>
+          </Panel.Header>
           <form onSubmit={handleLogWeight} className="space-y-3 p-4">
             <label className="block space-y-1">
               <span className="caption text-text-2">DATE</span>
@@ -457,7 +473,7 @@ export function FitnessClient() {
                 step="0.1"
                 value={wiWeight}
                 onChange={(e) => setWiWeight(e.target.value)}
-                placeholder="210.5"
+                placeholder={latestWeight ? String(latestWeight) : "210.5"}
                 className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
             </label>
@@ -469,7 +485,7 @@ export function FitnessClient() {
                   step="0.1"
                   value={wiBmi}
                   onChange={(e) => setWiBmi(e.target.value)}
-                  placeholder="28.5"
+                  placeholder={latestBmi ? latestBmi.toFixed(1) : "28.5"}
                   className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
                 />
               </label>
@@ -480,7 +496,7 @@ export function FitnessClient() {
                   step="0.1"
                   value={wiBodyFat}
                   onChange={(e) => setWiBodyFat(e.target.value)}
-                  placeholder="22.0"
+                  placeholder={latestBodyFat ? latestBodyFat.toFixed(1) : "22.0"}
                   className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] tabular-nums text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
                 />
               </label>
@@ -494,30 +510,25 @@ export function FitnessClient() {
                 className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
               />
             </label>
-            <button
-              type="submit"
-              className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors duration-200 ease-out-200 hover:bg-bg-base hover:text-text-1"
-            >
+            <TerminalButton type="submit" block>
               LOG ENTRY
-            </button>
+            </TerminalButton>
           </form>
-        </section>
+        </Panel>
 
         {/* Weight chart */}
-        <section className="border border-border bg-bg-elevated lg:col-span-2">
-          <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">WEIGHT_PROGRESS</span>
+        <Panel className="lg:col-span-2">
+          <Panel.Header>
+            <Panel.Title>WEIGHT_PROGRESS</Panel.Title>
             <span className="caption text-text-3">
               TARGET {USER_STATS.goalWeight} LBS
             </span>
-          </header>
+          </Panel.Header>
           <div className="p-4">
             {loading ? (
-              <div className="h-[180px] md:h-[280px] w-full animate-pulse bg-bg-hover" />
+              <SkeletonLineChart className="h-[180px] md:h-[280px]" />
             ) : chartData.length === 0 ? (
-              <p className="font-mono text-xs text-text-3 py-12 text-center">
-                &gt; no weigh-ins yet — log your first entry
-              </p>
+              <EmptyState>no weigh-ins yet, log your first entry</EmptyState>
             ) : (
             <div className="h-[180px] md:h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -550,7 +561,7 @@ export function FitnessClient() {
                     strokeDasharray="3 3"
                     strokeWidth={1}
                   />
-                  <Line
+                  <Line {...CHART_ANIMATION}
                     type="monotone"
                     dataKey="weight"
                     stroke="var(--text-1)"
@@ -558,9 +569,8 @@ export function FitnessClient() {
                     dot={{ r: 2, fill: 'var(--text-1)', strokeWidth: 0 }}
                     activeDot={{ r: 4, fill: 'var(--accent)', strokeWidth: 0 }}
                     name="weight"
-                    isAnimationActive={false}
                   />
-                  <Line
+                  <Line {...CHART_ANIMATION}
                     type="monotone"
                     dataKey="target"
                     stroke="var(--text-3)"
@@ -596,15 +606,15 @@ export function FitnessClient() {
               </div>
             )}
           </div>
-        </section>
+        </Panel>
       </div>
 
       {/* Body composition */}
       {compTabs.length > 0 && (
-        <section className="border border-border bg-bg-elevated">
-          <header className="border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">BODY_COMPOSITION</span>
-          </header>
+        <Panel>
+          <Panel.Header>
+            <Panel.Title>BODY_COMPOSITION</Panel.Title>
+          </Panel.Header>
           <div className="px-4 pt-3">
             <UnderlineTabs<CompTab>
               options={compTabs}
@@ -636,7 +646,7 @@ export function FitnessClient() {
                   <ReferenceLine y={18.5} stroke="var(--warn)" strokeDasharray="3 3" strokeOpacity={0.5} />
                   <ReferenceLine y={25} stroke="var(--success)" strokeDasharray="3 3" strokeOpacity={0.5} />
                   <ReferenceLine y={30} stroke="var(--danger)" strokeDasharray="3 3" strokeOpacity={0.5} />
-                  <Area
+                  <Area {...CHART_ANIMATION}
                     type="monotone"
                     dataKey="bmi"
                     stroke="var(--accent)"
@@ -670,7 +680,7 @@ export function FitnessClient() {
                       <stop offset="95%" stopColor="var(--text-1)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <Area
+                  <Area {...CHART_ANIMATION}
                     type="monotone"
                     dataKey="bodyFat"
                     stroke="var(--text-1)"
@@ -693,23 +703,23 @@ export function FitnessClient() {
                   <YAxis yAxisId="pct" orientation="right" tick={tickStyle} tickLine={false} axisLine={false} domain={[0, 'dataMax + 5']} width={32} />
                   <Tooltip cursor={{ stroke: 'var(--border-strong)' }} content={<MonoTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'var(--font-mono)', textTransform: 'uppercase', color: 'var(--text-3)' }} />
-                  <Line yAxisId="weight" type="monotone" dataKey="weight" stroke="var(--text-1)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--text-1)' }} name="Weight" />
-                  <Line yAxisId="pct" type="monotone" dataKey="bmi" stroke="var(--accent)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--accent)' }} name="BMI" />
-                  <Line yAxisId="pct" type="monotone" dataKey="bodyFat" stroke="var(--warn)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--warn)' }} name="Body Fat" />
+                  <Line {...CHART_ANIMATION} yAxisId="weight" type="monotone" dataKey="weight" stroke="var(--text-1)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--text-1)' }} name="Weight" />
+                  <Line {...CHART_ANIMATION} yAxisId="pct" type="monotone" dataKey="bmi" stroke="var(--accent)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--accent)' }} name="BMI" />
+                  <Line {...CHART_ANIMATION} yAxisId="pct" type="monotone" dataKey="bodyFat" stroke="var(--warn)" strokeWidth={1.5} dot={{ r: 2, fill: 'var(--warn)' }} name="Body Fat" />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
             )}
           </div>
-        </section>
+        </Panel>
       )}
 
       {/* Weigh-in history */}
       {weighIns.length > 0 && (
-        <section className="border border-border bg-bg-elevated">
-          <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">HISTORY · {weighIns.length} ENTRIES</span>
-          </header>
+        <Panel>
+          <Panel.Header>
+            <Panel.Title>HISTORY · {weighIns.length} ENTRIES</Panel.Title>
+          </Panel.Header>
           <div className="overflow-x-auto">
           <div className="grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] gap-3 border-b border-border bg-bg-hover px-4 py-2 caption text-text-3 min-w-[620px]">
             <span>DATE</span>
@@ -780,7 +790,7 @@ export function FitnessClient() {
               return (
                 <li
                   key={w.id}
-                  className="group grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-200 ease-out-200 hover:bg-bg-hover"
+                  className="group grid grid-cols-[100px_80px_60px_70px_60px_1fr_60px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-150 ease-out-200 hover:bg-bg-hover"
                 >
                   <span className="font-mono text-[12px] tabular-nums text-text-2">
                     {format(parseISO(w.date), 'MMM dd').toUpperCase()}
@@ -813,7 +823,7 @@ export function FitnessClient() {
                     {delta !== null ? `${delta > 0 ? '+' : ''}${delta.toFixed(1)}` : '—'}
                   </span>
                   <span className="truncate text-[12px] text-text-2">{w.note || '—'}</span>
-                  <div className="flex justify-end gap-1.5 invisible group-hover:visible">
+                  <div className="flex justify-end gap-1.5 opacity-0 transition-opacity duration-150 ease-out-200 group-hover:opacity-100 focus-within:opacity-100">
                     <button onClick={() => startEdit(w)} className="text-text-3 hover:text-text-1" aria-label="Edit">
                       <Pencil className="h-3 w-3" strokeWidth={1.5} />
                     </button>
@@ -826,13 +836,13 @@ export function FitnessClient() {
             })}
           </ul>
           </div>
-        </section>
+        </Panel>
       )}
 
       {/* Approved foods */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">APPROVED_FOODS · {foods.length}</span>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>APPROVED_FOODS · {foods.length}</Panel.Title>
           <Sheet open={foodDrawerOpen} onOpenChange={setFoodDrawerOpen}>
             <SheetTrigger
               render={
@@ -884,35 +894,32 @@ export function FitnessClient() {
                     className="block w-full border border-border bg-transparent px-2 py-1.5 font-mono text-[13px] text-text-1 placeholder:text-text-3 focus:border-text-2 focus:outline-none"
                   />
                 </label>
-                <button
-                  type="submit"
-                  className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base hover:bg-bg-base hover:text-text-1"
-                >
+                <TerminalButton type="submit" block>
                   ADD FOOD
-                </button>
+                </TerminalButton>
               </form>
             </SheetContent>
           </Sheet>
-        </header>
+        </Panel.Header>
 
         {loading ? (
           <div className="grid grid-cols-2 gap-2 p-4 md:grid-cols-3 lg:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-20 animate-pulse bg-bg-hover" />
+              <SkeletonCard key={i} className="h-20" lines={1} delay={i * 50} />
             ))}
           </div>
         ) : foods.length === 0 ? (
-          <p className="font-mono text-xs text-text-3 px-4 py-8">&gt; no foods added yet</p>
+          <EmptyState variant="flush">no foods added yet</EmptyState>
         ) : (
           <ul className="grid grid-cols-2 gap-2 p-4 md:grid-cols-3 lg:grid-cols-4">
             {foods.map((food) => (
               <li
                 key={food.id}
-                className="group relative border border-border bg-bg-elevated p-3 transition-colors duration-200 ease-out-200 hover:bg-bg-hover"
+                className="group relative border border-border bg-bg-elevated p-3 transition-colors duration-150 ease-out-200 hover:bg-bg-hover"
               >
                 <button
                   onClick={() => handleDeleteFood(food.id)}
-                  className="invisible absolute right-2 top-2 text-text-3 hover:text-danger group-hover:visible focus:visible"
+                  className="absolute right-2 top-2 text-text-3 opacity-0 transition-[color,opacity] duration-150 ease-out-200 hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
                   aria-label="Remove"
                 >
                   <X className="h-3 w-3" strokeWidth={1.5} />
@@ -933,7 +940,7 @@ export function FitnessClient() {
             ))}
           </ul>
         )}
-      </section>
+      </Panel>
     </div>
   )
 }

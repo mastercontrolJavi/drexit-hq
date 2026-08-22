@@ -47,7 +47,7 @@ export function UnderlineTabs<T extends string = string>({
             aria-selected={active}
             onClick={() => onChange(opt.value)}
             className={cn(
-              'caption shrink-0 snap-start pb-2 transition-colors duration-200 ease-out-200',
+              'caption shrink-0 snap-start pb-2 transition-colors duration-150 ease-out-200',
               active
                 ? 'text-text-1 border-b border-text-1 -mb-px'
                 : 'text-text-3 hover:text-text-1',

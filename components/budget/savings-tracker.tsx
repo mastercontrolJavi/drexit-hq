@@ -25,6 +25,10 @@ import {
   X,
 } from 'lucide-react'
 import { HairlineProgress } from '@/components/data/hairline-progress'
+import { TerminalButton } from '@/components/ui/terminal-button'
+import { SkeletonBarRows, SkeletonRows } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 const DEFAULT_GOALS = [
   { name: 'Mexico Trip Fund', target_amount: 800, current_amount: 0 },
@@ -213,25 +217,20 @@ export function SavingsTracker() {
 
   return (
     <>
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">SAVINGS</span>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>SAVINGS</Panel.Title>
           <button
             onClick={() => setAddingNew(true)}
-            className="caption flex items-center gap-1 text-text-2 transition-colors hover:text-text-1"
+            className="caption flex items-center gap-1 text-text-2 transition-colors duration-150 ease-out-200 hover:text-text-1"
           >
             <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD GOAL
           </button>
-        </header>
+        </Panel.Header>
 
         <div className="p-4 space-y-4">
           {loading ? (
-            Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="space-y-2">
-                <div className="h-3 w-1/2 animate-pulse bg-bg-hover" />
-                <div className="h-0.5 w-full animate-pulse bg-bg-hover" />
-              </div>
-            ))
+            <SkeletonBarRows count={2} />
           ) : (
             goals.map((goal) => (
               <div key={goal.id}>
@@ -381,7 +380,7 @@ export function SavingsTracker() {
                       </button>
                       <button
                         onClick={() => startEdit(goal)}
-                        className="ml-auto text-text-3 transition-colors hover:text-text-1"
+                        className="ml-auto text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
                         aria-label="Edit"
                       >
                         <Pencil className="h-3 w-3" strokeWidth={1.5} />
@@ -427,27 +426,21 @@ export function SavingsTracker() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={handleAdd}
-                  className="caption flex items-center gap-1 border border-text-1 bg-text-1 px-2 py-1 text-bg-base hover:bg-bg-base hover:text-text-1"
-                >
+                <TerminalButton size="sm" onClick={handleAdd}>
                   <Plus className="h-3 w-3" strokeWidth={1.5} /> ADD
-                </button>
-                <button
-                  onClick={() => setAddingNew(false)}
-                  className="caption border border-border px-2 py-1 text-text-2 hover:border-text-1 hover:text-text-1"
-                >
+                </TerminalButton>
+                <TerminalButton variant="ghost" size="sm" onClick={() => setAddingNew(false)}>
                   CANCEL
-                </button>
+                </TerminalButton>
               </div>
             </div>
           )}
 
           {goals.length === 0 && !addingNew && (
-            <p className="font-mono text-xs text-text-3">&gt; no savings goals</p>
+            <EmptyState variant="flush">no savings goals</EmptyState>
           )}
         </div>
-      </section>
+      </Panel>
 
       {/* Transaction history dialog */}
       <Dialog
@@ -475,13 +468,9 @@ export function SavingsTracker() {
 
           <div className="max-h-[60vh] overflow-y-auto">
             {historyLoading ? (
-              <div className="space-y-2 p-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-9 animate-pulse bg-bg-hover" />
-                ))}
-              </div>
+              <SkeletonRows count={4} />
             ) : transactions.length === 0 ? (
-              <p className="px-4 py-8 font-mono text-xs text-text-3">&gt; no transactions</p>
+              <EmptyState variant="flush">no transactions</EmptyState>
             ) : (
               <ul>
                 {transactions.map((tx) => {
@@ -515,7 +504,7 @@ export function SavingsTracker() {
                       </span>
                       <button
                         onClick={() => historyGoalId && deleteTransaction(tx.id, historyGoalId)}
-                        className="invisible justify-self-end text-text-3 hover:text-danger group-hover:visible"
+                        className="justify-self-end text-text-3 opacity-0 transition-[color,opacity] duration-150 ease-out-200 hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
                         aria-label="Delete"
                       >
                         <Trash2 className="h-3 w-3" strokeWidth={1.5} />

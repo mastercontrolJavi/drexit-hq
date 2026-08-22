@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
+  KeyboardSensor,
   closestCorners,
   PointerSensor,
   useSensor,
@@ -11,11 +12,16 @@ import {
   useDroppable,
   useDraggable,
 } from '@dnd-kit/core'
+import { motion } from 'framer-motion'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { toast } from 'sonner'
 import { Archive, Plus, Trash2, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn, formatDateShort } from '@/lib/utils'
+import { DUR, EASE_OUT, staggerDelay } from '@/lib/motion'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
+import { Shimmer, SkeletonCard, SkeletonPanel } from '@/components/data/skeleton'
 import {
   IDEA_DIRECTIONS,
   IDEA_STATUSES,
@@ -45,6 +51,7 @@ import {
   UnderlineTabs,
   type UnderlineTabOption,
 } from '@/components/data/underline-tabs'
+import { TerminalButton } from '@/components/ui/terminal-button'
 
 const SEED_IDEAS: Omit<BusinessIdea, 'id' | 'updated_at' | 'created_at' | 'archived'>[] = [
   { title: 'AI SaaS tool',          description: 'An AI-powered tool for a specific niche',         direction: 'SaaS',             priority: 'high',   status: 'researching', next_action: 'Research market niches',  notes: null },
@@ -81,14 +88,16 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
   return (
     <div
       className={cn(
-        'relative border border-border bg-bg-elevated p-3 pl-3.5 transition-colors duration-200 ease-out-200',
+        'relative border border-border bg-bg-elevated p-3 pl-3.5 transition-colors duration-150 ease-out-200',
         // Priority hairline as a ::before so we can keep the card itself rectangular
         'before:absolute before:inset-y-0 before:left-0 before:w-[3px]',
         PRIORITY_BORDER[idea.priority],
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[13px] font-medium leading-tight text-text-1">{idea.title}</p>
+        <p className="line-clamp-2 text-[13px] font-medium leading-tight text-text-1" title={idea.title}>
+          {idea.title}
+        </p>
         <span
           className="shrink-0 border border-border px-1 caption text-text-2"
           title={idea.direction}
@@ -98,7 +107,9 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
       </div>
 
       {idea.description && (
-        <p className="mt-1.5 line-clamp-2 text-[12px] text-text-2">{idea.description}</p>
+        <p className="mt-1.5 line-clamp-2 text-[12px] text-text-2" title={idea.description}>
+          {idea.description}
+        </p>
       )}
 
       <div className="mt-2 flex items-center justify-between caption">
@@ -107,8 +118,14 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
       </div>
 
       {idea.next_action && (
-        <p className="mt-2 border-t border-border pt-2 caption text-text-3">
-          NEXT · <span className="text-text-2 normal-case tracking-normal">{idea.next_action}</span>
+        <p
+          className="caption mt-2 line-clamp-2 border-t border-border pt-2 text-text-3"
+          title={idea.next_action}
+        >
+          NEXT ·{' '}
+          <span className="text-text-2 normal-case tracking-normal">
+            {idea.next_action}
+          </span>
         </p>
       )}
     </div>
@@ -117,9 +134,11 @@ function CardBody({ idea }: { idea: BusinessIdea }) {
 
 function IdeaCard({
   idea,
+  index,
   onOpen,
 }: {
   idea: BusinessIdea
+  index: number
   onOpen: (idea: BusinessIdea) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: idea.id })
@@ -127,7 +146,7 @@ function IdeaCard({
 
   const style: React.CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.4 : 1,
   }
 
   return (
@@ -148,9 +167,24 @@ function IdeaCard({
         }
         pointerDownPos.current = null
       }}
-      className="cursor-grab active:cursor-grabbing kanban-card"
+      // Space picks the card up and puts it down (KeyboardSensor); Enter is
+      // left free to open the editor, so the card is fully keyboard-operable.
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          onOpen(idea)
+        }
+      }}
+      className="kanban-card cursor-grab active:cursor-grabbing"
     >
-      <CardBody idea={idea} />
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: DUR.base, ease: EASE_OUT, delay: staggerDelay(index) }}
+      >
+        <CardBody idea={idea} />
+      </motion.div>
     </div>
   )
 }
@@ -169,36 +203,35 @@ function KanbanColumn({
   const { isOver, setNodeRef } = useDroppable({ id: status })
 
   return (
-    <section className="w-[85vw] shrink-0 snap-start md:w-auto md:min-w-[260px] md:flex-1 border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between border-b border-border px-3 py-2">
-        <span className="caption text-text-1">
+    <Panel className="w-[85vw] shrink-0 snap-start md:w-auto md:min-w-[260px] md:flex-1">
+      {/* px-3 for the narrower column; py-2.5 keeps the app's header rhythm */}
+      <Panel.Header className="px-3">
+        <Panel.Title className="text-text-1">
           {IDEA_STATUS_LABELS[status].toUpperCase().replace(' ', '_')}
           <span className="ml-1.5 text-text-3">({ideas.length})</span>
-        </span>
+        </Panel.Title>
         <button
           onClick={() => onAddIdea(status)}
-          className="text-text-3 transition-colors hover:text-text-1"
+          className="text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
           aria-label="Add idea"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
         </button>
-      </header>
+      </Panel.Header>
 
       <div
         ref={setNodeRef}
         className={cn(
-          'min-h-[420px] space-y-2 p-3 transition-colors duration-200 ease-out-200',
-          isOver && 'bg-bg-hover',
+          'min-h-[420px] space-y-2 p-3 ring-inset transition-[background-color,box-shadow] duration-150 ease-out-200',
+          isOver ? 'bg-bg-hover ring-1 ring-accent' : 'ring-0 ring-transparent',
         )}
       >
-        {ideas.map((idea) => (
-          <IdeaCard key={idea.id} idea={idea} onOpen={onOpenIdea} />
+        {ideas.map((idea, i) => (
+          <IdeaCard key={idea.id} idea={idea} index={i} onOpen={onOpenIdea} />
         ))}
-        {ideas.length === 0 && (
-          <p className="font-mono text-xs text-text-3 py-2">&gt; empty</p>
-        )}
+        {ideas.length === 0 && <EmptyState variant="compact">empty</EmptyState>}
       </div>
-    </section>
+    </Panel>
   )
 }
 
@@ -219,7 +252,14 @@ export function KanbanBoard() {
   const [formNextAction, setFormNextAction] = useState('')
   const [formNotes, setFormNotes] = useState('')
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    // Space starts and ends the drag, Escape cancels. Enter stays with the
+    // card's own handler so keyboard users can still open the editor.
+    useSensor(KeyboardSensor, {
+      keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space'] },
+    }),
+  )
 
   const fetchIdeas = useCallback(async () => {
     const { data, error } = await supabase
@@ -408,11 +448,21 @@ export function KanbanBoard() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-72 animate-pulse bg-bg-hover" />
+        <Shimmer className="h-8 w-72" />
         <div className="overflow-x-auto -mx-4 px-4 md:-mx-8 md:px-8 snap-x snap-mandatory md:snap-none">
           <div className="flex gap-3 md:grid md:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="w-[85vw] shrink-0 snap-start md:w-auto h-[420px] animate-pulse bg-bg-hover" />
+            {Array.from({ length: 4 }).map((_, col) => (
+              <SkeletonPanel
+                key={col}
+                headerWidth="w-24"
+                className="w-[85vw] shrink-0 snap-start md:w-auto"
+              >
+                <div className="min-h-[420px] space-y-2 p-3">
+                  {Array.from({ length: 3 - (col % 2) }).map((_, i) => (
+                    <SkeletonCard key={i} lines={2} delay={col * 60 + i * 90} />
+                  ))}
+                </div>
+              </SkeletonPanel>
             ))}
           </div>
         </div>
@@ -449,9 +499,16 @@ export function KanbanBoard() {
             ))}
           </div>
 
-          <DragOverlay>
+          <DragOverlay
+            dropAnimation={{
+              duration: DUR.slow * 1000,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
             {activeIdea ? (
-              <div className="w-[260px] rotate-1">
+              // Lift reads as a hairline ring and 2% scale, because the design system
+              // has no shadows, so elevation is drawn, not cast.
+              <div className="w-[260px] scale-[1.02] cursor-grabbing ring-1 ring-border-strong">
                 <CardBody idea={activeIdea} />
               </div>
             ) : null}
@@ -573,35 +630,23 @@ export function KanbanBoard() {
 
             <div className="border-t border-border pt-3">
               {isNew ? (
-                <button
-                  onClick={handleCreate}
-                  className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base hover:bg-bg-base hover:text-text-1"
-                >
+                <TerminalButton onClick={handleCreate} block>
                   CREATE IDEA
-                </button>
+                </TerminalButton>
               ) : (
                 <div className="space-y-2">
-                  <button
-                    onClick={handleSave}
-                    className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base hover:bg-bg-base hover:text-text-1"
-                  >
+                  <TerminalButton onClick={handleSave} block>
                     SAVE CHANGES
-                  </button>
+                  </TerminalButton>
                   <div className="flex gap-2">
-                    <button
-                      onClick={handleArchive}
-                      className="caption flex flex-1 items-center justify-center gap-1.5 border border-border px-3 py-2 text-text-2 hover:border-text-1 hover:text-text-1"
-                    >
+                    <TerminalButton variant="ghost" onClick={handleArchive} className="flex-1">
                       <Archive className="h-3 w-3" strokeWidth={1.5} />
                       ARCHIVE
-                    </button>
-                    <button
-                      onClick={handleDelete}
-                      className="caption flex flex-1 items-center justify-center gap-1.5 border border-border px-3 py-2 text-text-2 hover:border-danger hover:text-danger"
-                    >
+                    </TerminalButton>
+                    <TerminalButton variant="danger" onClick={handleDelete} className="flex-1">
                       <Trash2 className="h-3 w-3" strokeWidth={1.5} />
                       DELETE
-                    </button>
+                    </TerminalButton>
                   </div>
                 </div>
               )}

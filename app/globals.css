@@ -22,7 +22,7 @@
     --danger:         #EF4444;
     --grid:           rgba(255,255,255,0.02);
 
-    /* shadcn-compat aliases — keep existing primitives working */
+    /* shadcn-compat aliases, kept so existing primitives keep working */
     --background:           var(--bg-base);
     --foreground:           var(--text-1);
     --card:                 var(--bg-elevated);
@@ -85,10 +85,25 @@
   body {
     @apply antialiased;
     font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    font-feature-settings: "ss01", "cv11";
+    /*
+      ss01/cv11 were Inter's stylistic sets and are inert now the sans is
+      Instrument Sans. Kept in spirit: contextual alternates on, and slashed
+      zero via the mono face where numerics actually live.
+    */
+    font-feature-settings: "calt" 1;
   }
 
-  /* Keyboard-only focus ring — overrides any `focus:outline-none` set by Tailwind */
+  /*
+    Preflight already gives buttons `cursor: pointer` and disabled ones
+    `cursor: default`. Default reads as "nothing here"; not-allowed reads as
+    "this is refused", which is what a disabled control actually means.
+  */
+  button:disabled,
+  [role='button'][aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  /* Keyboard-only focus ring. Overrides any `focus:outline-none` set by Tailwind */
   :focus-visible {
     outline: 2px solid var(--accent) !important;
     outline-offset: 1px;
@@ -97,6 +112,15 @@
   /* But never on the mouse-click pseudo-state */
   :focus:not(:focus-visible) {
     outline: none;
+  }
+
+  /*
+    The command palette input is focused programmatically the moment the
+    palette opens, so the ring above would always be painted around it. The
+    caret and the panel's own border already say "you are typing here".
+  */
+  [data-command-input]:focus-visible {
+    outline: none !important;
   }
 
   /* Tabular numerics on every number by default within data surfaces */
@@ -158,9 +182,16 @@
     margin-left: 2px;
   }
 
+  /* Toasts ride the house curve instead of sonner's default ease */
+  [data-sonner-toast] {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1) !important;
+    transition-duration: 240ms !important;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .animate-ticker { animation: none; }
     .boot-cursor::after { animation: none; }
+    [data-sonner-toast] { transition-duration: 1ms !important; }
   }
 
   /* iOS PWA safe areas */
@@ -183,7 +214,7 @@
     }
   }
 
-  /* Disable kanban drag on touch devices — let scroll-snap take over */
+  /* Disable kanban drag on touch devices so scroll-snap takes over */
   @media (pointer: coarse) {
     .kanban-card {
       touch-action: pan-y;

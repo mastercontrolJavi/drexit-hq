@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import {
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useKeyboardShortcut } from '@/lib/hooks/use-keyboard-shortcut'
 import { cn } from '@/lib/utils'
+import { DUR, EASE_OUT } from '@/lib/motion'
 
 interface Command {
   id: string
@@ -61,6 +63,7 @@ export function CommandPalette() {
   const [query, setQuery] = useState('')
   const [activeIdx, setActiveIdx] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { setTheme, resolvedTheme } = useTheme()
 
@@ -103,6 +106,15 @@ export function CommandPalette() {
     setActiveIdx(0)
   }, [query])
 
+  // Keep the keyboard selection inside the scroll viewport. Without this,
+  // arrowing past the eighth row moves an invisible cursor.
+  useEffect(() => {
+    if (!open) return
+    listRef.current
+      ?.querySelector<HTMLElement>(`[data-cmd-index="${activeIdx}"]`)
+      ?.scrollIntoView({ block: 'nearest' })
+  }, [activeIdx, open])
+
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -121,17 +133,25 @@ export function CommandPalette() {
 
   return (
     <>
-      {/* Mobile FAB — opens command palette on touch */}
-      <button
+      {/* Mobile FAB: opens command palette on touch */}
+      <motion.button
         className="mobile-fab fixed right-4 z-30 flex h-11 w-11 items-center justify-center border border-border bg-bg-elevated md:hidden"
         onClick={() => setOpen((o) => !o)}
+        whileTap={{ scale: 0.94 }}
+        transition={{ duration: DUR.press, ease: EASE_OUT }}
         aria-label="Open command palette"
       >
         <Command className="h-[18px] w-[18px] text-text-2" strokeWidth={1.5} />
-      </button>
+      </motion.button>
 
+      <AnimatePresence>
       {open && (
-      <div
+      <motion.div
+        key="command-palette"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: DUR.fast, ease: EASE_OUT }}
         className="fixed inset-0 z-[90] flex items-start justify-center pt-[14vh]"
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) setOpen(false)
@@ -144,19 +164,26 @@ export function CommandPalette() {
         aria-hidden
         className="absolute inset-0 bg-black/40 supports-[backdrop-filter]:bg-black/30 supports-[backdrop-filter]:backdrop-blur-md"
       />
-      <div className="relative w-full max-w-xl border border-border-strong bg-bg-elevated">
+      <motion.div
+        initial={{ y: -8, scale: 0.98 }}
+        animate={{ y: 0, scale: 1 }}
+        exit={{ y: -4, scale: 0.99 }}
+        transition={{ duration: DUR.base, ease: EASE_OUT }}
+        className="relative w-full max-w-xl border border-border-strong bg-bg-elevated"
+      >
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder="> type a command..."
+          data-command-input
           className="block w-full bg-transparent px-4 py-3.5 font-mono text-sm text-text-1 placeholder:text-text-3 focus:outline-none"
           spellCheck={false}
           autoComplete="off"
         />
         <div className="hairline-x" />
-        <div className="max-h-[60vh] overflow-y-auto py-2">
+        <div ref={listRef} className="max-h-[60vh] overflow-y-auto py-2">
           {filtered.length === 0 && (
             <div className="caption px-4 py-6 text-center text-text-3">no results</div>
           )}
@@ -176,12 +203,13 @@ export function CommandPalette() {
                     return (
                       <li key={cmd.id}>
                         <button
+                          data-cmd-index={runningIdx}
                           onMouseEnter={() => setActiveIdx(runningIdx)}
                           onClick={() =>
                             cmd.run({ router, setTheme, resolvedTheme, close: () => setOpen(false) })
                           }
                           className={cn(
-                            'flex w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-200 ease-out-200',
+                            'flex w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-150 ease-out-200',
                             isActive ? 'bg-bg-hover text-text-1' : 'text-text-2 hover:bg-bg-hover'
                           )}
                         >
@@ -205,9 +233,10 @@ export function CommandPalette() {
           <span className="caption text-text-3">AXIS_OS</span>
           <span className="caption text-text-3">↵ select &nbsp; ↑↓ navigate &nbsp; esc close</span>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
       )}
+      </AnimatePresence>
     </>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   LineChart,
   Line,
@@ -14,6 +14,11 @@ import { format } from 'date-fns'
 import { supabase } from '@/lib/supabase'
 import { USER_STATS } from '@/types'
 import type { WeighIn } from '@/types'
+import { LoadError } from '@/components/data/load-error'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { SkeletonLineChart } from '@/components/data/skeleton'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 interface ChartPoint {
   date: string
@@ -40,46 +45,59 @@ function MonoTooltip({ active, payload }: { active?: boolean; payload?: TooltipP
 export function MiniWeightChart() {
   const [data, setData] = useState<ChartPoint[]>([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+
+  const fetchWeighIns = useCallback(async () => {
+    setLoading(true)
+    setFailed(false)
+    // Newest first then reversed: ascending + limit returns the oldest rows,
+    // which left this chart showing the first eight weigh-ins forever.
+    const { data: rows, error } = await supabase
+      .from('weigh_ins')
+      .select('date, weight_lbs')
+      .order('date', { ascending: false })
+      .limit(10)
+
+    if (error || !rows) {
+      setFailed(true)
+      setLoading(false)
+      return
+    }
+
+    setData(
+      [...(rows as Pick<WeighIn, 'date' | 'weight_lbs'>[])].reverse().map((r) => ({
+        date: r.date,
+        label: format(new Date(r.date), 'MMM d'),
+        weight: Number(r.weight_lbs),
+      })),
+    )
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
-    async function fetchWeighIns() {
-      const { data: rows, error } = await supabase
-        .from('weigh_ins')
-        .select('date, weight_lbs')
-        .order('date', { ascending: true })
-        .limit(8)
-
-      if (!error && rows) {
-        const points = (rows as Pick<WeighIn, 'date' | 'weight_lbs'>[]).map((r) => ({
-          date: r.date,
-          label: format(new Date(r.date), 'MMM d'),
-          weight: Number(r.weight_lbs),
-        }))
-        setData(points)
-      }
-      setLoading(false)
-    }
     fetchWeighIns()
-  }, [])
+  }, [fetchWeighIns])
 
   const latest = data.length > 0 ? data[data.length - 1].weight : null
   const first = data.length > 0 ? data[0].weight : null
   const delta = latest !== null && first !== null ? latest - first : null
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">WEIGHT_PROGRESS</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>WEIGHT_PROGRESS</Panel.Title>
         <span className="font-mono text-[11px] tabular-nums text-text-3">
           TARGET {USER_STATS.goalWeight} LBS
         </span>
-      </header>
+      </Panel.Header>
 
       <div className="p-4">
         {loading ? (
-          <div className="h-[180px] md:h-[200px] w-full animate-pulse bg-bg-hover" />
+          <SkeletonLineChart className="h-[180px] md:h-[200px]" />
+        ) : failed ? (
+          <LoadError onRetry={fetchWeighIns} />
         ) : data.length === 0 ? (
-          <p className="font-mono text-xs text-text-3 py-4">&gt; no weigh-ins yet</p>
+          <EmptyState>no weigh-ins yet</EmptyState>
         ) : (
           <>
             <div className="h-[180px] md:h-[200px]">
@@ -111,14 +129,13 @@ export function MiniWeightChart() {
                   strokeDasharray="3 3"
                   strokeWidth={1}
                 />
-                <Line
+                <Line {...CHART_ANIMATION}
                   type="monotone"
                   dataKey="weight"
                   stroke="var(--text-1)"
                   strokeWidth={1.5}
                   dot={{ r: 2, fill: 'var(--text-1)', strokeWidth: 0 }}
                   activeDot={{ r: 4, fill: 'var(--accent)', strokeWidth: 0 }}
-                  isAnimationActive={false}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -137,6 +154,6 @@ export function MiniWeightChart() {
           </>
         )}
       </div>
-    </section>
+    </Panel>
   )
 }

@@ -21,10 +21,11 @@ const DELTA_CLASS: Record<StatTone, string> = {
 
 interface StatProps {
   label: string
-  value: string
+  /** Accepts a node so callers can pass a <CountUp>. */
+  value: React.ReactNode
   /** Display delta (e.g. "+£12", "-1.4 lbs"). */
   delta?: string
-  /** Tone for the value AND delta. Use sparingly — only when meaning demands color. */
+  /** Tone for the value AND delta. Use sparingly, only when meaning demands color. */
   tone?: StatTone
   /** Sparkline data. */
   spark?: number[]

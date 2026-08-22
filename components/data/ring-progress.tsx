@@ -60,7 +60,7 @@ export function RingProgress({
         strokeDasharray={circumference}
         strokeDashoffset={offset}
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        style={{ transition: 'stroke-dashoffset 200ms cubic-bezier(0.22, 1, 0.36, 1)' }}
+        style={{ transition: 'stroke-dashoffset 240ms cubic-bezier(0.22, 1, 0.36, 1)' }}
       />
     </svg>
   )

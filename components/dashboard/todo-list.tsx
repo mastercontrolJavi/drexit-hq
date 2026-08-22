@@ -1,11 +1,16 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { TodoItem } from '@/types'
+import { SkeletonRows } from '@/components/data/skeleton'
+import { EmptyState } from '@/components/data/empty-state'
+import { DUR, EASE_OUT, listContainer, listItem } from '@/lib/motion'
+import { Panel } from '@/components/data/panel'
 
 export function TodoList() {
   const [todos, setTodos] = useState<TodoItem[]>([])
@@ -72,44 +77,46 @@ export function TodoList() {
   }
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">TODOS</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>TODOS</Panel.Title>
         <span className="font-mono text-[11px] text-text-3 tabular-nums">{todos.length}</span>
-      </header>
+      </Panel.Header>
 
       {loading ? (
-        <ul>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <li key={i} className="border-b border-border px-4 py-2.5 last:border-b-0">
-              <div className="h-4 w-3/4 bg-bg-hover animate-pulse" />
-            </li>
-          ))}
-        </ul>
+        <SkeletonRows count={3} />
       ) : todos.length === 0 ? (
-        <p className="font-mono text-xs text-text-3 px-4 py-6">
-          &gt; all clear
-        </p>
+        <EmptyState variant="flush">all clear</EmptyState>
       ) : (
-        <ul>
-          {todos.map((todo) => (
-            <li
-              key={todo.id}
-              className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-200 ease-out-200"
-            >
-              <button
-                onClick={() => completeTodo(todo.id)}
-                className={cn(
-                  'shrink-0 font-mono text-[13px] leading-none text-text-3 hover:text-text-1 focus:outline-none transition-colors',
-                )}
-                aria-label="Complete todo"
+        <motion.ul variants={listContainer} initial="hidden" animate="show">
+          <AnimatePresence initial={false}>
+            {todos.map((todo) => (
+              <motion.li
+                key={todo.id}
+                variants={listItem}
+                exit={{ opacity: 0, x: 8 }}
+                transition={{ duration: DUR.fast, ease: EASE_OUT }}
+                className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-150 ease-out-200"
               >
-                [ ]
-              </button>
-              <span className="flex-1 text-[13px] leading-tight text-text-1">{todo.title}</span>
-            </li>
-          ))}
-        </ul>
+                <button
+                  onClick={() => completeTodo(todo.id)}
+                  className={cn(
+                    'shrink-0 font-mono text-[13px] leading-none text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1',
+                  )}
+                  aria-label="Complete todo"
+                >
+                  [ ]
+                </button>
+                <span
+                  className="min-w-0 flex-1 truncate text-[13px] leading-tight text-text-1"
+                  title={todo.title}
+                >
+                  {todo.title}
+                </span>
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </motion.ul>
       )}
 
       <div className="flex items-center gap-2 border-t border-border px-3 py-2">
@@ -127,12 +134,12 @@ export function TodoList() {
         <button
           onClick={addTodo}
           disabled={adding || !newTitle.trim()}
-          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors"
+          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors duration-150 ease-out-200"
           aria-label="Add"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
         </button>
       </div>
-    </section>
+    </Panel>
   )
 }

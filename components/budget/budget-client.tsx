@@ -26,12 +26,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { motion } from 'framer-motion'
 import { AlertTriangle, Check, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react'
 import { CsvImport } from './csv-import'
 import { SavingsTracker } from './savings-tracker'
 import { BudgetAnalytics } from './budget-analytics'
 import { Sparkline } from '@/components/data/sparkline'
+import { CountUp } from '@/components/data/count-up'
+import { SkeletonRows } from '@/components/data/skeleton'
+import { listContainer, listItem } from '@/lib/motion'
 import { UnderlineTabs, type UnderlineTabOption } from '@/components/data/underline-tabs'
+import { TerminalButton } from '@/components/ui/terminal-button'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 const COMMAND_HINT = '£ amount  category  [description...]'
 
@@ -226,7 +233,7 @@ export function BudgetClient() {
     e.preventDefault()
     const parsed = parseCommandLine(commandInput)
     if (!parsed) {
-      setCommandError(`unable to parse — expected "${COMMAND_HINT}"`)
+      setCommandError(`unable to parse, expected "${COMMAND_HINT}"`)
       return
     }
     setCommandError(null)
@@ -275,7 +282,7 @@ export function BudgetClient() {
         scroll
       />
 
-      {/* Hero — Income / Spent / Remaining */}
+      {/* Hero: Income / Spent / Remaining */}
       <div className="grid grid-cols-1 md:grid-cols-3 border border-border bg-bg-elevated divide-y md:divide-y-0 md:divide-x divide-border">
         {/* INCOME */}
         <div className="px-6 py-5">
@@ -290,10 +297,10 @@ export function BudgetClient() {
                   setEditingIncome(true)
                 }
               }}
-              className="text-text-3 transition-colors hover:text-text-1"
+              className="self-center text-text-3 transition-colors duration-150 ease-out-200 hover:text-text-1"
               aria-label="Edit income"
             >
-              {editingIncome ? <Check className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Pencil className="h-3 w-3" strokeWidth={1.5} />}
+              {editingIncome ? <Check className="h-3.5 w-3.5" strokeWidth={1.5} /> : <Pencil className="h-3.5 w-3.5" strokeWidth={1.5} />}
             </button>
           </div>
           {editingIncome ? (
@@ -310,7 +317,7 @@ export function BudgetClient() {
             />
           ) : (
             <div className="num-display mt-2 text-[32px] md:text-[48px] leading-none text-text-1">
-              {formatCurrencyShort(income)}
+              <CountUp value={income} format={formatCurrencyShort} />
             </div>
           )}
           <div className="mt-3 text-text-3">
@@ -325,7 +332,7 @@ export function BudgetClient() {
             <span className="caption text-text-3">{entries.length} ENTRIES</span>
           </div>
           <div className="num-display mt-2 text-[32px] md:text-[48px] leading-none text-text-1">
-            {formatCurrencyShort(totalSpent)}
+            <CountUp value={totalSpent} format={formatCurrencyShort} />
           </div>
           <div className="mt-3 text-text-2">
             <Sparkline data={cumulative.length > 1 ? cumulative : [0, 0]} width={140} height={16} />
@@ -346,7 +353,7 @@ export function BudgetClient() {
               remaining >= 0 ? 'text-success' : 'text-danger',
             )}
           >
-            {formatCurrencyShort(remaining)}
+            <CountUp value={remaining} format={formatCurrencyShort} />
           </div>
           <div className={cn('mt-3', remaining >= 0 ? 'text-success' : 'text-danger')}>
             <Sparkline
@@ -372,11 +379,11 @@ export function BudgetClient() {
       )}
 
       {/* Command bar entry */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">QUICK_LOG</span>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>QUICK_LOG</Panel.Title>
           <span className="caption text-text-3">{COMMAND_HINT}</span>
-        </header>
+        </Panel.Header>
         <form onSubmit={handleCommand} className="flex items-center gap-2 px-3 py-3 md:py-2.5 min-h-[48px] md:min-h-0">
           <span className="font-mono text-sm text-text-3">&gt;</span>
           <input
@@ -392,7 +399,7 @@ export function BudgetClient() {
           />
           <button
             type="submit"
-            className="caption shrink-0 border border-border px-3 py-3 md:py-1.5 text-text-2 transition-colors duration-200 ease-out-200 hover:border-text-1 hover:text-text-1"
+            className="caption shrink-0 border border-border px-3 py-3 md:py-1.5 text-text-2 transition-colors duration-150 ease-out-200 hover:border-text-1 hover:text-text-1"
           >
             LOG
           </button>
@@ -475,52 +482,43 @@ export function BudgetClient() {
                 </Select>
               </label>
             )}
-            <button
-              type="submit"
-              className="caption block w-full border border-text-1 bg-text-1 px-3 py-2 text-bg-base transition-colors duration-200 ease-out-200 hover:bg-bg-base hover:text-text-1"
-            >
+            <TerminalButton type="submit" block>
               ADD EXPENSE
-            </button>
+            </TerminalButton>
           </form>
         </details>
-      </section>
+      </Panel>
 
       {/* Savings + CSV import row */}
       <div className="grid gap-6 lg:grid-cols-2">
         <SavingsTracker />
-        <section className="border border-border bg-bg-elevated">
-          <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="caption text-text-2">IMPORT</span>
+        <Panel>
+          <Panel.Header>
+            <Panel.Title>IMPORT</Panel.Title>
             <span className="caption text-text-3">CSV / XLSX</span>
-          </header>
+          </Panel.Header>
           <div className="p-4">
             <p className="font-mono text-xs text-text-3 mb-3">
               &gt; map columns and bulk-import bank statements
             </p>
             <CsvImport onImportComplete={fetchEntries} />
           </div>
-        </section>
+        </Panel>
       </div>
 
       {/* Expense table */}
-      <section className="border border-border bg-bg-elevated">
-        <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <span className="caption text-text-2">EXPENSES · {getMonthLabel(selectedMonth).toUpperCase()}</span>
+      <Panel>
+        <Panel.Header>
+          <Panel.Title>EXPENSES · {getMonthLabel(selectedMonth).toUpperCase()}</Panel.Title>
           <span className="caption text-text-3">
             {entries.length} ROWS · {formatCurrencyShort(totalSpent)}
           </span>
-        </header>
+        </Panel.Header>
 
         {loading ? (
-          <ul>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <li key={i} className="border-b border-border px-4 py-3 last:border-b-0">
-                <div className="h-4 w-3/4 animate-pulse bg-bg-hover" />
-              </li>
-            ))}
-          </ul>
+          <SkeletonRows count={5} />
         ) : entries.length === 0 ? (
-          <p className="font-mono text-xs text-text-3 px-4 py-6">&gt; no expenses logged</p>
+          <EmptyState variant="flush">no expenses logged</EmptyState>
         ) : (
           <div className="overflow-x-auto">
             {/* Header row */}
@@ -531,11 +529,12 @@ export function BudgetClient() {
               <span className="text-right">AMOUNT</span>
               <span />
             </div>
-            <ul>
+            <motion.ul variants={listContainer} initial="hidden" animate="show">
               {visibleEntries.map((entry) => (
-                <li
+                <motion.li
                   key={entry.id}
-                  className="group grid grid-cols-[80px_140px_1fr_100px_32px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-200 ease-out-200 hover:bg-bg-hover min-w-[520px]"
+                  variants={listItem}
+                  className="group grid grid-cols-[80px_140px_1fr_100px_32px] items-center gap-3 border-b border-border px-4 py-2 last:border-b-0 transition-colors duration-150 ease-out-200 hover:bg-bg-hover min-w-[520px]"
                 >
                   <span className="font-mono text-[12px] tabular-nums text-text-2">
                     {format(new Date(entry.date), 'MMM dd').toUpperCase()}
@@ -568,7 +567,10 @@ export function BudgetClient() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <span className="truncate text-[12px] text-text-2">
+                  <span
+                    className="truncate text-[12px] text-text-2"
+                    title={entry.description ?? undefined}
+                  >
                     {entry.description || '—'}
                     {linkedEntryIds.has(entry.id) && (
                       <span className="ml-2 caption text-accent">·LINKED</span>
@@ -579,20 +581,20 @@ export function BudgetClient() {
                   </span>
                   <button
                     onClick={() => handleDelete(entry.id)}
-                    className="invisible justify-self-end text-text-3 transition-colors hover:text-danger group-hover:visible focus:visible"
+                    className="justify-self-end text-text-3 opacity-0 transition-[color,opacity] duration-150 ease-out-200 hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
                     aria-label="Delete"
                   >
-                    <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    <Trash2 className="h-3 w-3" strokeWidth={1.5} />
                   </button>
-                </li>
+                </motion.li>
               ))}
-            </ul>
+            </motion.ul>
           </div>
         )}
         {hasMore && (
           <button
             onClick={() => setExpensesExpanded(!expensesExpanded)}
-            className="caption flex w-full items-center justify-center gap-1.5 border-t border-border py-2 text-text-2 transition-colors hover:bg-bg-hover hover:text-text-1"
+            className="caption flex w-full items-center justify-center gap-1.5 border-t border-border py-2 text-text-2 transition-colors duration-150 ease-out-200 hover:bg-bg-hover hover:text-text-1"
           >
             {expensesExpanded ? (
               <>SHOW LESS <ChevronUp className="h-3 w-3" strokeWidth={1.5} /></>
@@ -601,7 +603,7 @@ export function BudgetClient() {
             )}
           </button>
         )}
-      </section>
+      </Panel>
 
       {/* Analytics */}
       <BudgetAnalytics

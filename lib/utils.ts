@@ -1,7 +1,8 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { differenceInDays, format, getDaysInMonth, getDate } from "date-fns"
-import { DREXIT_DATE, USER_STATS } from "@/types"
+import { DREXIT_DATE, USER_STATS, WEIGHT_START_DATE } from "@/types"
+import { DEMO_DREXIT_DATE, DEMO_WEIGHT_START_DATE, isDemoMode } from "./demo"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -13,18 +14,62 @@ export function daysUntil(dateStr: string): number {
   return Math.max(0, differenceInDays(new Date(dateStr), new Date()))
 }
 
+/**
+ * The departure date the app is counting down to. Demo mode substitutes a
+ * rolling date so the public build never shows an expired countdown.
+ */
+export function drexitDate(): string {
+  return isDemoMode ? DEMO_DREXIT_DATE : DREXIT_DATE
+}
+
 export function daysUntilDrexit(): number {
-  return daysUntil(DREXIT_DATE)
+  return daysUntil(drexitDate())
 }
 
+/** Date the weight glide path is measured from. Demo mode tracks its fixtures. */
+export function weightStartDate(): string {
+  return isDemoMode ? DEMO_WEIGHT_START_DATE : WEIGHT_START_DATE
+}
+
+// Instantiated once, because these run inside list renders.
+const DECIMAL = new Intl.NumberFormat('en-GB', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+const WHOLE = new Intl.NumberFormat('en-GB', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})
+
+/** Full precision with thousands grouping: £1,484.20 */
 export function formatCurrency(amount: number, currency = '\u00A3'): string {
-  if (amount < 0) return `-${currency}${Math.abs(amount).toFixed(2)}`
-  return `${currency}${amount.toFixed(2)}`
+  const sign = amount < 0 ? '-' : ''
+  return `${sign}${currency}${DECIMAL.format(Math.abs(amount))}`
 }
 
+/** Whole pounds with thousands grouping: £1,484 */
 export function formatCurrencyShort(amount: number, currency = '\u00A3'): string {
-  if (amount < 0) return `-${currency}${Math.abs(amount).toFixed(0)}`
-  return `${currency}${amount.toFixed(0)}`
+  const sign = amount < 0 ? '-' : ''
+  return `${sign}${currency}${WHOLE.format(Math.abs(amount))}`
+}
+
+/**
+ * Abbreviated form for chart axes, where the gutter is ~48px and a grouped
+ * four-digit figure would either clip or force the plot area narrower.
+ * £980 · £2.4k · £14k · £1.2m
+ */
+export function formatAxisCurrency(amount: number, currency = '\u00A3'): string {
+  const sign = amount < 0 ? '-' : ''
+  const abs = Math.abs(amount)
+  if (abs >= 1_000_000) {
+    const m = abs / 1_000_000
+    return `${sign}${currency}${m >= 10 ? Math.round(m) : m.toFixed(1)}m`
+  }
+  if (abs >= 1_000) {
+    const k = abs / 1_000
+    return `${sign}${currency}${k >= 10 ? Math.round(k) : k.toFixed(1)}k`
+  }
+  return `${sign}${currency}${Math.round(abs)}`
 }
 
 export function formatDate(date: string | Date): string {

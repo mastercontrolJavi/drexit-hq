@@ -4,17 +4,21 @@ import * as fixtures from './fixtures'
 
 type Row = Record<string, unknown>
 
+/** Fixtures are typed as their domain shapes; the mock only needs bags of columns. */
+const rows = <T,>(v: readonly T[]): Row[] => v as unknown as Row[]
+
 const TABLE_DATA: Record<string, Row[]> = {
-  todos:                fixtures.todos                as Row[],
-  non_negotiables:      fixtures.nonNegotiables       as Row[],
-  budget_entries:       fixtures.budgetEntries        as Row[],
-  savings_goals:        fixtures.savingsGoals         as Row[],
-  savings_transactions: fixtures.savingsTransactions  as Row[],
-  goals:                fixtures.goals                as Row[],
-  weigh_ins:            fixtures.weighIns             as Row[],
-  food_items:           fixtures.foodItems            as Row[],
-  business_ideas:       fixtures.businessIdeas        as Row[],
-  app_settings:         fixtures.appSettings          as Row[],
+  todos:                rows(fixtures.todos),
+  non_negotiables:      rows(fixtures.nonNegotiables),
+  budget_entries:       rows(fixtures.budgetEntries),
+  budget_limits:        rows(fixtures.budgetLimits),
+  savings_goals:        rows(fixtures.savingsGoals),
+  savings_transactions: rows(fixtures.savingsTransactions),
+  goals:                rows(fixtures.goals),
+  weigh_ins:            rows(fixtures.weighIns),
+  food_items:           rows(fixtures.foodItems),
+  business_ideas:       rows(fixtures.businessIdeas),
+  app_settings:         rows(fixtures.appSettings),
 }
 
 function getRows(table: string): Row[] {
@@ -63,7 +67,7 @@ class MockQueryBuilder {
     _reject?: (e: unknown) => void,
   ) {
     if (this._isWrite) {
-      toast('Demo mode — writes disabled')
+      toast('Demo mode, writes disabled')
       resolve({ data: null, error: null })
       return
     }
@@ -77,9 +81,18 @@ class MockQueryBuilder {
 
     if (this._order) {
       const { col, asc } = this._order
+      // Postgres sorts NULLs last on ASC and first on DESC. Coercing them to
+      // '' instead put undated rows at the top of every ascending list,
+      // which is why the goals timeline opened on a goal with no deadline.
       rows.sort((a, b) => {
-        const av = String(a[col] ?? '')
-        const bv = String(b[col] ?? '')
+        const an = a[col] == null
+        const bn = b[col] == null
+        if (an || bn) {
+          if (an && bn) return 0
+          return (an ? 1 : -1) * (asc ? 1 : -1)
+        }
+        const av = String(a[col])
+        const bv = String(b[col])
         return asc ? av.localeCompare(bv) : bv.localeCompare(av)
       })
     }

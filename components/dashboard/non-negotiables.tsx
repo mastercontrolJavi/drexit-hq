@@ -1,11 +1,16 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { X, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import type { NonNegotiable } from '@/types'
+import { SkeletonRows } from '@/components/data/skeleton'
+import { EmptyState } from '@/components/data/empty-state'
+import { DUR, EASE_OUT, listContainer, listItem } from '@/lib/motion'
+import { Panel } from '@/components/data/panel'
 
 function todayISO(): string {
   return new Date().toISOString().slice(0, 10)
@@ -102,9 +107,9 @@ export function NonNegotiables() {
   const allDone = items.length > 0 && winsCount === items.length
 
   return (
-    <section className="border border-border bg-bg-elevated">
-      <header className="flex items-center justify-between px-4 py-2.5 border-b border-border">
-        <span className="caption text-text-2">NON_NEGOTIABLES</span>
+    <Panel>
+      <Panel.Header>
+        <Panel.Title>NON_NEGOTIABLES</Panel.Title>
         {items.length > 0 && (
           <span
             className={cn(
@@ -115,33 +120,29 @@ export function NonNegotiables() {
             {winsCount}/{items.length}
           </span>
         )}
-      </header>
+      </Panel.Header>
 
       {loading ? (
-        <ul>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <li key={i} className="border-b border-border px-4 py-2.5 last:border-b-0">
-              <div className="h-4 w-2/3 bg-bg-hover animate-pulse" />
-            </li>
-          ))}
-        </ul>
+        <SkeletonRows count={3} />
       ) : items.length === 0 ? (
-        <p className="font-mono text-xs text-text-3 px-4 py-6">
-          &gt; no non-negotiables yet
-        </p>
+        <EmptyState variant="flush">no non-negotiables yet</EmptyState>
       ) : (
-        <ul>
+        <motion.ul variants={listContainer} initial="hidden" animate="show">
+          <AnimatePresence initial={false}>
           {items.map((item) => {
             const done = item.last_completed_date === today
             return (
-              <li
+              <motion.li
                 key={item.id}
-                className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-200 ease-out-200"
+                variants={listItem}
+                exit={{ opacity: 0, x: 8 }}
+                transition={{ duration: DUR.fast, ease: EASE_OUT }}
+                className="group flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0 hover:bg-bg-hover transition-colors duration-150 ease-out-200"
               >
                 <button
                   onClick={() => toggleItem(item)}
                   className={cn(
-                    'shrink-0 font-mono text-[13px] leading-none focus:outline-none transition-colors',
+                    'shrink-0 font-mono text-[13px] leading-none transition-colors duration-150 ease-out-200',
                     done ? 'text-success' : 'text-text-3 hover:text-text-1',
                   )}
                   aria-label={done ? 'Unmark as done' : 'Mark as done'}
@@ -150,23 +151,25 @@ export function NonNegotiables() {
                 </button>
                 <span
                   className={cn(
-                    'flex-1 text-[13px] leading-tight',
+                    'min-w-0 flex-1 truncate text-[13px] leading-tight transition-colors duration-150 ease-out-200',
                     done ? 'line-through text-text-3' : 'text-text-1',
                   )}
+                  title={item.title}
                 >
                   {item.title}
                 </span>
                 <button
                   onClick={() => deleteItem(item.id)}
-                  className="invisible shrink-0 text-text-3 hover:text-danger group-hover:visible focus:outline-none focus:visible:visible"
+                  className="shrink-0 text-text-3 opacity-0 transition-[color,opacity] duration-150 ease-out-200 hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
                   aria-label="Remove item"
                 >
                   <X className="h-3 w-3" strokeWidth={1.5} />
                 </button>
-              </li>
+              </motion.li>
             )
           })}
-        </ul>
+          </AnimatePresence>
+        </motion.ul>
       )}
 
       <div className="flex items-center gap-2 border-t border-border px-3 py-2">
@@ -184,12 +187,12 @@ export function NonNegotiables() {
         <button
           onClick={addItem}
           disabled={adding || !newTitle.trim()}
-          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors"
+          className="shrink-0 text-text-3 hover:text-text-1 disabled:opacity-40 transition-colors duration-150 ease-out-200"
           aria-label="Add"
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={1.5} />
         </button>
       </div>
-    </section>
+    </Panel>
   )
 }

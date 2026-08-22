@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { addDays, differenceInDays, format, parseISO, subMonths } from 'date-fns'
-import { cn, formatCurrency, formatCurrencyShort, getMonthLabel } from '@/lib/utils'
+import { cn, formatAxisCurrency, formatCurrency, formatCurrencyShort, getMonthLabel } from '@/lib/utils'
+import { CHART_ANIMATION } from '@/lib/motion'
+import { Shimmer, SkeletonBarChart, SkeletonBarRows, SkeletonPanel, SkeletonRows } from '@/components/data/skeleton'
 import { BUDGET_CATEGORIES, type BudgetEntry } from '@/types'
 import { useIncome } from '@/lib/hooks/use-income'
 import {
@@ -20,6 +22,8 @@ import {
 } from 'recharts'
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'
 import { UnderlineTabs, type UnderlineTabOption } from '@/components/data/underline-tabs'
+import { Panel } from '@/components/data/panel'
+import { EmptyState } from '@/components/data/empty-state'
 
 const BILL_CATEGORIES = ['Rent', 'Subscriptions', 'Utilities']
 
@@ -243,15 +247,29 @@ export function SpendingOverview() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-9 w-72 animate-pulse bg-bg-hover" />
+        <Shimmer className="h-9 w-72" />
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
-            <div className="h-44 animate-pulse bg-bg-hover" />
-            <div className="h-72 animate-pulse bg-bg-hover" />
+            <SkeletonPanel headerWidth="w-28">
+              <div className="p-4">
+                <SkeletonBarChart height={140} bars={6} />
+              </div>
+            </SkeletonPanel>
+            <SkeletonPanel headerWidth="w-20">
+              <SkeletonRows count={5} />
+            </SkeletonPanel>
           </div>
           <div className="space-y-3">
-            <div className="h-44 animate-pulse bg-bg-hover" />
-            <div className="h-32 animate-pulse bg-bg-hover" />
+            <SkeletonPanel headerWidth="w-24">
+              <div className="p-4">
+                <SkeletonBarRows count={4} />
+              </div>
+            </SkeletonPanel>
+            <SkeletonPanel headerWidth="w-16">
+              <div className="p-4">
+                <SkeletonBarRows count={2} />
+              </div>
+            </SkeletonPanel>
           </div>
         </div>
       </div>
@@ -287,7 +305,7 @@ export function SpendingOverview() {
         <button
           onClick={() => setIncludeBills(!includeBills)}
           className={cn(
-            'caption ml-auto border px-3 py-1.5 transition-colors',
+            'caption ml-auto border px-3 py-1.5 transition-colors duration-150 ease-out-200',
             includeBills
               ? 'border-accent text-accent'
               : 'border-border text-text-3 hover:border-text-1 hover:text-text-1',
@@ -301,11 +319,11 @@ export function SpendingOverview() {
         {/* Left: charts */}
         <div className="lg:col-span-2 space-y-4">
           {/* Monthly bar */}
-          <section className="border border-border bg-bg-elevated">
-            <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-              <span className="caption text-text-2">MONTHLY SPEND · 6 MONTHS</span>
+          <Panel>
+            <Panel.Header>
+              <Panel.Title>MONTHLY SPEND · 6 MONTHS</Panel.Title>
               <span className="caption text-text-3">CLICK TO FILTER</span>
-            </header>
+            </Panel.Header>
             <div className="p-4">
               <ResponsiveContainer width="100%" height={140}>
                 <BarChart data={monthlyBarData} barSize={28}>
@@ -315,11 +333,11 @@ export function SpendingOverview() {
                     tick={tickStyle}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(v) => `£${v}`}
+                    tickFormatter={(v) => formatAxisCurrency(Number(v))}
                     width={42}
                   />
                   <Tooltip cursor={{ fill: 'var(--bg-hover)' }} content={<MonoTooltip />} />
-                  <Bar
+                  <Bar {...CHART_ANIMATION}
                     dataKey="amount"
                     cursor="pointer"
                     onClick={(_, index) => {
@@ -337,12 +355,12 @@ export function SpendingOverview() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </section>
+          </Panel>
 
           {/* Donut + table */}
-          <section className="border border-border bg-bg-elevated">
-            <header className="flex items-center justify-between border-b border-border px-4 py-2.5">
-              <span className="caption text-text-2">BREAKDOWN · {periodLabel}</span>
+          <Panel>
+            <Panel.Header>
+              <Panel.Title>BREAKDOWN · {periodLabel}</Panel.Title>
               {prevTotalSpend > 0 && (
                 <span
                   className={cn(
@@ -353,10 +371,10 @@ export function SpendingOverview() {
                   Δ {changePct > 0 ? '+' : ''}{changePct.toFixed(1)}%
                 </span>
               )}
-            </header>
+            </Panel.Header>
 
             {categoryBreakdown.length === 0 ? (
-              <p className="font-mono text-xs text-text-3 px-4 py-12">&gt; no spending data for this period</p>
+              <EmptyState variant="flush">no spending data for this period</EmptyState>
             ) : (
               <div className="flex flex-col gap-6 p-4 sm:flex-row">
                 <div className="relative shrink-0" style={{ width: 200, height: 200 }}>
@@ -444,15 +462,15 @@ export function SpendingOverview() {
                 </div>
               </div>
             )}
-          </section>
+          </Panel>
         </div>
 
         {/* Right: summary + lists */}
         <div className="space-y-4">
-          <section className="border border-border bg-bg-elevated">
-            <header className="border-b border-border px-4 py-2.5">
-              <span className="caption text-text-2">SUMMARY</span>
-            </header>
+          <Panel>
+            <Panel.Header>
+              <Panel.Title>SUMMARY</Panel.Title>
+            </Panel.Header>
             <div className="space-y-2 p-4 font-mono text-[12px] tabular-nums">
               <div className="flex items-center justify-between">
                 <span className="text-text-3">INCOME</span>
@@ -473,15 +491,15 @@ export function SpendingOverview() {
                 </span>
               </div>
             </div>
-          </section>
+          </Panel>
 
-          <section className="border border-border bg-bg-elevated">
-            <header className="border-b border-border px-4 py-2.5">
-              <span className="caption text-text-2">FREQUENT_SPEND</span>
-            </header>
+          <Panel>
+            <Panel.Header>
+              <Panel.Title>FREQUENT_SPEND</Panel.Title>
+            </Panel.Header>
             <div className="p-4">
               {frequentMerchants.length === 0 ? (
-                <p className="font-mono text-xs text-text-3">&gt; add descriptions to track merchants</p>
+                <EmptyState>add descriptions to track merchants</EmptyState>
               ) : (
                 <ul className="divide-y divide-border">
                   {frequentMerchants.map((m, i) => (
@@ -499,15 +517,15 @@ export function SpendingOverview() {
                 </ul>
               )}
             </div>
-          </section>
+          </Panel>
 
-          <section className="border border-border bg-bg-elevated">
-            <header className="border-b border-border px-4 py-2.5">
-              <span className="caption text-text-2">LARGEST_PURCHASES</span>
-            </header>
+          <Panel>
+            <Panel.Header>
+              <Panel.Title>LARGEST_PURCHASES</Panel.Title>
+            </Panel.Header>
             <div className="p-4">
               {largestPurchases.length === 0 ? (
-                <p className="font-mono text-xs text-text-3">&gt; no transactions this period</p>
+                <EmptyState>no transactions this period</EmptyState>
               ) : (
                 <ul className="divide-y divide-border">
                   {largestPurchases.map((e) => (
@@ -526,7 +544,7 @@ export function SpendingOverview() {
                 </ul>
               )}
             </div>
-          </section>
+          </Panel>
         </div>
       </div>
     </div>

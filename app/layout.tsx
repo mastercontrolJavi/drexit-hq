@@ -1,15 +1,18 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { Instrument_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/sidebar'
-import { Toaster } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
 import { Providers } from '@/components/shell/providers'
 import { Ticker } from '@/components/shell/ticker'
 import { BootSequence } from '@/components/shell/boot-sequence'
 import { CommandPalette } from '@/components/shell/command-palette'
 import { MobileNav } from '@/components/shell/mobile-nav'
 
-const fontSans = Inter({
+// Instrument Sans over Inter: a modern grotesque with sharper terminals and
+// tighter apertures, which holds up better at the 11-13px this UI lives at
+// and sits closer to JetBrains Mono's squared-off forms.
+const fontSans = Instrument_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
@@ -30,7 +33,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'AXIS_OS',
-  description: 'Personal command center — budget, goals, fitness, ideas.',
+  description: 'Personal command center for budget, goals, fitness and ideas.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -66,19 +69,7 @@ export default function RootLayout({
           </div>
           <MobileNav />
           <CommandPalette />
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-hairline)',
-                borderRadius: '4px',
-                color: 'var(--text-1)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-              },
-            }}
-          />
+          <Toaster />
         </Providers>
       </body>
     </html>
